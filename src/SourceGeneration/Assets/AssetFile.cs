@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -10,13 +10,19 @@ internal readonly record struct AssetFile(
     StringSegment Folder,
     StringSegment Name,
     StringSegment Extension,
-    AssetType AssetType) 
+    AssetType AssetType)
 {
-    public bool Equals(AssetFile other) =>
-        Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase)
-        && Extension.Equals(other.Extension, StringComparison.OrdinalIgnoreCase);
+    public bool Equals(AssetFile other)
+    {
+        return Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase)
+               && Extension.Equals(other.Extension, StringComparison.OrdinalIgnoreCase);
+    }
 
-    public override int GetHashCode() => HashCode.Combine(Path, Extension);
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Path, Extension);
+    }
+
     public StringSegment Path { get; } = Path;
     public StringSegment Folder { get; } = Folder;
     public StringSegment Name { get; } = Name;

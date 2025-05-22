@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Primitives;
 using SourceGeneration.Utilities;
 using System;
 using System.Runtime.InteropServices;
@@ -8,38 +8,62 @@ namespace System.Runtime.CompilerServices;
 
 // Not the same as the default one from System
 [InterpolatedStringHandler]
-internal readonly ref struct DefaultInterpolatedStringHandler {
+internal readonly ref struct DefaultInterpolatedStringHandler
+{
     private readonly StringBuilder builder;
-    public DefaultInterpolatedStringHandler(int literalLength, int formattedCount) {
-        builder = StringBuilderPool.Rent(literalLength + formattedCount * 11);
+
+    public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
+    {
+        builder = StringBuilderPool.Rent(literalLength + (formattedCount * 11));
     }
-    public readonly void AppendFormatted<T>(T value) {
+
+    public readonly void AppendFormatted<T>(T value)
+    {
         builder.Append(value);
     }
-    public readonly void AppendFormatted(int value) {
+
+    public readonly void AppendFormatted(int value)
+    {
         builder.Append(value);
     }
-    public readonly void AppendFormatted(string value) {
+
+    public readonly void AppendFormatted(string value)
+    {
         builder.Append(value);
     }
-    public readonly void AppendFormatted(StringSegment value) {
+
+    public readonly void AppendFormatted(StringSegment value)
+    {
         builder.Append(value);
     }
-    public unsafe readonly void AppendFormatted(ReadOnlyMemory<char> value) {
-        if(MemoryMarshal.TryGetString(value, out var text, out var start, out var length))
+
+    public readonly unsafe void AppendFormatted(ReadOnlyMemory<char> value)
+    {
+        if (MemoryMarshal.TryGetString(value, out string text, out int start, out int length))
+        {
             builder.Append(text, start, length);
-        else if(MemoryMarshal.TryGetArray(value, out var segment))
+        }
+        else if (MemoryMarshal.TryGetArray(value, out ArraySegment<char> segment))
+        {
             builder.Append(segment.Array, segment.Offset, segment.Count);
+        }
         else
-            fixed(char* ptr = value.Span)
+        {
+            fixed (char* ptr = value.Span)
+            {
                 builder.Append(ptr, value.Length);
+            }
+        }
     }
-    public readonly void AppendLiteral(string str) {
+
+    public readonly void AppendLiteral(string str)
+    {
         builder.Append(str);
     }
 
-    public readonly string ToStringAndClear() {
-        var result = builder.ToString();
+    public readonly string ToStringAndClear()
+    {
+        string result = builder.ToString();
         StringBuilderPool.Return(builder);
         return result;
     }

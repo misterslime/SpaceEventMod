@@ -1,11 +1,14 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SourceGeneration.Utilities;
 
-public static class GeneratorUtils {
-    public static string GetRootNamespaceOrRaiseDiagnostic(SourceProductionContext ctx, AnalyzerConfigOptions options) {
-        if(options.TryGetValue("build_property.rootnamespace", out var rootNamespace)) {
+public static class GeneratorUtils
+{
+    public static string GetRootNamespaceOrRaiseDiagnostic(SourceProductionContext ctx, AnalyzerConfigOptions options)
+    {
+        if (options.TryGetValue("build_property.rootnamespace", out string rootNamespace))
+        {
             return rootNamespace;
         }
 
@@ -23,6 +26,5 @@ public static class GeneratorUtils {
             )
         );
         return null;
-
     }
 }

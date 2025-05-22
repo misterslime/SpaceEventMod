@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Primitives;
 using SourceGeneration.Utilities;
 using System;
@@ -9,35 +9,35 @@ using System.Linq;
 namespace SourceGeneration.Assets;
 
 // ReSharper disable VariableHidesOuterVariable
-
 [Generator(LanguageNames.CSharp)]
-internal sealed class AssetGenerator : IIncrementalGenerator 
+internal sealed class AssetGenerator : IIncrementalGenerator
 {
     private const string tool_version = "1.0";
     private const string image_extension = ".png";
     private const string effect_extension = ".fxc";
 
-    private static readonly string[] supported_extensions = new[] 
-    {
-        image_extension,
-        effect_extension,
-    };
+    private static readonly string[] supported_extensions = new[] { image_extension, effect_extension };
 
-    void IIncrementalGenerator.Initialize(IncrementalGeneratorInitializationContext context) 
+    void IIncrementalGenerator.Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var modName = context.CompilationProvider.Select((compilation, _) => compilation.AssemblyName);
+        IncrementalValueProvider<string> modName =
+            context.CompilationProvider.Select((compilation, _) => compilation.AssemblyName);
 
-        var assetRootFolder = context.AdditionalTextsProvider
+        IncrementalValueProvider<string> assetRootFolder = context.AdditionalTextsProvider
             .Where(file => file.Path.EndsWith("AssetRoot.txt"))
             .Collect()
             .Select(static (files, _) =>
             {
-                var directory = Path.GetDirectoryName(files.FirstOrDefault()?.Path)?.Replace('\\', '/');
-                if(string.IsNullOrWhiteSpace(directory)) return null;
+                string directory = Path.GetDirectoryName(files.FirstOrDefault()?.Path)?.Replace('\\', '/');
+                if (string.IsNullOrWhiteSpace(directory))
+                {
+                    return null;
+                }
+
                 return directory;
             });
 
-        var generatorInput = assetRootFolder
+        IncrementalValueProvider<GeneratorInput> generatorInput = assetRootFolder
             .Combine(modName)
             .Select(
                 static (tuple, _) =>
@@ -49,7 +49,7 @@ internal sealed class AssetGenerator : IIncrementalGenerator
             one generated file per asset is technically the most efficient, but itd generate way too many files
             one generated file with all assets would generate a very large file, which the compiler might not like
             and changing one fill would necessitate an entire file rebuild
-            
+
             grouping by directory only triggers a rebuild for the directory a file belongs to
          */
         var contents = context.AdditionalTextsProvider
@@ -66,38 +66,40 @@ internal sealed class AssetGenerator : IIncrementalGenerator
             )
             .Select(static (tuple, _) =>
             {
-                var fileInfo = new FileInformation(
-                    FullPath: tuple.Left,
-                    RootFolder: tuple.Right.AssetRootFolder!.Value,
-                    AssemblyName: tuple.Right.AssemblyName
+                FileInformation fileInfo = new(
+                    tuple.Left,
+                    tuple.Right.AssetRootFolder!.Value,
+                    tuple.Right.AssemblyName
                 );
 
-                var fullPath = fileInfo.FullPath.AsSegment(fileInfo.RootFolder.Length + 1);
+                StringSegment fullPath = fileInfo.FullPath.AsSegment(fileInfo.RootFolder.Length + 1);
 
-                var path = PathUtils.RemoveExtension(fullPath);
-                var folder = PathUtils.GetFolder(fullPath);
-                var name = PathUtils.GetFileNameWithoutExtension(fullPath);
-                var extension = PathUtils.GetExtension(fullPath);
+                StringSegment path = PathUtils.RemoveExtension(fullPath);
+                StringSegment folder = PathUtils.GetFolder(fullPath);
+                StringSegment name = PathUtils.GetFileNameWithoutExtension(fullPath);
+                StringSegment extension = PathUtils.GetExtension(fullPath);
 
-                if(folder.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+                if (folder.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
+                {
                     folder = folder.Substring("Assets/".Length);
+                }
 
                 //determine asset type based on file extension
                 //exception should never be thrown in any case, but defensive anyways
-                var assetType = extension.Equals(image_extension, StringComparison.OrdinalIgnoreCase)
-                        ? AssetType.Texture2D :
-                    extension.Equals(effect_extension, StringComparison.OrdinalIgnoreCase)
-                        ? AssetType.Effect :
-                    throw new InvalidOperationException("how");
+                AssetType assetType = extension.Equals(image_extension, StringComparison.OrdinalIgnoreCase)
+                    ? AssetType.Texture2D
+                    : extension.Equals(effect_extension, StringComparison.OrdinalIgnoreCase)
+                        ? AssetType.Effect
+                        : throw new InvalidOperationException("how");
 
                 return new
                 {
                     AssetFile = new AssetFile(
-                        Path: path,
-                        Folder: folder,
-                        Name: name,
-                        Extension: extension,
-                        AssetType: assetType
+                        path,
+                        folder,
+                        name,
+                        extension,
+                        assetType
                     ),
                     fileInfo.AssemblyName
                 };
@@ -121,8 +123,11 @@ internal sealed class AssetGenerator : IIncrementalGenerator
             {
                 var (path, modName) = tuple;
                 string warn = "";
-                if(path == null)
+                if (path == null)
+                {
                     warn = "#warning missing AssetRoot.txt file";
+                }
+
                 context.AddSource(
                     "Assets.default.g.cs",
                     $@"// <auto-generated/>
@@ -139,12 +144,11 @@ partial class Assets;
             contents.Combine(modName),
             (sourceContext, tuple) =>
             {
-
                 var (contentTuple, tupleModName) = tuple;
                 var (folder, assetFiles) = contentTuple;
 
                 sourceContext.CancellationToken.ThrowIfCancellationRequested();
-                using var writer = new IndentedStringWriter(1024);
+                using IndentedStringWriter writer = new(1024);
 
                 writer.WriteLine("// <auto-generated/>");
 
@@ -162,28 +166,34 @@ namespace {tupleModName}.Assets;
 partial class Assets {{"
                 );
                 writer.Indent++;
-                foreach(var part in folder.SplitEx('/', StringSplitOptions.RemoveEmptyEntries)) {
+                foreach (StringSegment part in folder.SplitEx('/', StringSplitOptions.RemoveEmptyEntries))
+                {
                     writer.WriteLine($"public partial class {part} {{   ");
                     writer.Indent++;
                 }
 
-                foreach(var fileData in assetFiles) {
-                    var file = fileData.AssetFile;
-                    var assetPath = $"{tupleModName}/{file.Path}";
+                foreach (var fileData in assetFiles)
+                {
+                    AssetFile file = fileData.AssetFile;
+                    string assetPath = $"{tupleModName}/{file.Path}";
 
                     writer.WriteLine($"public const string KEY_{file.Name} = \"{assetPath}\";");
 
-                    var typeLazy = file.AssetType switch
+                    string typeLazy = file.AssetType switch
                     {
-                        AssetType.Texture2D => $"public readonly static Lazy<ImageAsset> {file.Name}_lazy = new(() => ModContent.Request<Texture2D>(\"{assetPath}\"));",
-                        AssetType.Effect => $"public readonly static Lazy<EffectAsset> {file.Name}_lazy = new(() => ModContent.Request<Effect>(\"{assetPath}\", AssetRequestMode.ImmediateLoad));",
+                        AssetType.Texture2D =>
+                            $"public readonly static Lazy<ImageAsset> {file.Name}_lazy = new(() => ModContent.Request<Texture2D>(\"{assetPath}\"));",
+                        AssetType.Effect =>
+                            $"public readonly static Lazy<EffectAsset> {file.Name}_lazy = new(() => ModContent.Request<Effect>(\"{assetPath}\", AssetRequestMode.ImmediateLoad));",
                         _ => throw new ArgumentOutOfRangeException()
                     };
 
-                    var type = file.AssetType switch
+                    string type = file.AssetType switch
                     {
-                        AssetType.Texture2D => $"public static ImageAsset {file.Name} {{ get; }} = {file.Name}_lazy.Value;",
-                        AssetType.Effect => $"public static EffectAsset {file.Name} {{ get; }} = ModContent.Request<Effect>(\"{assetPath}\", AssetRequestMode.ImmediateLoad);",
+                        AssetType.Texture2D =>
+                            $"public static ImageAsset {file.Name} {{ get; }} = {file.Name}_lazy.Value;",
+                        AssetType.Effect =>
+                            $"public static EffectAsset {file.Name} {{ get; }} = ModContent.Request<Effect>(\"{assetPath}\", AssetRequestMode.ImmediateLoad);",
                         _ => throw new ArgumentOutOfRangeException()
                     };
 
@@ -191,7 +201,8 @@ partial class Assets {{"
                     writer.WriteLine(type);
                 }
 
-                foreach(var _ in folder.SplitEx('/', StringSplitOptions.RemoveEmptyEntries)) {
+                foreach (StringSegment _ in folder.SplitEx('/', StringSplitOptions.RemoveEmptyEntries))
+                {
                     writer.Indent--;
                     writer.WriteLine("}");
                 }
@@ -199,13 +210,15 @@ partial class Assets {{"
                 writer.Indent--;
                 writer.WriteLine("}"); // Assets class
 
-                var sourceText = writer.ToStringAndClear();
+                string sourceText = writer.ToStringAndClear();
 
                 writer.Write($"Assets.{folder}.cs");
                 writer.Builder.Replace('/', '.');
-                var fileName = writer.ToString();
-                if(fileName.Equals("Assets..cs", StringComparison.Ordinal)) // file was on root
+                string fileName = writer.ToString();
+                if (fileName.Equals("Assets..cs", StringComparison.Ordinal)) // file was on root
+                {
                     fileName = "Assets.g.cs";
+                }
 
                 sourceContext.AddSource(fileName, sourceText);
             }
@@ -214,7 +227,7 @@ partial class Assets {{"
 
     /// <summary> Represents the input data required for this generator, including the root assets folder and assembly name. </summary>
     /// <param name="AssemblyName">The name of the mod used for generation, derived from the compilation's assembly name.</param>
-    private readonly record struct GeneratorInput(StringSegment? AssetRootFolder, StringSegment AssemblyName) 
+    private readonly record struct GeneratorInput(StringSegment? AssetRootFolder, StringSegment AssemblyName)
     {
         public StringSegment? AssetRootFolder { get; } = AssetRootFolder;
 
@@ -223,7 +236,10 @@ partial class Assets {{"
     }
 
     /// <summary> Represents information about a file. </summary>
-    private readonly record struct FileInformation(string FullPath, StringSegment RootFolder, StringSegment AssemblyName) 
+    private readonly record struct FileInformation(
+        string FullPath,
+        StringSegment RootFolder,
+        StringSegment AssemblyName)
     {
         public string FullPath { get; } = FullPath;
         public StringSegment RootFolder { get; } = RootFolder;
