@@ -13,18 +13,14 @@ public class RandomPolygon
     /// Random noise is added by varying the angle between points, and by varying the distance of each point from the center.
     /// </summary>
     /// <returns></returns>
-    public static Polygon GeneratePolygon(int seed, Vector2 center, float averageRadius, float irregularity, float spikiness, int numberOfVertices)
+    public static Polygon GeneratePolygon(int seed, Vector2 center, float minRadius, float maxRadius, float irregularity, int numberOfVertices)
     {
         if (irregularity < 0 || irregularity > 1)
             throw new ArgumentOutOfRangeException(nameof(irregularity), " must be between 0 and 1.");
 
-        if (spikiness < 0 || spikiness > 1)
-            throw new ArgumentOutOfRangeException(nameof(spikiness), " must be between 0 and 1.");
-
         UnifiedRandom random = new UnifiedRandom(seed);
 
         irregularity *= MathHelper.TwoPi / numberOfVertices;
-        spikiness *= averageRadius;
         List<float> angles = RandomAngles(random, numberOfVertices, irregularity);
 
         List<Vector2> points = new List<Vector2>();
@@ -32,7 +28,7 @@ public class RandomPolygon
 
         for (int i = 0; i < numberOfVertices; i++)
         {
-            float radius = MathHelper.Clamp(random.NextGaussian(averageRadius, spikiness), 0.75f * averageRadius, 1.5f * averageRadius);
+            float radius = random.NextFloat(minRadius, maxRadius);
             points.Add(new Vector2(center.X + radius * MathF.Cos(angle), center.Y + radius * MathF.Sin(angle)));
             angle += angles[i];
         }
