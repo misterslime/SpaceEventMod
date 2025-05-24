@@ -10,11 +10,12 @@ namespace SourceGeneration.Assets;
 [Generator(LanguageNames.CSharp)]
 internal sealed class AssetGenerator : IIncrementalGenerator
 {
-    private const string tool_version = "1.0";
     private const string image_extension = ".png";
     private const string effect_extension = ".fxc";
 
     private const string build_manifest_filename = "build.txt";
+
+    private const string mod_name = "SpaceEventMod";
 
     private static readonly string[] supported_extensions = new[] { image_extension, effect_extension };
 
@@ -34,8 +35,8 @@ using System;
 using ImageAsset = ReLogic.Content.Asset<Microsoft.Xna.Framework.Graphics.Texture2D>;
 using EffectAsset = ReLogic.Content.Asset<Microsoft.Xna.Framework.Graphics.Effect>;
 ");
-        
-        writer.WriteLine("namespace SpaceEventMod.Assets;");
+
+        writer.WriteLine($"namespace {mod_name}.Assets;");
         initial_file_header = writer.ToString();
     }
 
@@ -52,6 +53,7 @@ using EffectAsset = ReLogic.Content.Asset<Microsoft.Xna.Framework.Graphics.Effec
 
                 return directory;
             });
+
 
         /*
             asset files are grouped by directory
@@ -75,14 +77,13 @@ using EffectAsset = ReLogic.Content.Asset<Microsoft.Xna.Framework.Graphics.Effec
             )
             .Select(static (tuple, _) =>
             {
-                string fullPath = tuple.Left;
-                string rootFolder = tuple.Right;
-                string relativePath = fullPath.Substring(rootFolder.Length + 1);
+                string fullPath = tuple.Left.Substring(tuple.Right.Length + 1);
 
-                string path = PathUtils.RemoveExtension(relativePath);
-                string folder = PathUtils.GetFolder(relativePath);
-                string name = PathUtils.GetFileNameWithoutExtension(relativePath);
-                string extension = PathUtils.GetExtension(relativePath);
+                string path = Path.ChangeExtension(fullPath, null);
+                string folder = Path.GetDirectoryName(fullPath)!.Replace('\\', '/');
+                string name = Path.GetFileNameWithoutExtension(fullPath);
+                string extension = Path.GetExtension(fullPath);
+
 
                 if (folder.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
                     folder = folder.Substring("Assets/".Length);
@@ -95,28 +96,20 @@ using EffectAsset = ReLogic.Content.Asset<Microsoft.Xna.Framework.Graphics.Effec
                         ? AssetType.Effect
                         : throw new InvalidOperationException("how");
 
-                return new
-                {
-                    AssetFile = new AssetFile(
-                        path,
-                        folder,
-                        name,
-                        extension,
-                        assetType
-                    )
-                };
+                return new AssetFile(
+                    path,
+                    folder,
+                    name,
+                    extension,
+                    assetType
+                );
             })
             .Collect()
-            .SelectMany(
-                (files, _) =>
-                    files
-                        .GroupBy(
-                            f => f.AssetFile.Folder,
-                            f => f,
-                            (key, group) =>
-                                (key, group.ToImmutableArray())
-                        )
-                        .ToImmutableArray()
+            .SelectMany((files, _) => files.GroupBy(
+                    f => f.Folder, 
+                    f => f, 
+                    (key, group) => (key, group.ToImmutableArray()))
+                .ToImmutableArray()
             );
 
         context.RegisterSourceOutput(
@@ -138,10 +131,9 @@ using EffectAsset = ReLogic.Content.Asset<Microsoft.Xna.Framework.Graphics.Effec
                     writer.Indent++;
                 }
 
-                foreach (var fileData in assetFiles)
+                foreach (var file in assetFiles)
                 {
-                    AssetFile file = fileData.AssetFile;
-                    string assetPath = $"SpaceEventMod/{file.Path}";
+                    string assetPath = $"{mod_name}/{file.Path}";
 
                     writer.WriteLine($"public const string KEY_{file.Name} = \"{assetPath}\";");
 

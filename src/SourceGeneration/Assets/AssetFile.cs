@@ -10,10 +10,4 @@ internal readonly record struct AssetFile(string Path, string Folder, string Nam
     public string Name { get; } = Name;
     public string Extension { get; } = Extension;
     public AssetType AssetType { get; } = AssetType;
-    
-    public bool Equals(AssetFile other) 
-        => Path.Equals(other.Path, StringComparison.OrdinalIgnoreCase) && Extension.Equals(other.Extension, StringComparison.OrdinalIgnoreCase);
-
-    public override int GetHashCode() 
-        => HashCode.Combine(Path, Extension);
 }
