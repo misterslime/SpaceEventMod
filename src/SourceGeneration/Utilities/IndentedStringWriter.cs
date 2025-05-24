@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Primitives;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -225,18 +224,6 @@ internal sealed class IndentedStringWriter : IDisposable
         }
 
         Builder.Append(value);
-        return this;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IndentedStringWriter Write(StringSegment value)
-    {
-        if (tabsPending)
-        {
-            WriteTabs();
-        }
-
-        Builder.Append(value.Buffer, value.Offset, value.Length);
         return this;
     }
 

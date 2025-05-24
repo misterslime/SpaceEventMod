@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Primitives;
 using SourceGeneration.Utilities;
 using System;
 using System.Runtime.InteropServices;
@@ -28,11 +27,6 @@ internal readonly ref struct DefaultInterpolatedStringHandler
     }
 
     public readonly void AppendFormatted(string value)
-    {
-        builder.Append(value);
-    }
-
-    public readonly void AppendFormatted(StringSegment value)
     {
         builder.Append(value);
     }

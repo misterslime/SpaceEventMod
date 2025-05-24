@@ -18,17 +18,11 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" PrivateAssets="all" GeneratePathProperty="true"/>
-        <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.0" PrivateAssets="all" GeneratePathProperty="true"/>
     </ItemGroup>
 
     <ItemGroup>
         <None Include="$(PkgMicrosoft_Bcl_HashCode)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-        <None Include="$(PkgMicrosoft_Extensions_Primitives)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
         <None Remove="System.Runtime.CompilerServices\**"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <EditorConfigFiles Remove=".editorconfig" />
     </ItemGroup>
 
     <PropertyGroup>
@@ -39,7 +33,6 @@
     <Target Name="GetDependencyTargetPaths">
         <ItemGroup>
             <TargetPathWithTargetPlatformMoniker Include="$(PkgMicrosoft_Bcl_HashCode)\lib\netstandard2.0\Microsoft.Bcl.HashCode.dll" IncludeRuntimeDependency="false"/>
-            <TargetPathWithTargetPlatformMoniker Include="$(PkgMicrosoft_Extensions_Primitives)\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll" IncludeRuntimeDependency="false"/>
         </ItemGroup>
     </Target>
 

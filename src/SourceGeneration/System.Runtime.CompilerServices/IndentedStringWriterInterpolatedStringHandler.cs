@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Primitives;
 using SourceGeneration.Utilities;
 using System;
 using System.Runtime.CompilerServices;
@@ -97,12 +96,6 @@ internal readonly ref struct IndentedStringWriterInterpolatedStringHandler
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly void AppendFormatted(ReadOnlySpan<char> value)
-    {
-        writer.Write(value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly void AppendFormatted(StringSegment value)
     {
         writer.Write(value);
     }

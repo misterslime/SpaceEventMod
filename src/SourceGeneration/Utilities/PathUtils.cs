@@ -1,25 +1,24 @@
-using Microsoft.Extensions.Primitives;
 using System;
+using System.IO;
 
 namespace SourceGeneration.Utilities;
 
 internal static class PathUtils
 {
-    public static StringSegment GetFolder(StringSegment path)
+    public static string GetFolder(string path)
     {
-        StringSegment result = path;
-        int lastSlash = result.LastIndexOf('/');
+        int lastSlash = path.LastIndexOf('/');
         if (lastSlash == -1)
         {
-            return default;
+            return string.Empty;
         }
 
-        return result.Substring(0, lastSlash);
+        return path.Substring(0, lastSlash);
     }
 
-    public static StringSegment GetFileNameWithoutExtension(StringSegment file)
+    public static string GetFileNameWithoutExtension(string file)
     {
-        StringSegment result = file;
+        string result = file;
         int lastDot = result.LastIndexOf('.');
         if (lastDot != -1)
         {
@@ -40,20 +39,20 @@ internal static class PathUtils
     /// </summary>
     /// <param name="file"></param>
     /// <returns></returns>
-    public static StringSegment GetExtension(StringSegment file)
+    public static string GetExtension(string file)
     {
         int index = file.LastIndexOf('.');
         if (index == -1)
         {
-            return default;
+            return string.Empty;
         }
 
         return file.Substring(index);
     }
 
-    public static StringSegment RemoveExtension(StringSegment file)
+    public static string RemoveExtension(string file)
     {
-        int index = file.AsSpan().LastIndexOf('.');
+        int index = file.LastIndexOf('.');
         if (index == -1)
         {
             return file;
