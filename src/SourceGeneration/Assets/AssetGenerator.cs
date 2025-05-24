@@ -16,6 +16,8 @@ internal sealed class AssetGenerator : IIncrementalGenerator
     private const string image_extension = ".png";
     private const string effect_extension = ".fxc";
 
+    private const string build_manifest_filename = "build.txt";
+
     private static readonly string[] supported_extensions = new[] { image_extension, effect_extension };
 
     void IIncrementalGenerator.Initialize(IncrementalGeneratorInitializationContext context)
@@ -24,15 +26,13 @@ internal sealed class AssetGenerator : IIncrementalGenerator
             context.CompilationProvider.Select((compilation, _) => compilation.AssemblyName);
 
         IncrementalValueProvider<string> assetRootFolder = context.AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith("AssetRoot.txt"))
+            .Where(file => file.Path.EndsWith(build_manifest_filename))
             .Collect()
             .Select(static (files, _) =>
             {
-                string directory = Path.GetDirectoryName(files.FirstOrDefault()?.Path)?.Replace('\\', '/');
+                var directory = Path.GetDirectoryName(files.FirstOrDefault()?.Path)?.Replace('\\', '/');
                 if (string.IsNullOrWhiteSpace(directory))
-                {
                     return null;
-                }
 
                 return directory;
             });
