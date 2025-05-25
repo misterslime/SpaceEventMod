@@ -1,7 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Terraria;
 
 namespace SpaceEventMod.Core.Geometry;
 
@@ -14,6 +15,16 @@ public class Polygon
     public Polygon(Vector2[] points)
     {
         Vertices = points;
+    }
+
+    public Polygon(Rectangle rectangle)
+    {
+        Vertices = [
+            rectangle.TopLeft(),
+            rectangle.TopRight(),
+            rectangle.BottomRight(),
+            rectangle.BottomLeft()
+        ];
     }
 
     /// <summary>

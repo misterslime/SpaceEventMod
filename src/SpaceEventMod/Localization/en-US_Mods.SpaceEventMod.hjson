@@ -1,1 +1,8 @@
+Items: {
+	Debug: {
+		DisplayName: Debug
+		Tooltip: ""
+	}
+}
 
+NPCs.Cosmostone.DisplayName: Cosmostone
