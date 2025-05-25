@@ -1,11 +1,5 @@
-using Microsoft.Build.Tasks;
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Props.Systems;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -40,7 +34,7 @@ public class Mineable : Component
         Vector2 propPosition = prop.GetComponent<Hitbox>().GetCenter();
         prop.GetComponent<DirectionalShake>().UnitDirection = propPosition - player.Center;
         prop.GetComponent<DirectionalShake>().UnitDirection.Normalize();
-        prop.GetComponent<DirectionalShake>().Time = 30;
+        prop.GetComponent<DirectionalShake>().Time = 20;
 
         // delete the prop if durability is now below 0
         if (Durability <= 0)
@@ -52,5 +46,32 @@ public class Mineable : Component
 
         if (Main.myPlayer == player.whoAmI)
             SoundEngine.PlaySound(SoundID.Tink, Main.MouseWorld);
+    }
+}
+
+public class MiningSystem : ComponentSystem<Mineable>
+{
+    public override void Load()
+    {
+        On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool += MineProp;
+    }
+
+    public override void Unload()
+    {
+        On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool -= MineProp;
+    }
+
+    private void MineProp(On_Player.orig_ItemCheck_UseMiningTools_ActuallyUseMiningTool orig, Player self, Item sItem, out bool canHitWalls, int x, int y)
+    {
+        orig(self, sItem, out canHitWalls, x, y);
+
+        if (self.whoAmI != Main.myPlayer)
+            return;
+
+        foreach (Mineable mineable in components.ToList())
+        {
+            if (mineable.IsHitting(Main.MouseWorld.X, Main.MouseWorld.Y))
+                mineable.OnHit(self, sItem);
+        }
     }
 }

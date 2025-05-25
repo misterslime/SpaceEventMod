@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Props.Systems;
-using Terraria;
+using System.Linq;
 
 namespace SpaceEventMod.Core.Props.Components;
 
@@ -30,5 +29,16 @@ public class DirectionalShake : Component
     public float GetStrength()
     {
         return MaxStrength * ((float)Time / (float)MaxTime);
+    }
+}
+
+public class DirectionalShakeSystem : ComponentSystem<DirectionalShake>
+{
+    public override void PostUpdateNPCs()
+    {
+        foreach (var component in components.ToList())
+        {
+            component.Update();
+        }
     }
 }

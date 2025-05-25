@@ -1,5 +1,5 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Props.Systems;
+using System.Linq;
 
 namespace SpaceEventMod.Core.Props.Components;
 
@@ -22,5 +22,18 @@ public class Transformation : Component
     public void Update()
     {
         this.Position += this.Velocity;
+    }
+}
+
+public class TransformationSystem : ComponentSystem<Transformation>
+{
+    public override void PostUpdateNPCs()
+    {
+
+
+        foreach (var component in components.ToList())
+        {
+            component.Update();
+        }
     }
 }

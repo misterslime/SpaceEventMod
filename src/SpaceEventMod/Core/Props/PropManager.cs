@@ -10,6 +10,9 @@ public class PropManager : ModSystem
 
     public override void OnWorldUnload()
     {
+        foreach (Prop prop in props)
+            prop.DisposeComponents();
+
         props.Clear();
     }
 

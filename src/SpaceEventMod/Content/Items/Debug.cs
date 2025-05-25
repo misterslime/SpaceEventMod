@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SpaceEventMod.Content.Props;
+using SpaceEventMod.Core.Props;
+using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria;
-using SpaceEventMod.Core.Props;
-using SpaceEventMod.Content.Props;
-using System.Numerics;
 
 namespace SpaceEventMod.Content.Items;
 

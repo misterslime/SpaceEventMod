@@ -1,16 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core;
+using SpaceEventMod.Core.Geometry;
+using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
 using SpaceEventMod.Core.Props.Components;
 using System;
-using Terraria.GameContent;
 using Terraria;
-using Microsoft.CodeAnalysis.Differencing;
 using Terraria.ModLoader;
-using SpaceEventMod.Core.Geometry;
-using SpaceEventMod.Core.Physics;
-using SpaceEventMod.Core.Props.Systems;
 
 
 namespace SpaceEventMod.Content.Props;
@@ -29,7 +26,7 @@ public class Cosmostone : Prop
         AddComponent(hitbox);
 
         DirectionalShake shake = new DirectionalShake();
-        shake.MaxTime = 30;
+        shake.MaxTime = 20;
         shake.Time = 0;
         shake.MaxStrength = 2;
         shake.UnitDirection = Vector2.UnitX;

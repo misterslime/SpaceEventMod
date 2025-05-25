@@ -3,7 +3,7 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Props;
 
-public class PropSystem<T> : ModSystem where T : Component
+public class ComponentSystem<T> : ModSystem where T : Component
 {
     protected static List<T> components = new List<T>();
 
