@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using System;
 using System.Linq;
 using Terraria;
 
@@ -6,18 +7,11 @@ namespace SpaceEventMod.Core.Props.Components;
 
 public class Collider : Component
 {
-    public delegate Vector2? CollisionDelegate(Prop closest, Vector2 position, int width, int height);
-
-    public CollisionDelegate OnTestCollisionVector { get; set; } = null;
+    public bool Pinned = false;
 
     public Collider()
     {
         CollisionSystem.Register(this);
-    }
-
-    public override void Dispose()
-    {
-        CollisionSystem.Unregister(this);
     }
 }
 
@@ -26,7 +20,6 @@ public class CollisionSystem : ComponentSystem<Collider>
     public override void Load()
     {
         On_Collision.SlopeCollision += CheckSlopeCollision;
-
     }
 
     public override void Unload()
@@ -36,35 +29,82 @@ public class CollisionSystem : ComponentSystem<Collider>
 
     private Vector4 CheckSlopeCollision(On_Collision.orig_SlopeCollision orig, Vector2 position, Vector2 velocity, int width, int height, float gravity, bool fall)
     {
-        var collision = TestCollisionVector(position, width, height);
-        if (collision != null)
-        {
-            return new Vector4(position.X + collision.Value.X, position.Y + collision.Value.Y, velocity.X, 0);
-        }
+        Vector4 result = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
 
-        return orig(position, velocity, width, height, gravity, fall);
+        if (!fall)
+            result = CheckCollision(position, velocity, width, height, gravity);
+
+        return orig(result.XY(), result.ZW(), width, height, gravity, fall);
     }
 
-    public static Vector2? TestCollisionVector(Vector2 position, int width, int height)
+    public Vector4 CheckCollision(Vector2 position, Vector2 velocity, int width, int height, float gravity)
     {
-        Collider closest = null;
+        Vector4 originalVector = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
+
+        // make the entity's hitbox only be its bottom half
+        Rectangle entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
+
+        Prop closest = FindClosestCollideableProp(position);
+
+        if (closest is not null)
+        {
+            Transformation transformation = closest.GetComponent<Transformation>();
+
+            Rectangle colliderBox = closest.GetComponent<Hitbox>().GetBoundingBox();
+
+            if (!(position.X + width > colliderBox.Left && position.X < colliderBox.Right))
+                return originalVector;
+
+            if (!(velocity.Y >= 0 && entityHitbox.Intersects(colliderBox)))
+                return originalVector;
+
+            if (position.Y + height * 0.5f <= colliderBox.Y && velocity.Y >= 0)
+            {
+                if (!closest.GetComponent<Collider>().Pinned)
+                    transformation.Position.Y += gravity * MathF.Sqrt(velocity.Y);
+
+                position.Y = MathHelper.Lerp(position.Y, colliderBox.Y - height + 2, 0.66f);
+                position += transformation.Velocity;
+                velocity.Y = 0;
+            }
+            else
+            {
+                if (entityHitbox.Center.X <= colliderBox.Center.X)
+                    position.X = MathHelper.Lerp(position.X, colliderBox.X - width, 0.66f);
+                else
+                    position.X = MathHelper.Lerp(position.X, colliderBox.X + colliderBox.Width, 0.66f);
+
+                position += transformation.Velocity;
+                velocity.X *= -1;
+            }
+
+            Collision.up = true;
+            Collision.stair = true;
+
+            return new Vector4(position.X, position.Y, velocity.X, velocity.Y);
+        }
+
+        return originalVector;
+    }
+
+    public Prop FindClosestCollideableProp(Vector2 position)
+    {
+        Prop closest = null;
         var distanceToClosest = float.MaxValue;
 
         foreach (Collider collider in components.ToList())
         {
+            Rectangle propBoundingBox = collider.prop.GetComponent<Hitbox>().GetBoundingBox();
+
             Vector2 propCenter = collider.prop.GetComponent<Hitbox>().GetCenter();
             var canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
             if (Vector2.DistanceSquared(position, propCenter) < distanceToClosest)
             {
                 distanceToClosest = Vector2.DistanceSquared(position, propCenter);
-                closest = collider;
+                closest = collider.prop;
             }
         }
 
-        if (closest is not null)
-            return closest.OnTestCollisionVector?.Invoke(closest.prop, position, width, height);
-
-        return null;
+        return closest;
     }
-
 }

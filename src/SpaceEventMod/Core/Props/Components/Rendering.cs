@@ -13,11 +13,6 @@ public class Rendering : Component
     {
         RenderingSystem.Register(this);
     }
-
-    public override void Dispose()
-    {
-        RenderingSystem.Unregister(this);
-    }
 }
 
 public class RenderingSystem : ComponentSystem<Rendering>

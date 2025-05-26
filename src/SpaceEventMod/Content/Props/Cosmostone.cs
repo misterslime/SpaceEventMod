@@ -1,8 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core;
-using SpaceEventMod.Core.Geometry;
-using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
 using SpaceEventMod.Core.Props.Components;
 using System;
@@ -37,7 +35,7 @@ public class Cosmostone : Prop
         AddComponent(mineable);
 
         Collider collider = new Collider();
-        collider.OnTestCollisionVector += Collision;
+        collider.Pinned = true;
         AddComponent(collider);
 
         Rendering renderer = new Rendering();
@@ -58,24 +56,8 @@ public class Cosmostone : Prop
         Color color = Color.Lerp(Color.White, Color.Red, wave * EasingFunctions.CircEaseIn(1 - lifeRatio));
 
         DirectionalShake shake = GetComponent<DirectionalShake>();
-        Vector2 shakeOffset = MathF.Sin(Main.GameUpdateCount) * shake.GetStrength() * shake.UnitDirection;
+        Vector2 shakeOffset = MathF.Sin(Main.GameUpdateCount) * shake.MaxStrength * ((float)shake.Time / (float)shake.MaxTime) * shake.UnitDirection;
 
         Main.EntitySpriteDraw(texture, drawPosition + shakeOffset, texture.Frame(), color, GetComponent<Transformation>().Rotation, origin, 1f, SpriteEffects.None);
-    }
-
-    public Vector2? Collision(Prop closest, Vector2 position, int width, int height)
-    {
-        var closestHitbox = new Polygon(closest.GetComponent<Hitbox>().GetBoundingBox());
-
-        var entityHitbox = new Polygon([
-            position,
-                position + new Vector2(width, 0),
-                position + new Vector2(0, height),
-                position + new Vector2(width, height),
-            ]);
-
-        var collision = CollisionHelper.TestCollisions(closestHitbox, Vector2.Zero, entityHitbox, position);
-
-        return collision;
     }
 }

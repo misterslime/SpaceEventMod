@@ -14,22 +14,6 @@ public class DirectionalShake : Component
     {
         DirectionalShakeSystem.Register(this);
     }
-
-    public override void Dispose()
-    {
-        DirectionalShakeSystem.Unregister(this);
-    }
-
-    public void Update()
-    {
-        if (this.Time > 0)
-            this.Time -= 1;
-    }
-
-    public float GetStrength()
-    {
-        return MaxStrength * ((float)Time / (float)MaxTime);
-    }
 }
 
 public class DirectionalShakeSystem : ComponentSystem<DirectionalShake>
@@ -38,7 +22,8 @@ public class DirectionalShakeSystem : ComponentSystem<DirectionalShake>
     {
         foreach (var component in components.ToList())
         {
-            component.Update();
+            if (component.Time > 0)
+                component.Time -= 1;
         }
     }
 }

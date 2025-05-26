@@ -18,6 +18,11 @@ public abstract class Prop
         component.prop = this;
     }
 
+    public void RemoveComponent(Component component)
+    {
+        components.Remove(component);
+    }
+
     public T GetComponent<T>() where T : Component
     {
         foreach (Component component in components)
@@ -33,7 +38,7 @@ public abstract class Prop
     {
         foreach (Component component in components)
         {
-            component.Dispose();
+            component.Dispose = true;
         }
     }
 }

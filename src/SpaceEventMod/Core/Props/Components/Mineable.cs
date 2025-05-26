@@ -14,39 +14,6 @@ public class Mineable : Component
     {
         MiningSystem.Register(this);
     }
-
-    public override void Dispose()
-    {
-        MiningSystem.Unregister(this);
-    }
-
-    public bool IsHitting(float x, float y)
-    {
-        return prop.GetComponent<Hitbox>().GetBoundingBox().Contains((int)x, (int)y);
-    }
-
-    public void OnHit(Player player, Item item)
-    {
-        this.Durability -= item.pick;
-        player.ApplyItemTime(item, player.pickSpeed * 1.5f);
-
-        // shake when mining
-        Vector2 propPosition = prop.GetComponent<Hitbox>().GetCenter();
-        prop.GetComponent<DirectionalShake>().UnitDirection = propPosition - player.Center;
-        prop.GetComponent<DirectionalShake>().UnitDirection.Normalize();
-        prop.GetComponent<DirectionalShake>().Time = 20;
-
-        // delete the prop if durability is now below 0
-        if (Durability <= 0)
-        {
-            SoundEngine.PlaySound(SoundID.Item70, propPosition);
-            PropManager.RemoveProp(prop);
-            return;
-        }
-
-        if (Main.myPlayer == player.whoAmI)
-            SoundEngine.PlaySound(SoundID.Tink, Main.MouseWorld);
-    }
 }
 
 public class MiningSystem : ComponentSystem<Mineable>
@@ -70,8 +37,28 @@ public class MiningSystem : ComponentSystem<Mineable>
 
         foreach (Mineable mineable in components.ToList())
         {
-            if (mineable.IsHitting(Main.MouseWorld.X, Main.MouseWorld.Y))
-                mineable.OnHit(self, sItem);
+            if (mineable.prop.GetComponent<Hitbox>().GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
+            {
+                mineable.Durability -= sItem.pick;
+                self.ApplyItemTime(sItem, self.pickSpeed * 1.5f);
+
+                // shake when mining
+                Vector2 propPosition = mineable.prop.GetComponent<Hitbox>().GetCenter();
+                mineable.prop.GetComponent<DirectionalShake>().UnitDirection = propPosition - self.Center;
+                mineable.prop.GetComponent<DirectionalShake>().UnitDirection.Normalize();
+                mineable.prop.GetComponent<DirectionalShake>().Time = 20;
+
+                // delete the prop if durability is now below 0
+                if (mineable.Durability <= 0)
+                {
+                    SoundEngine.PlaySound(SoundID.Item70, propPosition);
+                    PropManager.RemoveProp(mineable.prop);
+                    return;
+                }
+
+                if (Main.myPlayer == self.whoAmI)
+                    SoundEngine.PlaySound(SoundID.Tink, Main.MouseWorld);
+            }
         }
     }
 }

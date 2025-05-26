@@ -13,27 +13,15 @@ public class Transformation : Component
     {
         TransformationSystem.Register(this);
     }
-
-    public override void Dispose()
-    {
-        TransformationSystem.Unregister(this);
-    }
-
-    public void Update()
-    {
-        this.Position += this.Velocity;
-    }
 }
 
 public class TransformationSystem : ComponentSystem<Transformation>
 {
     public override void PostUpdateNPCs()
     {
-
-
         foreach (var component in components.ToList())
         {
-            component.Update();
+            component.Position += component.Velocity;
         }
     }
 }
