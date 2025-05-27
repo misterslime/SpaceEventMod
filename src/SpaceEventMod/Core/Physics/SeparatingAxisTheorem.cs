@@ -1,10 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Geometry;
 using System;
 
 namespace SpaceEventMod.Core.Physics;
 
-public class CollisionHelper
+public class SeparatingAxisTheorem
 {
     /// <summary>
     /// Test collisions between polygons. 
@@ -18,8 +18,8 @@ public class CollisionHelper
     public static Vector2? TestCollisions(Polygon polygon1, Vector2 polygon1Position, Polygon polygon2, Vector2 polygon2Position)
     {
         // Run a test of each polygon against the other
-        Tuple<Vector2?, float> testAB = SeparatingAxisTheorem(polygon1, polygon1Position, polygon2, polygon2Position);
-        Tuple<Vector2?, float> testBA = SeparatingAxisTheorem(polygon2, polygon2Position, polygon1, polygon1Position, true);  // note the 'flip' flag is set.
+        Tuple<Vector2?, float> testAB = SolveCollision(polygon1, polygon1Position, polygon2, polygon2Position);
+        Tuple<Vector2?, float> testBA = SolveCollision(polygon2, polygon2Position, polygon1, polygon1Position, true);  // note the 'flip' flag is set.
 
         if (testAB is null || testBA is null)
             return null;
@@ -38,7 +38,7 @@ public class CollisionHelper
     /// <param name="polygon2"></param>
     /// <param name="polygon2Position"></param>
     /// <returns></returns>
-    private static Tuple<Vector2?, float> SeparatingAxisTheorem(Polygon polygon1, Vector2 polygon1Position, Polygon polygon2, Vector2 polygon2Position, bool flipResultPositions = false)
+    private static Tuple<Vector2?, float> SolveCollision(Polygon polygon1, Vector2 polygon1Position, Polygon polygon2, Vector2 polygon2Position, bool flipResultPositions = false)
     {
         float shortestDist = float.MaxValue;
 
