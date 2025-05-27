@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core;
+using SpaceEventMod.Core.Geometry;
+using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
 using SpaceEventMod.Core.Props.Components;
 using System;
@@ -10,17 +12,17 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Props;
 
-public class Cosmostone : Prop
+public class Asteroid : Prop
 {
-    public Cosmostone(Vector2 spawnPosition, int ID)
+    public Asteroid(Vector2 spawnPosition, int ID)
     {
         Transformation transform = new Transformation();
         transform.Position = spawnPosition;
         AddComponent(transform);
 
         Hitbox hitbox = new Hitbox();
-        hitbox.Width = 120;
-        hitbox.Height = 80;
+        hitbox.Width = 64;
+        hitbox.Height = 48;
         AddComponent(hitbox);
 
         DirectionalShake shake = new DirectionalShake();
@@ -31,11 +33,21 @@ public class Cosmostone : Prop
         AddComponent(shake);
 
         Mineable mineable = new Mineable();
-        mineable.Durability = 500;
+        mineable.Durability = 200;
         AddComponent(mineable);
 
         Collider collider = new Collider();
         AddComponent(collider);
+
+        DynamicMovement dynamicMovement = new DynamicMovement();
+        dynamicMovement.secondOrderSolver = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f, spawnPosition);
+        dynamicMovement.TargetPosition = spawnPosition;
+        AddComponent(dynamicMovement);
+
+        FallWhenStoodOn fallWhenStoodOn = new FallWhenStoodOn();
+        fallWhenStoodOn.RestingPosition = spawnPosition;
+        fallWhenStoodOn.FallPosition = spawnPosition + Vector2.UnitY * 48f;
+        AddComponent(fallWhenStoodOn);
 
         Rendering renderer = new Rendering();
         renderer.OnRender += Draw;
@@ -46,12 +58,12 @@ public class Cosmostone : Prop
 
     public void Draw()
     {
-        Texture2D texture = ModContent.Request<Texture2D>("SpaceEventMod/Assets/Textures/Props/Cosmostone").Value;
-        Vector2 drawPosition = GetComponent<Hitbox>().GetCenter() - Main.screenPosition;
-        Vector2 origin = texture.Size() * 0.5f;
+        Texture2D texture = ModContent.Request<Texture2D>("SpaceEventMod/Assets/Textures/Props/Asteroid").Value;
+        Vector2 drawPosition = GetComponent<Transformation>().Position - Main.screenPosition;
+        Vector2 origin = Vector2.Zero;
 
         float wave = MathF.Pow(MathF.Sin(Main.GameUpdateCount * 0.1f), 2);
-        float lifeRatio = GetComponent<Mineable>().Durability / (float)500;
+        float lifeRatio = GetComponent<Mineable>().Durability / (float)200;
         Color color = Color.Lerp(Color.White, Color.Red, wave * EasingFunctions.CircEaseIn(1 - lifeRatio));
 
         DirectionalShake shake = GetComponent<DirectionalShake>();

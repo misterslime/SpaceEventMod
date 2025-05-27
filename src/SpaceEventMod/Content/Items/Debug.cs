@@ -23,7 +23,8 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        PropManager.NewProp(new Cosmostone(Main.MouseWorld, 1));
+        PropManager.NewProp(new Asteroid(Main.MouseWorld, 1));
+
         return true;
     }
 }

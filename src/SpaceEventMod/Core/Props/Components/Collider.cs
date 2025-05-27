@@ -7,10 +7,11 @@ namespace SpaceEventMod.Core.Props.Components;
 
 public class Collider : Component
 {
-    public bool Pinned = false;
+    public bool StoodOn = false;
 
     public Collider()
     {
+        StoodOn = false;
         CollisionSystem.Register(this);
     }
 }
@@ -60,8 +61,7 @@ public class CollisionSystem : ComponentSystem<Collider>
 
             if (position.Y + height * 0.5f <= colliderBox.Y && velocity.Y >= 0)
             {
-                if (!closest.GetComponent<Collider>().Pinned)
-                    transformation.Position.Y += gravity * MathF.Sqrt(velocity.Y);
+                closest.GetComponent<Collider>().StoodOn = true;
 
                 position.Y = MathHelper.Lerp(position.Y, colliderBox.Y - height + 2, 0.66f);
                 position += transformation.Velocity;
