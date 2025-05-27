@@ -33,8 +33,7 @@ public class ComponentSystem<T> : ModSystem where T : Component
         // make sure components that should be disposed of are disposed of
         foreach (var component in components.ToList())
         {
-            if (component.Dispose)
-                Unregister(component);
+            Unregister(component);
         }
     }
 }
