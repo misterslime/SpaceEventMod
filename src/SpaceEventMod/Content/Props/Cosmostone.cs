@@ -30,33 +30,27 @@ public class Cosmostone : Prop
         shake.UnitDirection = Vector2.UnitX;
         AddComponent(shake);
 
+        Health health = new Health();
+        health.Current = health.MaxHealth = 500;
+        AddComponent(health);
+
         Mineable mineable = new Mineable();
-        mineable.Durability = 500;
         AddComponent(mineable);
 
         Collider collider = new Collider();
         AddComponent(collider);
 
-        Rendering renderer = new Rendering();
-        renderer.OnRender += Draw;
-        AddComponent(renderer);
+        HealthFlashing healthFlashing = new HealthFlashing();
+        healthFlashing.FlashColor = Color.Red;
+        AddComponent(healthFlashing);
+
+        Sprite sprite = new Sprite();
+        sprite.SpritePath = "SpaceEventMod/Assets/Textures/Props/Cosmostone";
+        sprite.SpriteDisplacement = Vector2.Zero;
+        sprite.Rotation = 0f;
+        sprite.Scale = 1f;
+        AddComponent(sprite);
 
         this.ID = ID;
-    }
-
-    public void Draw()
-    {
-        Texture2D texture = ModContent.Request<Texture2D>("SpaceEventMod/Assets/Textures/Props/Cosmostone").Value;
-        Vector2 drawPosition = GetComponent<Hitbox>().GetCenter() - Main.screenPosition;
-        Vector2 origin = texture.Size() * 0.5f;
-
-        float wave = MathF.Pow(MathF.Sin(Main.GameUpdateCount * 0.1f), 2);
-        float lifeRatio = GetComponent<Mineable>().Durability / (float)500;
-        Color color = Color.Lerp(Color.White, Color.Red, wave * EasingFunctions.CircEaseIn(1 - lifeRatio));
-
-        DirectionalShake shake = GetComponent<DirectionalShake>();
-        Vector2 shakeOffset = MathF.Sin(Main.GameUpdateCount) * shake.MaxStrength * ((float)shake.Time / (float)shake.MaxTime) * shake.UnitDirection;
-
-        Main.EntitySpriteDraw(texture, drawPosition + shakeOffset, texture.Frame(), color, GetComponent<Transformation>().Rotation, origin, 1f, SpriteEffects.None);
     }
 }

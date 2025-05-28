@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core;
-using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
 using SpaceEventMod.Core.Props.Components;
@@ -25,15 +24,11 @@ public class Asteroid : Prop
         hitbox.Height = 48;
         AddComponent(hitbox);
 
-        DirectionalShake shake = new DirectionalShake();
-        shake.MaxTime = 20;
-        shake.Time = 0;
-        shake.MaxStrength = 2;
-        shake.UnitDirection = Vector2.UnitX;
-        AddComponent(shake);
+        Health health = new Health();
+        health.Current = health.MaxHealth = 200;
+        AddComponent(health);
 
         Mineable mineable = new Mineable();
-        mineable.Durability = 200;
         AddComponent(mineable);
 
         Collider collider = new Collider();
@@ -49,26 +44,24 @@ public class Asteroid : Prop
         fallWhenStoodOn.FallPosition = spawnPosition + Vector2.UnitY * 48f;
         AddComponent(fallWhenStoodOn);
 
-        Rendering renderer = new Rendering();
-        renderer.OnRender += Draw;
-        AddComponent(renderer);
+        DirectionalShake shake = new DirectionalShake();
+        shake.MaxTime = 20;
+        shake.Time = 0;
+        shake.MaxStrength = 2;
+        shake.UnitDirection = Vector2.UnitX;
+        AddComponent(shake);
+
+        HealthFlashing healthFlashing = new HealthFlashing();
+        healthFlashing.FlashColor = Color.Red;
+        AddComponent(healthFlashing);
+
+        Sprite sprite = new Sprite();
+        sprite.SpritePath = "SpaceEventMod/Assets/Textures/Props/Asteroid";
+        sprite.SpriteDisplacement = Vector2.Zero;
+        sprite.Rotation = 0f;
+        sprite.Scale = 1f;
+        AddComponent(sprite);
 
         this.ID = ID;
-    }
-
-    public void Draw()
-    {
-        Texture2D texture = ModContent.Request<Texture2D>("SpaceEventMod/Assets/Textures/Props/Asteroid").Value;
-        Vector2 drawPosition = GetComponent<Transformation>().Position - Main.screenPosition;
-        Vector2 origin = Vector2.Zero;
-
-        float wave = MathF.Pow(MathF.Sin(Main.GameUpdateCount * 0.1f), 2);
-        float lifeRatio = GetComponent<Mineable>().Durability / (float)200;
-        Color color = Color.Lerp(Color.White, Color.Red, wave * EasingFunctions.CircEaseIn(1 - lifeRatio));
-
-        DirectionalShake shake = GetComponent<DirectionalShake>();
-        Vector2 shakeOffset = MathF.Sin(Main.GameUpdateCount) * shake.MaxStrength * ((float)shake.Time / (float)shake.MaxTime) * shake.UnitDirection;
-
-        Main.EntitySpriteDraw(texture, drawPosition + shakeOffset, texture.Frame(), color, GetComponent<Transformation>().Rotation, origin, 1f, SpriteEffects.None);
     }
 }

@@ -8,8 +8,6 @@ namespace SpaceEventMod.Core.Props.Components;
 
 public class Mineable : Component
 {
-    public int Durability;
-
     public Mineable()
     {
         MiningSystem.Register(this);
@@ -39,7 +37,9 @@ public class MiningSystem : ComponentSystem<Mineable>
         {
             if (mineable.prop.GetComponent<Hitbox>().GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
             {
-                mineable.Durability -= sItem.pick;
+                Health health = mineable.prop.GetComponent<Health>();
+
+                health.Current -= sItem.pick;
                 self.ApplyItemTime(sItem, self.pickSpeed * 1.5f);
 
                 // shake when mining
@@ -49,7 +49,7 @@ public class MiningSystem : ComponentSystem<Mineable>
                 mineable.prop.GetComponent<DirectionalShake>().Time = 20;
 
                 // delete the prop if durability is now below 0
-                if (mineable.Durability <= 0)
+                if (health.Current <= 0)
                 {
                     SoundEngine.PlaySound(SoundID.Item70, propPosition);
                     PropManager.RemoveProp(mineable.prop);

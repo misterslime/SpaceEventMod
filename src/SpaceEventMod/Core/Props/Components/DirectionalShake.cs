@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
+using System;
 using System.Linq;
+using Terraria;
 
 namespace SpaceEventMod.Core.Props.Components;
 
@@ -22,8 +24,12 @@ public class DirectionalShakeSystem : ComponentSystem<DirectionalShake>
     {
         foreach (var component in components.ToList())
         {
-            if (component.Time > 0)
-                component.Time -= 1;
+            component.prop.GetComponent<Sprite>().SpriteDisplacement = MathF.Sin(Main.GameUpdateCount) * component.MaxStrength * ((float)component.Time / (float)component.MaxTime) * component.UnitDirection;
+
+            if (component.Time <= 0)
+                continue;
+
+            component.Time -= 1;
         }
     }
 }
