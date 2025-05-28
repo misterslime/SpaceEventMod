@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using System;
+using System.ComponentModel;
 using System.Linq;
 using Terraria;
 
@@ -53,15 +54,13 @@ public class CollisionSystem : ComponentSystem<Collider>
 
             Rectangle colliderBox = closest.GetComponent<Hitbox>().GetBoundingBox();
 
-            if (!(position.X + width > colliderBox.Left && position.X < colliderBox.Right))
+            if (!entityHitbox.Intersects(colliderBox) || velocity.Y < 0 || !(position.X + width > colliderBox.Left && position.X < colliderBox.Right))
                 return originalVector;
 
-            if (!(velocity.Y >= 0 && entityHitbox.Intersects(colliderBox)))
-                return originalVector;
-
-            if (position.Y + height * 0.5f <= colliderBox.Y && velocity.Y >= 0)
+            if (position.Y + height * 0.5f <= colliderBox.Y)
             {
-                closest.GetComponent<Collider>().StoodOn = true;
+                if (velocity.Y > 0)
+                    closest.GetComponent<Collider>().StoodOn = true;
 
                 position.Y = MathHelper.Lerp(position.Y, colliderBox.Y - height + 2, 0.66f);
                 position += transformation.Velocity;
