@@ -13,15 +13,15 @@ namespace SpaceEventMod.Content.Props;
 
 public class Asteroid : Prop
 {
-    public Asteroid(Vector2 spawnPosition, int ID)
+    public Asteroid(Vector2 spawnPosition, int width, int height, string spritePath, int ID)
     {
         Transformation transform = new Transformation();
         transform.Position = spawnPosition;
         AddComponent(transform);
 
         Hitbox hitbox = new Hitbox();
-        hitbox.Width = 64;
-        hitbox.Height = 48;
+        hitbox.Width = width;
+        hitbox.Height = height;
         AddComponent(hitbox);
 
         Health health = new Health();
@@ -56,7 +56,7 @@ public class Asteroid : Prop
         AddComponent(healthFlashing);
 
         Sprite sprite = new Sprite();
-        sprite.SpritePath = "SpaceEventMod/Assets/Textures/Props/Asteroid";
+        sprite.SpritePath = spritePath;
         sprite.SpriteDisplacement = Vector2.Zero;
         sprite.Rotation = 0f;
         sprite.Scale = 1f;

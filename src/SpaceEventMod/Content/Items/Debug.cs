@@ -23,7 +23,34 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        PropManager.NewProp(new Asteroid(Main.MouseWorld, 1));
+        int asteroidType = Main.rand.Next(6);
+
+        switch (asteroidType)
+        {
+            case 0:
+                PropManager.NewProp(new Asteroid(Main.MouseWorld, 48, 16, "SpaceEventMod/Assets/Textures/Props/Asteroid3Small", 1));
+                break;
+
+            case 1:
+                PropManager.NewProp(new Asteroid(Main.MouseWorld, 48, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid3Medium", 1));
+                break;
+
+            case 2:
+                PropManager.NewProp(new Asteroid(Main.MouseWorld, 48, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid3Large", 1));
+                break;
+
+            case 3:
+                PropManager.NewProp(new Asteroid(Main.MouseWorld, 64, 24, "SpaceEventMod/Assets/Textures/Props/Asteroid4Small", 1));
+                break;
+
+            case 4:
+                PropManager.NewProp(new Asteroid(Main.MouseWorld, 64, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid4Medium", 1));
+                break;
+
+            case 5:
+                PropManager.NewProp(new Asteroid(Main.MouseWorld, 64, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid4Large", 1));
+                break;
+        }
 
         return true;
     }
