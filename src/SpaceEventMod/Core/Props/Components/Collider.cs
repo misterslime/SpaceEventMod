@@ -67,16 +67,6 @@ public class CollisionSystem : ComponentSystem<Collider>
                 position += transformation.Velocity;
                 velocity.Y = 0;
             }
-            else
-            {
-                if (entityHitbox.Center.X <= colliderBox.Center.X)
-                    position.X = MathHelper.Lerp(position.X, colliderBox.X - width, 0.66f);
-                else
-                    position.X = MathHelper.Lerp(position.X, colliderBox.X + colliderBox.Width, 0.66f);
-
-                position += transformation.Velocity;
-                velocity.X *= -1;
-            }
 
             Collision.up = true;
             Collision.stair = true;
