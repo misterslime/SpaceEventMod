@@ -40,6 +40,9 @@ public class Cosmostone : Prop
         Collider collider = new Collider();
         AddComponent(collider);
 
+        Grappleable grappleable = new Grappleable();
+        AddComponent(grappleable);
+
         HealthFlashing healthFlashing = new HealthFlashing();
         healthFlashing.FlashColor = Color.Red;
         AddComponent(healthFlashing);

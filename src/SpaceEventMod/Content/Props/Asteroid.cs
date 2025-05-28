@@ -34,6 +34,9 @@ public class Asteroid : Prop
         Collider collider = new Collider();
         AddComponent(collider);
 
+        Grappleable grappleable = new Grappleable();
+        AddComponent(grappleable);
+
         DynamicMovement dynamicMovement = new DynamicMovement();
         dynamicMovement.secondOrderSolver = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f, spawnPosition);
         dynamicMovement.TargetPosition = spawnPosition;
