@@ -4,7 +4,7 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Props;
 
-public class Component
+public abstract class Component
 {
     public Guid prop;
     public bool Dispose = false;
@@ -21,7 +21,7 @@ public class Component
     }
 }
 
-public class ComponentSystem<T> : ModSystem where T : Component
+public abstract class ComponentSystem<T> : ModSystem where T : Component
 {
     protected List<T> components => ComponentManager.GetComponents<T>();
 }
