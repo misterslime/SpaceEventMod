@@ -14,6 +14,7 @@ public class Sprite : Component
     public Color DrawColor = Color.White;
     public float Scale;
     public float Rotation;
+    public SpriteEffects Effects;
 }
 
 public class SpriteSystem : ComponentSystem<Sprite>
@@ -38,7 +39,7 @@ public class SpriteSystem : ComponentSystem<Sprite>
             Vector2 drawPosition = component.GetComponent<Hitbox>().GetCenter() - Main.screenPosition;
             Vector2 origin = texture.Size() * 0.5f;
 
-            Main.EntitySpriteDraw(texture, drawPosition + component.SpriteDisplacement, texture.Frame(), component.DrawColor, component.GetComponent<Transformation>().Rotation, origin, 1f, SpriteEffects.None);
+            Main.EntitySpriteDraw(texture, drawPosition + component.SpriteDisplacement, texture.Frame(), component.DrawColor, component.GetComponent<Transformation>().Rotation, origin, 1f, component.Effects);
         }
     }
 }

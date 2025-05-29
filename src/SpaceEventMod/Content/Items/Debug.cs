@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
 using SpaceEventMod.Core.Props.Components;
@@ -95,6 +96,7 @@ public class Debug : ModItem
         sprite.SpriteDisplacement = Vector2.Zero;
         sprite.Rotation = 0f;
         sprite.Scale = 1f;
+        sprite.Effects = Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
 
         // actually create the prop in the world
         new Prop().AddComponent(transform)
