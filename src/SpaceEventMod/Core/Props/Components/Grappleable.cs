@@ -11,10 +11,6 @@ namespace SpaceEventMod.Core.Props.Components;
 
 public class Grappleable : Component
 {
-    public Grappleable()
-    {
-        GrappleableSystem.Register(this);
-    }
 }
 
 public class GrappleableSystem : ComponentSystem<Grappleable>
@@ -36,9 +32,9 @@ public class GrappleableSystem : ComponentSystem<Grappleable>
         if (self.ai[0] == 2)
             return;
 
-        foreach (Grappleable component in components.ToList())
+        foreach (Grappleable component in components)
         {
-            Rectangle colliderBox = component.prop.GetComponent<Hitbox>().GetBoundingBox();
+            Rectangle colliderBox = component.GetComponent<Hitbox>().GetBoundingBox();
 
             if (!(self.position.X + self.width > colliderBox.Left && self.position.X < colliderBox.Right) || !self.Hitbox.Intersects(colliderBox))
                 continue;

@@ -8,10 +8,6 @@ namespace SpaceEventMod.Core.Props.Components;
 
 public class Mineable : Component
 {
-    public Mineable()
-    {
-        MiningSystem.Register(this);
-    }
 }
 
 public class MiningSystem : ComponentSystem<Mineable>
@@ -33,26 +29,26 @@ public class MiningSystem : ComponentSystem<Mineable>
         if (self.whoAmI != Main.myPlayer)
             return;
 
-        foreach (Mineable mineable in components.ToList())
+        foreach (Mineable mineable in components)
         {
-            if (mineable.prop.GetComponent<Hitbox>().GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
+            if (mineable.GetComponent<Hitbox>().GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
             {
-                Health health = mineable.prop.GetComponent<Health>();
+                Health health = mineable.GetComponent<Health>();
 
                 health.Current -= sItem.pick;
                 self.ApplyItemTime(sItem, self.pickSpeed * 1.5f);
 
                 // shake when mining
-                Vector2 propPosition = mineable.prop.GetComponent<Hitbox>().GetCenter();
-                mineable.prop.GetComponent<DirectionalShake>().UnitDirection = propPosition - self.Center;
-                mineable.prop.GetComponent<DirectionalShake>().UnitDirection.Normalize();
-                mineable.prop.GetComponent<DirectionalShake>().Time = 20;
+                Vector2 propPosition = mineable.GetComponent<Hitbox>().GetCenter();
+                mineable.GetComponent<DirectionalShake>().UnitDirection = propPosition - self.Center;
+                mineable.GetComponent<DirectionalShake>().UnitDirection.Normalize();
+                mineable.GetComponent<DirectionalShake>().Time = 20;
 
                 // delete the prop if durability is now below 0
                 if (health.Current <= 0)
                 {
                     SoundEngine.PlaySound(SoundID.Item70, propPosition);
-                    PropManager.RemoveProp(mineable.prop);
+                    ComponentManager.QueuePropRemoval(mineable.prop);
                     return;
                 }
 

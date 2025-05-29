@@ -12,22 +12,17 @@ public class FallWhenStoodOn : Component
 {
     public Vector2 RestingPosition;
     public Vector2 FallPosition;
-
-    public FallWhenStoodOn()
-    {
-        FallWhenStoodOnSystem.Register(this);
-    }
 }
 
 public class FallWhenStoodOnSystem : ComponentSystem<FallWhenStoodOn>
 {
     public override void PostUpdateNPCs()
     {
-        foreach (var component in components.ToList())
+        foreach (var component in components)
         {
-            bool stoodOn = component.prop.GetComponent<Collider>().StoodOn;
-            component.prop.GetComponent<DynamicMovement>().TargetPosition = stoodOn ? component.FallPosition : component.RestingPosition;
-            component.prop.GetComponent<Collider>().StoodOn = false;
+            bool stoodOn = component.GetComponent<Collider>().StoodOn;
+            component.GetComponent<DynamicMovement>().TargetPosition = stoodOn ? component.FallPosition : component.RestingPosition;
+            component.GetComponent<Collider>().StoodOn = false;
         }
     }
 }

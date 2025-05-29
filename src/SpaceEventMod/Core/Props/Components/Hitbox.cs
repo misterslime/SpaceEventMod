@@ -6,18 +6,22 @@ public class Hitbox : Component
 {
     public int Width;
     public int Height;
+}
 
-    public Rectangle GetBoundingBox()
+// this is here because im lazy :fire:
+public static class HitboxUtils
+{
+    public static Rectangle GetBoundingBox(this Hitbox hitbox)
     {
-        Vector2 position = prop.GetComponent<Transformation>().Position;
+        Vector2 position = hitbox.GetComponent<Transformation>().Position;
 
-        return new Rectangle((int)position.X, (int)position.Y, Width, Height);
+        return new Rectangle((int)position.X, (int)position.Y, hitbox.Width, hitbox.Height);
     }
 
-    public Vector2 GetCenter()
+    public static Vector2 GetCenter(this Hitbox hitbox)
     {
-        Vector2 position = prop.GetComponent<Transformation>().Position;
-        position += new Vector2(Width, Height) * 0.5f;
+        Vector2 position = hitbox.GetComponent<Transformation>().Position;
+        position += new Vector2(hitbox.Width, hitbox.Height) * 0.5f;
 
         return position;
     }

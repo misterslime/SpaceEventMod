@@ -1,5 +1,7 @@
-using SpaceEventMod.Content.Props;
+using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
+using SpaceEventMod.Core.Props.Components;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -28,30 +30,83 @@ public class Debug : ModItem
         switch (asteroidType)
         {
             case 0:
-                PropManager.NewProp(new Asteroid(Main.MouseWorld, 48, 16, "SpaceEventMod/Assets/Textures/Props/Asteroid3Small", 1));
+                NewAsteroid(Main.MouseWorld, 48, 16, "SpaceEventMod/Assets/Textures/Props/Asteroid3Small");
                 break;
 
             case 1:
-                PropManager.NewProp(new Asteroid(Main.MouseWorld, 48, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid3Medium", 1));
+                NewAsteroid(Main.MouseWorld, 48, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid3Medium");
                 break;
 
             case 2:
-                PropManager.NewProp(new Asteroid(Main.MouseWorld, 48, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid3Large", 1));
+                NewAsteroid(Main.MouseWorld, 48, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid3Large");
                 break;
 
             case 3:
-                PropManager.NewProp(new Asteroid(Main.MouseWorld, 64, 24, "SpaceEventMod/Assets/Textures/Props/Asteroid4Small", 1));
+                NewAsteroid(Main.MouseWorld, 64, 24, "SpaceEventMod/Assets/Textures/Props/Asteroid4Small");
                 break;
 
             case 4:
-                PropManager.NewProp(new Asteroid(Main.MouseWorld, 64, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid4Medium", 1));
+                NewAsteroid(Main.MouseWorld, 64, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid4Medium");
                 break;
 
             case 5:
-                PropManager.NewProp(new Asteroid(Main.MouseWorld, 64, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid4Large", 1));
+                NewAsteroid(Main.MouseWorld, 64, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid4Large");
                 break;
         }
 
         return true;
+    }
+
+    public void NewAsteroid(Vector2 spawnPosition, int width, int height, string spritePath)
+    {
+        // create and define all necessary components
+        Transformation transform = new Transformation();
+        transform.Position = spawnPosition;
+
+        Hitbox hitbox = new Hitbox();
+        hitbox.Width = width;
+        hitbox.Height = height;
+
+        Health health = new Health();
+        health.Current = health.MaxHealth = 200;
+
+        Collider collider = new Collider();
+        collider.StoodOn = false;
+
+        DynamicMovement dynamicMovement = new DynamicMovement();
+        dynamicMovement.secondOrderSolver = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f, spawnPosition);
+        dynamicMovement.TargetPosition = spawnPosition;
+
+        FallWhenStoodOn fallWhenStoodOn = new FallWhenStoodOn();
+        fallWhenStoodOn.RestingPosition = spawnPosition;
+        fallWhenStoodOn.FallPosition = spawnPosition + Vector2.UnitY * 48f;
+
+        DirectionalShake shake = new DirectionalShake();
+        shake.MaxTime = 20;
+        shake.Time = 0;
+        shake.MaxStrength = 2;
+        shake.UnitDirection = Vector2.UnitX;
+
+        HealthFlashing healthFlashing = new HealthFlashing();
+        healthFlashing.FlashColor = Color.Red;
+
+        Sprite sprite = new Sprite();
+        sprite.SpritePath = spritePath;
+        sprite.SpriteDisplacement = Vector2.Zero;
+        sprite.Rotation = 0f;
+        sprite.Scale = 1f;
+
+        // actually create the prop in the world
+        new Prop().AddComponent(transform)
+            .AddComponent(hitbox)
+            .AddComponent(health)
+            .AddComponent(collider)
+            .AddComponent(new Mineable())
+            .AddComponent(new Grappleable())
+            .AddComponent(dynamicMovement)
+            .AddComponent(fallWhenStoodOn)
+            .AddComponent(shake)
+            .AddComponent(healthFlashing)
+            .AddComponent(sprite).Register();
     }
 }

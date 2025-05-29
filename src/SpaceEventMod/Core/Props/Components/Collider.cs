@@ -8,13 +8,7 @@ namespace SpaceEventMod.Core.Props.Components;
 
 public class Collider : Component
 {
-    public bool StoodOn = false;
-
-    public Collider()
-    {
-        StoodOn = false;
-        CollisionSystem.Register(this);
-    }
+    public bool StoodOn;
 }
 
 public class CollisionSystem : ComponentSystem<Collider>
@@ -46,7 +40,7 @@ public class CollisionSystem : ComponentSystem<Collider>
         // make the entity's hitbox only be its bottom half
         Rectangle entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
 
-        Prop closest = FindClosestCollideableProp(position);
+        Component closest = FindClosestCollideableProp(position);
 
         if (closest is not null)
         {
@@ -76,21 +70,21 @@ public class CollisionSystem : ComponentSystem<Collider>
         return originalVector;
     }
 
-    public Prop FindClosestCollideableProp(Vector2 position)
+    public Component FindClosestCollideableProp(Vector2 position)
     {
-        Prop closest = null;
+        Component closest = null;
         var distanceToClosest = float.MaxValue;
 
-        foreach (Collider collider in components.ToList())
+        foreach (Collider collider in components)
         {
-            Rectangle propBoundingBox = collider.prop.GetComponent<Hitbox>().GetBoundingBox();
+            Rectangle propBoundingBox = collider.GetComponent<Hitbox>().GetBoundingBox();
 
-            Vector2 propCenter = collider.prop.GetComponent<Hitbox>().GetCenter();
+            Vector2 propCenter = collider.GetComponent<Hitbox>().GetCenter();
             var canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
             if (Vector2.DistanceSquared(position, propCenter) < distanceToClosest)
             {
                 distanceToClosest = Vector2.DistanceSquared(position, propCenter);
-                closest = collider.prop;
+                closest = collider;
             }
         }
 

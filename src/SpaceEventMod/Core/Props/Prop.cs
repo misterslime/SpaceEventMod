@@ -1,44 +1,35 @@
+using System;
 using System.Collections.Generic;
+using Terraria;
 
 namespace SpaceEventMod.Core.Props;
 
-public abstract class Prop
+public class Prop
 {
-    public int ID { get; set; }
-
-    public List<Component> components = new List<Component>();
+    List<Component> components;
+    Guid ID;
 
     public Prop()
     {
+        components = new List<Component>();
+        ID = Guid.NewGuid();
     }
 
-    public void AddComponent(Component component)
+    /// <summary>
+    /// Add a component to this prop
+    /// </summary>
+    public Prop AddComponent(Component component)
     {
         components.Add(component);
-        component.prop = this;
+        component.prop = this.ID;
+        return this;
     }
 
-    public void RemoveComponent(Component component)
+    /// <summary>
+    /// Adds the prop's components to the list of active components
+    /// </summary>
+    public void Register()
     {
-        components.Remove(component);
-    }
-
-    public T GetComponent<T>() where T : Component
-    {
-        foreach (Component component in components)
-        {
-            if (component.GetType() == typeof(T))
-                return (T)component;
-        }
-
-        return null;
-    }
-
-    public void DisposeComponents()
-    {
-        foreach (Component component in components)
-        {
-            component.Dispose = true;
-        }
+        ComponentManager.components.AddRange(components);
     }
 }

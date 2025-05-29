@@ -11,20 +11,15 @@ public class DirectionalShake : Component
     public Vector2 UnitDirection;
     public int Time;
     public int MaxTime;
-
-    public DirectionalShake()
-    {
-        DirectionalShakeSystem.Register(this);
-    }
 }
 
 public class DirectionalShakeSystem : ComponentSystem<DirectionalShake>
 {
     public override void PostUpdateNPCs()
     {
-        foreach (var component in components.ToList())
+        foreach (var component in components)
         {
-            component.prop.GetComponent<Sprite>().SpriteDisplacement = MathF.Sin(Main.GameUpdateCount) * component.MaxStrength * ((float)component.Time / (float)component.MaxTime) * component.UnitDirection;
+            component.GetComponent<Sprite>().SpriteDisplacement = MathF.Sin(Main.GameUpdateCount) * component.MaxStrength * ((float)component.Time / (float)component.MaxTime) * component.UnitDirection;
 
             if (component.Time <= 0)
                 continue;

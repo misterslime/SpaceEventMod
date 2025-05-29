@@ -13,20 +13,15 @@ public class DynamicMovement : Component
 {
     public Vector2Dynamics secondOrderSolver;
     public Vector2 TargetPosition;
-
-    public DynamicMovement()
-    {
-        DynamicMovementSystem.Register(this);
-    }
 }
 
 public class DynamicMovementSystem : ComponentSystem<DynamicMovement>
 {
     public override void PostUpdateNPCs()
     {
-        foreach (var component in components.ToList())
+        foreach (var component in components)
         {
-            component.prop.GetComponent<Transformation>().Position = component.secondOrderSolver.Update(1, component.TargetPosition);
+            component.GetComponent<Transformation>().Position = component.secondOrderSolver.Update(1, component.TargetPosition);
         }
     }
 }
