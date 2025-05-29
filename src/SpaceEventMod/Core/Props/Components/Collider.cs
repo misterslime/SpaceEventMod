@@ -40,21 +40,22 @@ public class CollisionSystem : ComponentSystem<Collider>
         // make the entity's hitbox only be its bottom half
         Rectangle entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
 
-        Component closest = FindClosestCollideableProp(position);
-
-        if (closest is not null)
+        foreach (Collider collider in components)
         {
-            Transformation transformation = closest.GetComponent<Transformation>();
+            Transformation transformation = collider.GetComponent<Transformation>();
 
-            Rectangle colliderBox = closest.GetComponent<Hitbox>().GetBoundingBox();
+            Rectangle colliderBox = collider.GetComponent<Hitbox>().GetBoundingBox();
 
-            if (!entityHitbox.Intersects(colliderBox) || velocity.Y < 0 || !(position.X + width > colliderBox.Left && position.X < colliderBox.Right))
-                return originalVector;
+            Vector2 propCenter = collider.GetComponent<Hitbox>().GetCenter();
+            bool canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
+
+            if (!entityHitbox.Intersects(colliderBox) || velocity.Y < 0 || !(position.X + width > colliderBox.Left && position.X < colliderBox.Right) || !canHit)
+                continue;
 
             if (position.Y + height * 0.5f <= colliderBox.Y)
             {
                 if (velocity.Y > 0)
-                    closest.GetComponent<Collider>().StoodOn = true;
+                    collider.StoodOn = true;
 
                 position.Y = MathHelper.Lerp(position.Y, colliderBox.Y - height + 2, 0.66f);
                 position += transformation.Velocity;
@@ -63,31 +64,8 @@ public class CollisionSystem : ComponentSystem<Collider>
 
             Collision.up = true;
             Collision.stair = true;
-
-            return new Vector4(position.X, position.Y, velocity.X, velocity.Y);
         }
 
-        return originalVector;
-    }
-
-    public Component FindClosestCollideableProp(Vector2 position)
-    {
-        Component closest = null;
-        var distanceToClosest = float.MaxValue;
-
-        foreach (Collider collider in components)
-        {
-            Rectangle propBoundingBox = collider.GetComponent<Hitbox>().GetBoundingBox();
-
-            Vector2 propCenter = collider.GetComponent<Hitbox>().GetCenter();
-            var canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
-            if (Vector2.DistanceSquared(position, propCenter) < distanceToClosest)
-            {
-                distanceToClosest = Vector2.DistanceSquared(position, propCenter);
-                closest = collider;
-            }
-        }
-
-        return closest;
+        return new Vector4(position.X, position.Y, velocity.X, velocity.Y);
     }
 }
