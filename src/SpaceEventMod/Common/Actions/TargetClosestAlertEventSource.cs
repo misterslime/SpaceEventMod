@@ -1,12 +1,12 @@
+using Microsoft.Xna.Framework;
+using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
+using SpaceEventMod.Core.Props;
 using SpaceEventMod.Core.Props.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.Actions.Interfaces;
-using SpaceEventMod.Core.Props;
 
 namespace SpaceEventMod.Common.Actions;
 

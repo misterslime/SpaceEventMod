@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using System;
-using System.Linq;
 using Terraria;
 
 namespace SpaceEventMod.Core.Props.Components;

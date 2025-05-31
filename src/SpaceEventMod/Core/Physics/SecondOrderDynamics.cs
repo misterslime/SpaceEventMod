@@ -38,7 +38,7 @@ public abstract class SecondOrderDynamics<T>(float frequency, float dampening, f
     }
 }
 
-public class FloatDynamics(float frequency, float dampening, float anticipation, float initialInput) : SecondOrderDynamics<float>(frequency,  dampening, anticipation, initialInput)
+public class FloatDynamics(float frequency, float dampening, float anticipation, float initialInput) : SecondOrderDynamics<float>(frequency, dampening, anticipation, initialInput)
 {
 }
 
