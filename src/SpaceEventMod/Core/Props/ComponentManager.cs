@@ -26,6 +26,18 @@ public class ComponentManager : ModSystem
         components.Clear();
     }
 
+
+    public static bool HasProp(Guid guid)
+    {
+        foreach (Component component in components)
+        {
+            if (component.prop == guid)
+                return true;
+        }
+
+        return false;
+    }
+
     public static List<T> GetComponents<T>() where T : Component
     {
         List<T> list = new List<T>();

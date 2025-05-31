@@ -19,6 +19,17 @@ public abstract class Component
 
         return null;
     }
+
+    public bool HasComponent<T>() where T : Component
+    {
+        foreach (Component component in ComponentManager.components)
+        {
+            if (component.prop == this.prop && component.GetType() == typeof(T))
+                return true;
+        }
+
+        return false;
+    }
 }
 
 public abstract class ComponentSystem<T> : ModSystem where T : Component
