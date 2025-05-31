@@ -70,6 +70,7 @@ public class Debug : ModItem
 
         Health health = new Health();
         health.Current = health.MaxHealth = 200;
+        health.DeathSound = SoundID.Item70;
 
         Collider collider = new Collider();
         collider.StoodOn = false;

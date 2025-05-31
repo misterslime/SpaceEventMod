@@ -52,7 +52,7 @@ public class MiningSystem : ComponentSystem<Mineable>
                     return;
                 }
 
-                if (Main.myPlayer == self.whoAmI)
+                if (Main.myPlayer == self.whoAmI && health.Current > 0)
                     SoundEngine.PlaySound(SoundID.Tink, Main.MouseWorld);
             }
         }
