@@ -13,10 +13,12 @@ namespace SpaceEventMod.Common.Actions;
 public class TargetClosestAlertEventSource : Node
 {
     private AlertType[] typesToTarget;
+    private float rangeExtension;
 
-    public TargetClosestAlertEventSource(params AlertType[] typesToTarget)
+    public TargetClosestAlertEventSource(float rangeExtension = 0f, params AlertType[] typesToTarget)
     {
         this.typesToTarget = typesToTarget;
+        this.rangeExtension = rangeExtension;
     }
 
     public override NodeState Update(int whoAmI)
@@ -29,7 +31,7 @@ public class TargetClosestAlertEventSource : Node
         if (ComponentManager.HasProp((npc.ModNPC as IRespondToEvent).EventProp))
             return NodeState.Failure;
 
-        List<AlertEvent> alerts = AlertEventSystem.GetAlertEventsInRange(npc.Center);
+        List<AlertEvent> alerts = AlertEventSystem.GetAlertEventsInRange(npc.Center, rangeExtension);
 
         AlertEvent closestEvent = null;
         float distanceToEvent = float.MaxValue;

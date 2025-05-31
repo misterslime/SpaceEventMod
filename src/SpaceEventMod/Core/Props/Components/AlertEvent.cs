@@ -34,13 +34,13 @@ public class AlertEventSystem : ComponentSystem<AlertEvent>
         }
     }
 
-    public static List<AlertEvent> GetAlertEventsInRange(Vector2 position)
+    public static List<AlertEvent> GetAlertEventsInRange(Vector2 position, float rangeExtension = 0f)
     {
         List<AlertEvent> alertEvents = new List<AlertEvent>();
 
         foreach (var component in ComponentManager.GetComponents<AlertEvent>())
         {
-            if (MathF.Abs((component.GetComponent<Transformation>().Position - position).LengthSquared()) <= component.Range)
+            if (MathF.Abs((component.GetComponent<Transformation>().Position - position).LengthSquared()) <= Math.Pow(component.Range + rangeExtension, 2))
                 alertEvents.Add(component);
         }
 
