@@ -5,6 +5,11 @@ using Terraria.ID;
 
 namespace SpaceEventMod.Core.Props.Components;
 
+/// <summary>
+/// Makes this prop able to be mined with a pickaxe.<br/>
+/// Requires the <see cref="Transformation"/>, <see cref="Health"/>, and <see cref="Hitbox"/> components to function.
+/// If the prop has the <see cref="DirectionalShake"/> component then mining will cause shaking.
+/// </summary>
 public class Mineable : Component
 {
 }
@@ -39,9 +44,13 @@ public class MiningSystem : ComponentSystem<Mineable>
 
                 // shake when mining
                 Vector2 propPosition = mineable.GetComponent<Hitbox>().GetCenter();
-                mineable.GetComponent<DirectionalShake>().UnitDirection = propPosition - self.Center;
-                mineable.GetComponent<DirectionalShake>().UnitDirection.Normalize();
-                mineable.GetComponent<DirectionalShake>().Time = 20;
+
+                if (mineable.HasComponent<DirectionalShake>())
+                {
+                    mineable.GetComponent<DirectionalShake>().UnitDirection = propPosition - self.Center;
+                    mineable.GetComponent<DirectionalShake>().UnitDirection.Normalize();
+                    mineable.GetComponent<DirectionalShake>().Time = 20;
+                }
 
                 // delete the prop if durability is now below 0
                 if (health.Current <= 0)

@@ -1,10 +1,8 @@
-﻿namespace SpaceEventMod.Core.Behavior.StateMachines;
+namespace SpaceEventMod.Core.Behavior.StateMachines;
 
-public abstract class State(FiniteStateMachine stateMachine)
+public abstract class State
 {
-    protected FiniteStateMachine FiniteStateMachine { get; private set; } = stateMachine;
-
-    public delegate void StateDelegate(float[] arguments);
+    public delegate void StateDelegate(FiniteStateMachine stateMachine, float[] arguments);
 
     public StateDelegate OnEnter { get; set; } = null;
 
@@ -12,9 +10,24 @@ public abstract class State(FiniteStateMachine stateMachine)
 
     public StateDelegate OnUpdate { get; set; } = null;
 
-    public virtual void Enter(float[] arguments = null) => OnEnter?.Invoke(arguments);
+    /// <summary>
+    /// This gets run when the state is first switched to.
+    /// </summary>
+    /// <param name="stateMachine">State machine this state belongs to.</param>
+    /// <param name="arguments">Misc arguments to pass in.</param>
+    public virtual void Enter(FiniteStateMachine stateMachine, float[] arguments = null) => OnEnter?.Invoke(stateMachine, arguments);
 
-    public virtual void Exit(float[] arguments = null) => OnExit?.Invoke(arguments);
+    /// <summary>
+    /// This gets run when the state is being switched away from.
+    /// </summary>
+    /// <param name="stateMachine">State machine this state belongs to.</param>
+    /// <param name="arguments">Misc arguments to pass in.</param>
+    public virtual void Exit(FiniteStateMachine stateMachine, float[] arguments = null) => OnExit?.Invoke(stateMachine, arguments);
 
-    public virtual void Update(float[] arguments = null) => OnUpdate?.Invoke(arguments);
+    /// <summary>
+    /// This gets run every frame the state is active in.
+    /// </summary>
+    /// <param name="stateMachine">State machine this state belongs to.</param>
+    /// <param name="arguments">Misc arguments to pass in.</param>
+    public virtual void Update(FiniteStateMachine stateMachine, float[] arguments = null) => OnUpdate?.Invoke(stateMachine, arguments);
 }

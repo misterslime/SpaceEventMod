@@ -6,31 +6,19 @@ using Terraria;
 
 namespace SpaceEventMod.Core.Geometry;
 
-// https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
-// Ear clipping triangulation
-public class Polygon
+/// <summary>
+/// A collection of vertices that constitutes a 2D shape.
+/// </summary>
+/// <param name="points">List of points in the polygon.</param>
+public class Polygon(Vector2[] points)
 {
-    public Vector2[] Vertices { get; set; }
-
-    public Polygon(Vector2[] points)
-    {
-        Vertices = points;
-    }
-
-    public Polygon(Rectangle rectangle)
-    {
-        Vertices = [
-            rectangle.TopLeft(),
-            rectangle.TopRight(),
-            rectangle.BottomRight(),
-            rectangle.BottomLeft()
-        ];
-    }
+    public Vector2[] Vertices = points;
 
     /// <summary>
-    /// Triangulates the polygon using the ear clipping method.
+    /// Triangulates the polygon using the ear clipping method.<br/>
+    /// <see href="https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf">Click here for more info.</see>
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A <see cref="List{T}"/> of <see cref="Triangle"/>s that compose the polygon.</returns>
     public List<Triangle> Triangulate()
     {
         Vector2[] trianglePoints = new Vector2[Vertices.Length];
@@ -52,7 +40,6 @@ public class Polygon
     /// <summary>
     /// Makes sure the polygon is clockwise oriented so we can find concave & convex vertices
     /// </summary>
-    /// <returns></returns>
     private void OrientClockwise()
     {
         List<Vector2> vertices = Vertices.ToList();
@@ -134,8 +121,8 @@ public class Polygon
     /// <summary>
     /// Checks if a point is inside the polygon
     /// </summary>
-    /// <param name="point"></param>
-    /// <returns></returns>
+    /// <param name="point">Point to check.</param>
+    /// <returns><see langword="true"> the point is inside the polygon, <see langword="false"> if not.</returns>
     public bool PointInsidePolygon(Vector2 point)
     {
         bool result = false;

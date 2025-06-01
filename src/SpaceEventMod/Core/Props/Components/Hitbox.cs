@@ -2,10 +2,16 @@ using Microsoft.Xna.Framework;
 
 namespace SpaceEventMod.Core.Props.Components;
 
-public class Hitbox : Component
+/// <summary>
+/// Makes this prop have physical dimensions.<br/>
+/// Requires the <see cref="Transformation"/> component for certain functions involving this component to work, however its not needed for the component itself to work.
+/// </summary>
+/// <param name="width">Width of the prop.</param>
+/// <param name="height">Height of the prop.</param>
+public class Hitbox(int width, int height) : Component
 {
-    public int Width;
-    public int Height;
+    public int Width = width;
+    public int Height = height;
 }
 
 // this is here because im lazy :fire:

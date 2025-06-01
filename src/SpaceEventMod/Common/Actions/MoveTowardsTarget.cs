@@ -1,17 +1,16 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
 namespace SpaceEventMod.Common.Actions;
 
-public class MoveTowardsTarget : Node
+/// <summary>
+/// Move at constant velocity at the npc's target.
+/// </summary>
+/// <param name="speed">Speed the npc will move at.</param>
+public class MoveTowardsTarget(float speed) : Node
 {
-    private float speed;
-
-    public MoveTowardsTarget(float speed)
-    {
-        this.speed = speed;
-    }
+    private float speed = speed;
 
     public override NodeState Update(int whoAmI)
     {

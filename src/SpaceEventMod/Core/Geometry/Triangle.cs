@@ -1,7 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 
 namespace SpaceEventMod.Core.Geometry;
 
-public class Triangle(Vector2 point1, Vector2 point2, Vector2 point3) : Polygon([point1, point2, point3])
+/// <summary>
+/// A polygon of just 3 vertices.
+/// </summary>
+/// <param name="A">First point of the triangle.</param>
+/// <param name="B">Second point of the triangle.</param>
+/// <param name="C">Third point of the triangle.</param>
+public class Triangle(Vector2 A, Vector2 B, Vector2 C) : Polygon([A, B, C])
 {
 }

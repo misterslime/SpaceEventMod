@@ -6,16 +6,38 @@ namespace SpaceEventMod.Core.Physics;
 
 public class SeparatingAxisTheorem
 {
+    private Polygon polygon1;
+    private Vector2 polygon1Position;
+    private Polygon polygon2;
+    private Vector2 polygon2Position;
+
+    public SeparatingAxisTheorem()
+    {
+
+    }
+
+    public SeparatingAxisTheorem SetFirstPolygon(Polygon polygon, Vector2 position)
+    {
+        this.polygon1 = polygon;
+        this.polygon1Position = position;
+
+        return this;
+    }
+
+    public SeparatingAxisTheorem SetSecondPolygon(Polygon polygon, Vector2 position)
+    {
+        this.polygon2 = polygon;
+        this.polygon2Position = position;
+
+        return this;
+    }
+
     /// <summary>
     /// Test collisions between polygons. 
     /// Testing twice with one being in reverse order, and then comparing length, removes artifacts where the hitbox extends too far.
     /// </summary>
-    /// <param name="polygon1"></param>
-    /// <param name="polygon1Position"></param>
-    /// <param name="polygon2"></param>
-    /// <param name="polygon2Position"></param>
-    /// <returns></returns>
-    public static Vector2? TestCollisions(Polygon polygon1, Vector2 polygon1Position, Polygon polygon2, Vector2 polygon2Position)
+    /// <returns>The normal collision <see cref="Vector2"/>, returns <see langword="null""/> if the polygons arent colliding.</returns>
+    public Vector2? TestCollisionNormal()
     {
         // Run a test of each polygon against the other
         Tuple<Vector2?, float> testAB = SolveCollision(polygon1, polygon1Position, polygon2, polygon2Position);
@@ -30,15 +52,15 @@ public class SeparatingAxisTheorem
     }
 
     /// <summary>
-    /// https://dyn4j.org/2010/01/sat/
-    /// Separating axis theorem
+    /// Apply separating axis theorem.<br/>
+    /// <see href="https://dyn4j.org/2010/01/sat/">Click here for more info.</see>
     /// </summary>
-    /// <param name="polygon1"></param>
-    /// <param name="polygon1Position"></param>
-    /// <param name="polygon2"></param>
-    /// <param name="polygon2Position"></param>
+    /// <param name="polygon1">First polygon.</param>
+    /// <param name="polygon1Position">Position of the first polygon.</param>
+    /// <param name="polygon2">Second polygon.</param>
+    /// <param name="polygon2Position">Position of the second polygon.</param>
     /// <returns></returns>
-    private static Tuple<Vector2?, float> SolveCollision(Polygon polygon1, Vector2 polygon1Position, Polygon polygon2, Vector2 polygon2Position, bool flipResultPositions = false)
+    private Tuple<Vector2?, float> SolveCollision(Polygon polygon1, Vector2 polygon1Position, Polygon polygon2, Vector2 polygon2Position, bool flipResultPositions = false)
     {
         float shortestDist = float.MaxValue;
 
@@ -92,7 +114,7 @@ public class SeparatingAxisTheorem
     /// <param name="axis"></param>
     /// <param name="vertices"></param>
     /// <returns></returns>
-    private static Vector2 ProjectVerticesForMinMax(Vector2 axis, Vector2[] vertices)
+    private Vector2 ProjectVerticesForMinMax(Vector2 axis, Vector2[] vertices)
     {
         // Note that we project the first point to both min and max
         float minimum = Vector2.Dot(axis, vertices[0]);
@@ -116,7 +138,7 @@ public class SeparatingAxisTheorem
     /// <param name="vertices"></param>
     /// <param name="index"></param>
     /// <returns></returns>
-    private static Vector2 GetPerpendicularAxis(Vector2[] vertices, int index)
+    private Vector2 GetPerpendicularAxis(Vector2[] vertices, int index)
     {
         Vector2 point1 = vertices[index];
         Vector2 point2 = index >= vertices.Length - 1 ? vertices[0] : vertices[index + 1];  // Get the next index, or wrap around if at the end

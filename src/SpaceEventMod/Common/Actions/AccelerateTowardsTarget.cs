@@ -1,19 +1,18 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
 namespace SpaceEventMod.Common.Actions;
 
-public class AccelerateTowardsTarget : Node
+/// <summary>
+/// Makes the npc accelerate towards its target.
+/// </summary>
+/// <param name="acceleration">Rate of acceleration.</param>
+/// <param name="maxSpeed">Maximum speed of the npc.</param>
+public class AccelerateTowardsTarget(float acceleration, float maxSpeed) : Node
 {
-    private float acceleration;
-    private float maxSpeed;
-
-    public AccelerateTowardsTarget(float acceleration, float maxSpeed)
-    {
-        this.acceleration = acceleration;
-        this.maxSpeed = maxSpeed;
-    }
+    private float acceleration = acceleration;
+    private float maxSpeed = maxSpeed;
 
     public override NodeState Update(int whoAmI)
     {

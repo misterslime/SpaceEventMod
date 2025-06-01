@@ -11,11 +11,17 @@ public enum AlertType
     Danger = 2
 }
 
-public class AlertEvent : Component
+/// <summary>
+/// Makes this prop an event that certain creatures have responses to.
+/// </summary>
+/// <param name="type">The type of response this event will cause.</param>
+/// <param name="range">Range of detection for this event.</param>
+/// <param name="lifespan">How long this event will last.</param>
+public class AlertEvent(AlertType type, float range, int lifespan) : Component
 {
-    public AlertType Type;
-    public float Range;
-    public int Lifespan;
+    public AlertType Type = type;
+    public float Range = range;
+    public int Lifespan = lifespan;
 }
 
 public class AlertEventSystem : ComponentSystem<AlertEvent>
@@ -34,6 +40,12 @@ public class AlertEventSystem : ComponentSystem<AlertEvent>
         }
     }
 
+    /// <summary>
+	/// Gets a list of <see cref="AlertEvent"/>s that are within range of <paramref name="position"/>.
+	/// </summary>
+    /// <param name="position">Position to check from.</param>
+	/// <param name="rangeExtension">Use this to make alert events be detected further. Defaults to 0.</param>
+    /// <returns>A list of <see cref="AlertEvent"/>s, or an empty list if none are in range.</returns>
     public static List<AlertEvent> GetAlertEventsInRange(Vector2 position, float rangeExtension = 0f)
     {
         List<AlertEvent> alertEvents = new List<AlertEvent>();

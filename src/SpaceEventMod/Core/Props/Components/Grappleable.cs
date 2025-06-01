@@ -3,6 +3,10 @@ using Terraria;
 
 namespace SpaceEventMod.Core.Props.Components;
 
+/// <summary>
+/// Makes the prop able to be grappled to with a hook.
+/// Requires the <see cref="Hitbox"/> component to function.
+/// </summary>
 public class Grappleable : Component
 {
 }

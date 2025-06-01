@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
 
+/// <summary>
+/// A Selector node. Runs until a child node is in progress or until a node returns success.
+/// </summary>
+/// <param name="children">The child nodes of this leaf.</param>
 public class Selector(List<Node> children) : Node(children)
 {
     public override NodeState Update(int whoAmI)

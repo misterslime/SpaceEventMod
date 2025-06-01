@@ -10,16 +10,15 @@ using Terraria;
 
 namespace SpaceEventMod.Common.Actions;
 
-public class TargetClosestAlertEventSource : Node
+/// <summary>
+/// Make the npc target the source of the nearest alert event.
+/// </summary>
+/// <param name="rangeExtension">How much further the npc will detect ranges from than the default. Defaults to 0.</param>
+/// <param name="typesToTarget">What alert types the npc will target.</param>
+public class TargetClosestAlertEventSource(float rangeExtension = 0f, params AlertType[] typesToTarget) : Node
 {
-    private AlertType[] typesToTarget;
-    private float rangeExtension;
-
-    public TargetClosestAlertEventSource(float rangeExtension = 0f, params AlertType[] typesToTarget)
-    {
-        this.typesToTarget = typesToTarget;
-        this.rangeExtension = rangeExtension;
-    }
+    private AlertType[] typesToTarget = typesToTarget;
+    private float rangeExtension = rangeExtension;
 
     public override NodeState Update(int whoAmI)
     {

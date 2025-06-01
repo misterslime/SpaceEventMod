@@ -14,6 +14,14 @@ public abstract class SecondOrderDynamics<T>(float frequency, float dampening, f
     private float k2 = 1 / (2 * MathF.PI * frequency * (2 * MathF.PI * frequency));
     private float k3 = anticipation * dampening / (2 * MathF.PI * frequency);
 
+    /// <summary>
+    /// Integrates the current position and velocity to target <paramref name="inputPosition"/>.
+    /// </summary>
+    /// <param name="deltaTime">Change in time.</param>
+    /// <param name="inputPosition">Target position.</param>
+    /// <param name="setVelocity">If you want to set the velocity to something set this to true.</param>
+    /// <param name="velocity">Velocity to set current velocity to.</param>
+    /// <returns>The output position after integration.</returns>
     public virtual T Update(float deltaTime, T inputPosition, bool setVelocity = false, T velocity = default)
     {
         dynamic currentInput = inputPosition;
@@ -35,6 +43,27 @@ public abstract class SecondOrderDynamics<T>(float frequency, float dampening, f
         Velocity = previousVelocity;
 
         return outputPosition;
+    }
+
+    /// <summary>
+    /// Changes how the system will respond to inputs
+    /// </summary>
+    /// <param name="frequency">The frequency value to change to.</param>
+    /// <param name="dampening">The dampening value to change to.</param>
+    /// <param name="anticipation">The anticipation value to change to.</param>
+    /// <param name="initialInput">Initial position to reset to.</param>
+    /// <param name="setVelocity">If you want to set the velocity to something set this to true.</param>
+    /// <param name="velocity">Velocity to set current velocity to.</param>
+    public virtual void ChangeAnimation(float frequency, float dampening, float anticipation, bool setVelocity = false, T velocity = default)
+    {
+        previousInputPosition = outputPosition;
+
+        k1 = dampening / (MathF.PI * frequency);
+        k2 = 1 / (2 * MathF.PI * frequency * (2 * MathF.PI * frequency));
+        k3 = anticipation * dampening / (2 * MathF.PI * frequency);
+
+        if (setVelocity)
+            Velocity = velocity;
     }
 }
 

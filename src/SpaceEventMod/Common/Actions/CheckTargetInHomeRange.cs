@@ -1,18 +1,17 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
 namespace SpaceEventMod.Common.Actions;
 
-public class CheckTargetInHomeRange : Node
+/// <summary>
+/// Check if the target is in range of this npc's <see cref="IHasHome.HomePosition"/>.
+/// </summary>
+/// <param name="range">How close the target must be.</param>
+public class CheckTargetInHomeRange(float range) : Node
 {
-    private float range;
-
-    public CheckTargetInHomeRange(float range)
-    {
-        this.range = range;
-    }
+    private float range = range;
 
     public override NodeState Update(int whoAmI)
     {

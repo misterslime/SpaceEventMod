@@ -1,16 +1,15 @@
-﻿using SpaceEventMod.Core.Behavior.BehaviorTrees;
+using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
 namespace SpaceEventMod.Common.Actions;
 
-public class TargetPlayerWithinRange : Node
+/// <summary>
+/// Target the player if they're close enough to the npc.
+/// </summary>
+/// <param name="range">Distance to be targeted from.</param>
+public class TargetPlayerWithinRange(float range) : Node
 {
-    private float range;
-
-    public TargetPlayerWithinRange(float range)
-    {
-        this.range = range;
-    }
+    private float range = range;
 
     public override NodeState Update(int whoAmI)
     {

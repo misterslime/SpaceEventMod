@@ -2,11 +2,16 @@ using Terraria.Audio;
 
 namespace SpaceEventMod.Core.Props.Components;
 
-public class Health : Component
+/// <summary>
+/// Makes this prop have a health bar that destroys the prop on depletion.
+/// </summary>
+/// <param name="maxHealth">Maximum health of the prop.</param>
+/// <param name="deathSound">Sound to be played on prop death. Requires the <see cref="Transformation"/> component to play.</param>
+public class Health(int maxHealth, SoundStyle deathSound) : Component
 {
-    public int Current;
-    public int MaxHealth;
-    public SoundStyle DeathSound;
+    public int Current = maxHealth;
+    public int MaxHealth = maxHealth;
+    public SoundStyle DeathSound = deathSound;
 }
 
 public class HealthSystem : ComponentSystem<Health>
@@ -18,7 +23,9 @@ public class HealthSystem : ComponentSystem<Health>
             // delete the prop if durability is now below 0
             if (component.Current <= 0)
             {
-                SoundEngine.PlaySound(component.DeathSound, component.GetComponent<Transformation>().Position);
+                if (component.HasComponent<Transformation>())
+                    SoundEngine.PlaySound(component.DeathSound, component.GetComponent<Transformation>().Position);
+
                 ComponentManager.QueuePropRemoval(component.prop);
                 return;
             }

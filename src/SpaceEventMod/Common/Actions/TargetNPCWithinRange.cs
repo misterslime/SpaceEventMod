@@ -1,4 +1,4 @@
-﻿using SpaceEventMod.Core.Behavior.BehaviorTrees;
+using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using System;
 using System.Linq;
 using Terraria;
@@ -6,16 +6,15 @@ using static Terraria.Utilities.NPCUtils;
 
 namespace SpaceEventMod.Common.Actions;
 
-public class TargetNPCWithinRange : Node
+/// <summary>
+/// Targets certain npcs within a certain distance of the npc.
+/// </summary>
+/// <param name="range">Distance to be targeted at.</param>
+/// <param name="npcsToTarget">NPC types to target.</param>
+public class TargetNPCWithinRange(float range, params int[] npcsToTarget) : Node
 {
-    private float range;
-    private int[] npcsToTarget;
-
-    public TargetNPCWithinRange(float range, params int[] npcsToTarget)
-    {
-        this.range = range;
-        this.npcsToTarget = npcsToTarget;
-    }
+    private float range = range;
+    private int[] npcsToTarget = npcsToTarget;
 
     public override NodeState Update(int whoAmI)
     {

@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
 using SpaceEventMod.Core.Props.Components;
 using Terraria;
@@ -60,56 +59,18 @@ public class Debug : ModItem
 
     public void NewAsteroid(Vector2 spawnPosition, int width, int height, string spritePath)
     {
-        // create and define all necessary components
-        Transformation transform = new Transformation();
-        transform.Position = spawnPosition;
-
-        Hitbox hitbox = new Hitbox();
-        hitbox.Width = width;
-        hitbox.Height = height;
-
-        Health health = new Health();
-        health.Current = health.MaxHealth = 200;
-        health.DeathSound = SoundID.Item70;
-
-        Collider collider = new Collider();
-        collider.StoodOn = false;
-
-        DynamicMovement dynamicMovement = new DynamicMovement();
-        dynamicMovement.secondOrderSolver = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f, spawnPosition);
-        dynamicMovement.TargetPosition = spawnPosition;
-
-        FallWhenStoodOn fallWhenStoodOn = new FallWhenStoodOn();
-        fallWhenStoodOn.RestingPosition = spawnPosition;
-        fallWhenStoodOn.FallPosition = spawnPosition + Vector2.UnitY * 48f;
-
-        DirectionalShake shake = new DirectionalShake();
-        shake.MaxTime = 20;
-        shake.Time = 0;
-        shake.MaxStrength = 2;
-        shake.UnitDirection = Vector2.UnitX;
-
-        HealthFlashing healthFlashing = new HealthFlashing();
-        healthFlashing.FlashColor = Color.Red;
-
-        Sprite sprite = new Sprite();
-        sprite.SpritePath = spritePath;
-        sprite.SpriteDisplacement = Vector2.Zero;
-        sprite.Rotation = 0f;
-        sprite.Scale = 1f;
-        sprite.Effects = Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
-
         // actually create the prop in the world
-        new Prop().AddComponent(transform)
-            .AddComponent(hitbox)
-            .AddComponent(health)
-            .AddComponent(collider)
+        new Prop().AddComponent(new Transformation(spawnPosition, Vector2.Zero))
+            .AddComponent(new Hitbox(width, height))
+            .AddComponent(new Health(200, SoundID.Item70))
+            .AddComponent(new Collider(false))
             .AddComponent(new Mineable())
             .AddComponent(new Grappleable())
-            .AddComponent(dynamicMovement)
-            .AddComponent(fallWhenStoodOn)
-            .AddComponent(shake)
-            .AddComponent(healthFlashing)
-            .AddComponent(sprite).Register();
+            .AddComponent(new DynamicMovement(1f / 128f, 0.5f, 0.2f, spawnPosition))
+            .AddComponent(new FallWhenStoodOn(spawnPosition, spawnPosition + Vector2.UnitY * 48f))
+            .AddComponent(new DirectionalShake(2, Vector2.UnitX, 0, 20))
+            .AddComponent(new LowHealthFlashing(Color.Red))
+            .AddComponent(new Sprite(spritePath, 1f, 0f, Vector2.Zero, Color.White, Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally))
+            .Register();
     }
 }

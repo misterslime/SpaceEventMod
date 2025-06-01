@@ -1,6 +1,6 @@
-﻿namespace SpaceEventMod.Core.Behavior.StateMachines;
+namespace SpaceEventMod.Core.Behavior.StateMachines;
 
-public class EntityState<T>(FiniteStateMachine stateMachine, T entity) : State(stateMachine)
+public class EntityState<T>(T entity) : State()
 {
     protected T Entity = entity;
 }

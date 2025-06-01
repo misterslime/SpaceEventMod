@@ -8,6 +8,9 @@ public class Prop
     List<Component> components;
     Guid ID;
 
+    /// <summary>
+    /// Creates a new prop object which can be used to initialize a bunch of components at once with the same prop guid.
+    /// </summary>
     public Prop()
     {
         components = new List<Component>();
@@ -15,8 +18,9 @@ public class Prop
     }
 
     /// <summary>
-    /// Add a component to this prop
+    /// Add a component to this prop.
     /// </summary>
+    /// <param name="component">Component to add.</param>
     public Prop AddComponent(Component component)
     {
         components.Add(component);
@@ -25,7 +29,7 @@ public class Prop
     }
 
     /// <summary>
-    /// Adds the prop's components to the list of active components
+    /// Adds the prop's components to the list of components active in the world.
     /// </summary>
     public void Register()
     {
