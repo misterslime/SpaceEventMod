@@ -88,6 +88,7 @@ public class AsteroidNoiseSpawnerSystem : ComponentSystem<AsteroidNoiseSpawner>
             .AddComponent(new LowHealthFlashing(Color.Red))
             .AddComponent(new Sprite(spritePath, 1f, 0f, Vector2.Zero, Color.White, Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally))
             .AddComponent(new DespawnWithDistance(60f * 16f))
+            .AddComponent(new Bobbing(4))
             .Register();
     }
 }
