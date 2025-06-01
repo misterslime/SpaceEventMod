@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,15 +8,19 @@ namespace SpaceEventMod.Core.Props;
 
 public class ComponentManager : ModSystem
 {
-    public static List<Component> components = new List<Component>();
+
+    public static Dictionary<Type, List<Component>> components = new Dictionary<Type, List<Component>>();
 
     public override void PreUpdateEntities()
     {
         // make sure components that should be disposed of are disposed of
-        foreach (var component in components.ToList())
+        foreach (var componentList in components)
         {
-            if (component.Dispose)
-                components.Remove(component);
+            foreach (var component in componentList.Value.ToList())
+            {
+                if (component.Dispose)
+                    componentList.Value.Remove(component);
+            }
         }
     }
 
@@ -32,9 +37,16 @@ public class ComponentManager : ModSystem
 	/// </summary>
     /// <param name="guid">Guid to search for.</param>
 	/// <returns><see langword="true"/> if a component with the guid exists, and returns <see langword="false"/> if none do.</returns>
-    public static bool HasProp(Guid guid)
+    public static bool ComponentExists<T>(Guid guid) where T : Component
     {
-        foreach (Component component in components)
+        List<Component> list = new List<Component>();
+
+        components.TryGetValue(typeof(T), out list);
+
+        if (list == default)
+            list = new List<Component>();
+
+        foreach (Component component in list)
         {
             if (component.prop == guid)
                 return true;
@@ -49,15 +61,35 @@ public class ComponentManager : ModSystem
 	/// <returns>Returns a list containing every component of that type, returning an empty list if none do.</returns>
     public static List<T> GetComponents<T>() where T : Component
     {
-        List<T> list = new List<T>();
+        List<Component> list = new List<Component>();
+        List<T> componentsList = new List<T>();
 
-        foreach (Component component in components)
+        components.TryGetValue(typeof(T), out list);
+
+        if (list == default)
+            list = new List<Component>();
+
+        foreach (Component component in list)
         {
-            if (component.GetType() == typeof(T))
-                list.Add((T)component);
+            componentsList.Add((T)component);
         }
 
-        return list;
+        return componentsList;
+    }
+
+    public static void AddComponent(Component component)
+    {
+        if (components.ContainsKey(component.GetType()))
+        {
+            components[component.GetType()].Add(component);
+        }
+        else
+        {
+            List<Component> newComponentList = new List<Component>();
+            newComponentList.Add(component);
+
+            components.Add(component.GetType(), newComponentList);
+        }
     }
 
     /// <summary>
@@ -66,10 +98,13 @@ public class ComponentManager : ModSystem
 	/// <param name="prop">The prop guid to target.</param>
     public static void QueuePropRemoval(Guid prop)
     {
-        foreach (Component component in components.ToList())
+        foreach (var componentList in components)
         {
-            if (component.prop == prop)
-                component.Dispose = true;
+            foreach (var component in componentList.Value.ToList())
+            {
+                if (component.prop == prop)
+                    component.Dispose = true;
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Props;
@@ -23,7 +25,14 @@ public abstract class Component
 	/// <returns>The first component found with the type and Guid, or <see langword="null"/> if the component doesnt exist.</returns>
     public T GetComponent<T>() where T : Component
     {
-        foreach (Component component in ComponentManager.components)
+        List<Component> list = new List<Component>();
+
+        ComponentManager.components.TryGetValue(typeof(T), out list);
+
+        if (list == default)
+            list = new List<Component>();
+
+        foreach (Component component in list)
         {
             if (component.prop == this.prop && component.GetType() == typeof(T))
                 return (T)component;
@@ -38,7 +47,14 @@ public abstract class Component
 	/// <returns><see langword="true"/> if a component exists, and returns <see langword="false"/> if it doesn't.</returns>
     public bool HasComponent<T>() where T : Component
     {
-        foreach (Component component in ComponentManager.components)
+        List<Component> list = new List<Component>();
+
+        ComponentManager.components.TryGetValue(typeof(T), out list);
+
+        if (list == default)
+            list = new List<Component>();
+
+        foreach (Component component in list)
         {
             if (component.prop == this.prop && component.GetType() == typeof(T))
                 return true;

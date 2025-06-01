@@ -27,7 +27,7 @@ public class TargetClosestAlertEventSource(float rangeExtension = 0f, params Ale
         if (npc.ModNPC is not IRespondToEvent)
             return NodeState.Failure;
 
-        if (ComponentManager.HasProp((npc.ModNPC as IRespondToEvent).EventProp))
+        if (ComponentManager.ComponentExists<AlertEvent>((npc.ModNPC as IRespondToEvent).EventProp))
             return NodeState.Failure;
 
         List<AlertEvent> alerts = AlertEventSystem.GetAlertEventsInRange(npc.Center, rangeExtension);

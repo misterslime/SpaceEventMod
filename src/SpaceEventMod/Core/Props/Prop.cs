@@ -33,6 +33,9 @@ public class Prop
     /// </summary>
     public void Register()
     {
-        ComponentManager.components.AddRange(components);
+        foreach (var component in components)
+        {
+            ComponentManager.AddComponent(component);
+        }    
     }
 }
