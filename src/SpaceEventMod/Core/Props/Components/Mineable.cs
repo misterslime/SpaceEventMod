@@ -10,7 +10,7 @@ namespace SpaceEventMod.Core.Props.Components;
 /// Requires the <see cref="Transformation"/>, <see cref="Health"/>, and <see cref="Hitbox"/> components to function.
 /// If the prop has the <see cref="DirectionalShake"/> component then mining will cause shaking.
 /// </summary>
-public class Mineable : Component
+public class Mineable() : Component
 {
 }
 

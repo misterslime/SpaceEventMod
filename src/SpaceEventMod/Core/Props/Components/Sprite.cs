@@ -6,7 +6,7 @@ using Terraria.ModLoader;
 namespace SpaceEventMod.Core.Props.Components;
 
 /// <summary>
-/// /// Adds a sprite to the prop to be drawn.<br/>
+/// Adds a sprite to the prop to be drawn.<br/>
 /// Requires the <see cref="Transformation"/> and <see cref="Hitbox"/> components to function.
 /// </summary>
 /// <param name="spritePath">The path to the sprite file.</param>
