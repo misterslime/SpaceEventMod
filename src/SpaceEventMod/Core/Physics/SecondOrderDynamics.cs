@@ -51,7 +51,6 @@ public abstract class SecondOrderDynamics<T>(float frequency, float dampening, f
     /// <param name="frequency">The frequency value to change to.</param>
     /// <param name="dampening">The dampening value to change to.</param>
     /// <param name="anticipation">The anticipation value to change to.</param>
-    /// <param name="initialInput">Initial position to reset to.</param>
     /// <param name="setVelocity">If you want to set the velocity to something set this to true.</param>
     /// <param name="velocity">Velocity to set current velocity to.</param>
     public virtual void ChangeAnimation(float frequency, float dampening, float anticipation, bool setVelocity = false, T velocity = default)
