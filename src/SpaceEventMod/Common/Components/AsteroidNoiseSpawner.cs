@@ -1,14 +1,12 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core;
+using SpaceEventMod.Core.Props;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 public class AsteroidNoiseSpawner(FastNoiseLite noise, float minimumToSpawnAsteroid, float separationDistance) : Component
 {
@@ -23,15 +21,15 @@ public class AsteroidNoiseSpawnerSystem : ComponentSystem<AsteroidNoiseSpawner>
     {
         foreach (var component in components)
         {
-            Vector2 playerPosition = Main.player[Main.myPlayer].Center;
-            Vector2 randomPosition = playerPosition + Main.rand.NextVector2Circular(30 * 16, 30 * 16);
+            var playerPosition = Main.player[Main.myPlayer].Center;
+            var randomPosition = playerPosition + Main.rand.NextVector2Circular(30 * 16, 30 * 16);
             // 0.05f
 
-            float noiseSample = (float)(1 + component.noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
+            var noiseSample = (float)(1 + component.noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
 
-            List<SeparatedSpawning> asteroids = ComponentManager.GetComponents<SeparatedSpawning>();
+            var asteroids = ComponentManager.GetComponents<SeparatedSpawning>();
 
-            float density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.CircEaseIn(noiseSample));
+            var density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.CircEaseIn(noiseSample));
 
             if (asteroids.Count > 0)
             {
@@ -42,7 +40,7 @@ public class AsteroidNoiseSpawnerSystem : ComponentSystem<AsteroidNoiseSpawner>
                 }
             }
 
-            int asteroidType = Main.rand.Next(6);
+            var asteroidType = Main.rand.Next(6);
 
             switch (asteroidType)
             {

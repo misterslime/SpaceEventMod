@@ -1,7 +1,8 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Props;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes this prop ease its position through a second order solver.<br/>

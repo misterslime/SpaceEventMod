@@ -1,6 +1,7 @@
+using SpaceEventMod.Core.Props;
 using Terraria.Audio;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes this prop have a health bar that destroys the prop on depletion.

@@ -1,8 +1,9 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 using System;
 using System.Collections.Generic;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 public enum AlertType
 {
@@ -48,7 +49,7 @@ public class AlertEventSystem : ComponentSystem<AlertEvent>
     /// <returns>A list of <see cref="AlertEvent"/>s, or an empty list if none are in range.</returns>
     public static List<AlertEvent> GetAlertEventsInRange(Vector2 position, float rangeExtension = 0f)
     {
-        List<AlertEvent> alertEvents = new List<AlertEvent>();
+        var alertEvents = new List<AlertEvent>();
 
         foreach (var component in ComponentManager.GetComponents<AlertEvent>())
         {

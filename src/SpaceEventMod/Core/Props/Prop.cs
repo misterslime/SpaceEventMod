@@ -36,6 +36,6 @@ public class Prop
         foreach (var component in components)
         {
             ComponentManager.AddComponent(component);
-        }    
+        }
     }
 }

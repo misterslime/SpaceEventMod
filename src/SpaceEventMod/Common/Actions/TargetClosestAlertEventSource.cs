@@ -1,8 +1,8 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
+using SpaceEventMod.Common.Components;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using SpaceEventMod.Core.Props;
-using SpaceEventMod.Core.Props.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;

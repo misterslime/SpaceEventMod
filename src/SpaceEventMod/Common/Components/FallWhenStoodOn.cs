@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes the prop fall dynamically if its being stood on.<br/>
@@ -20,7 +21,7 @@ public class FallWhenStoodOnSystem : ComponentSystem<FallWhenStoodOn>
     {
         foreach (var component in components)
         {
-            bool stoodOn = component.GetComponent<Collider>().StoodOn;
+            var stoodOn = component.GetComponent<Collider>().StoodOn;
             component.GetComponent<DynamicMovement>().TargetPosition = stoodOn ? component.FallPosition : component.RestingPosition;
             component.GetComponent<Collider>().StoodOn = false;
         }

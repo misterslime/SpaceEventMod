@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Props;
-using SpaceEventMod.Core.Props.Components;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;

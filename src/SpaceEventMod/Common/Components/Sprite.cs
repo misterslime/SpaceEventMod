@@ -1,9 +1,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.Props;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Adds a sprite to the prop to be drawn.<br/>
@@ -43,9 +44,9 @@ public class SpriteSystem : ComponentSystem<Sprite>
 
         foreach (var component in components)
         {
-            Texture2D texture = ModContent.Request<Texture2D>(component.SpritePath).Value;
-            Vector2 drawPosition = component.GetComponent<Hitbox>().GetCenter() - Main.screenPosition;
-            Vector2 origin = texture.Size() * 0.5f;
+            var texture = ModContent.Request<Texture2D>(component.SpritePath).Value;
+            var drawPosition = component.GetComponent<Hitbox>().GetCenter() - Main.screenPosition;
+            var origin = texture.Size() * 0.5f;
 
             Main.EntitySpriteDraw(texture, drawPosition + component.SpriteDisplacement, texture.Frame(), component.DrawColor, component.Rotation, origin, 1f, component.Effects);
         }

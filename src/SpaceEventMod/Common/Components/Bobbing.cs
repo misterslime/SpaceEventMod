@@ -1,11 +1,9 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 public class Bobbing(float strength) : Component
 {

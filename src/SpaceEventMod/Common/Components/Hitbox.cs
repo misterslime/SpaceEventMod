@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes this prop have physical dimensions.<br/>
@@ -19,14 +20,14 @@ public static class HitboxUtils
 {
     public static Rectangle GetBoundingBox(this Hitbox hitbox)
     {
-        Vector2 position = hitbox.GetComponent<Transformation>().Position;
+        var position = hitbox.GetComponent<Transformation>().Position;
 
         return new Rectangle((int)position.X, (int)position.Y, hitbox.Width, hitbox.Height);
     }
 
     public static Vector2 GetCenter(this Hitbox hitbox)
     {
-        Vector2 position = hitbox.GetComponent<Transformation>().Position;
+        var position = hitbox.GetComponent<Transformation>().Position;
         position += new Vector2(hitbox.Width, hitbox.Height) * 0.5f;
 
         return position;

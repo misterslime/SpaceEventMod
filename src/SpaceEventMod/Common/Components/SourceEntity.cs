@@ -1,4 +1,6 @@
-namespace SpaceEventMod.Core.Props.Components;
+using SpaceEventMod.Core.Props;
+
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes the prop have an npc or player as its source and stores their whoAmI.

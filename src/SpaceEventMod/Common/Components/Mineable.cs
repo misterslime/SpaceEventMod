@@ -1,9 +1,9 @@
-using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes this prop able to be mined with a pickaxe.<br/>
@@ -33,17 +33,17 @@ public class MiningSystem : ComponentSystem<Mineable>
         if (self.whoAmI != Main.myPlayer)
             return;
 
-        foreach (Mineable mineable in components)
+        foreach (var mineable in components)
         {
             if (mineable.GetComponent<Hitbox>().GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
             {
-                Health health = mineable.GetComponent<Health>();
+                var health = mineable.GetComponent<Health>();
 
                 health.Current -= sItem.pick;
                 self.ApplyItemTime(sItem, self.pickSpeed * 1.5f);
 
                 // shake when mining
-                Vector2 propPosition = mineable.GetComponent<Hitbox>().GetCenter();
+                var propPosition = mineable.GetComponent<Hitbox>().GetCenter();
 
                 if (mineable.HasComponent<DirectionalShake>())
                 {

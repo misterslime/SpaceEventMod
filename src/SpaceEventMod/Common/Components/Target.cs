@@ -1,4 +1,6 @@
-namespace SpaceEventMod.Core.Props.Components;
+using SpaceEventMod.Core.Props;
+
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// If combined with an <see cref="AlertEvent"/>, it allows you to make sure only specific npcs are affected by the alert.

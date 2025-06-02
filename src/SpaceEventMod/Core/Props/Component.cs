@@ -1,7 +1,5 @@
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Props;

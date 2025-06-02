@@ -1,7 +1,8 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 using Terraria;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes this prop something that can be collided with like a platform.<br/>
@@ -27,7 +28,7 @@ public class CollisionSystem : ComponentSystem<Collider>
 
     private Vector4 CheckSlopeCollision(On_Collision.orig_SlopeCollision orig, Vector2 position, Vector2 velocity, int width, int height, float gravity, bool fall)
     {
-        Vector4 result = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
+        var result = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
 
         if (!fall)
             result = CheckCollision(position, velocity, width, height, gravity);
@@ -37,19 +38,19 @@ public class CollisionSystem : ComponentSystem<Collider>
 
     public Vector4 CheckCollision(Vector2 position, Vector2 velocity, int width, int height, float gravity)
     {
-        Vector4 originalVector = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
+        var originalVector = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
 
         // make the entity's hitbox only be its bottom half
-        Rectangle entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
+        var entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
 
-        foreach (Collider collider in components)
+        foreach (var collider in components)
         {
-            Transformation transformation = collider.GetComponent<Transformation>();
+            var transformation = collider.GetComponent<Transformation>();
 
-            Rectangle colliderBox = collider.GetComponent<Hitbox>().GetBoundingBox();
+            var colliderBox = collider.GetComponent<Hitbox>().GetBoundingBox();
 
-            Vector2 propCenter = collider.GetComponent<Hitbox>().GetCenter();
-            bool canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
+            var propCenter = collider.GetComponent<Hitbox>().GetCenter();
+            var canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
 
             if (!entityHitbox.Intersects(colliderBox) || velocity.Y < 0 || !(position.X + width > colliderBox.Left && position.X < colliderBox.Right) || !canHit)
                 continue;

@@ -1,7 +1,8 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 using Terraria;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes the prop able to be grappled to with a hook.<br/>
@@ -30,9 +31,9 @@ public class GrappleableSystem : ComponentSystem<Grappleable>
         if (self.ai[0] == 2)
             return;
 
-        foreach (Grappleable component in components)
+        foreach (var component in components)
         {
-            Rectangle colliderBox = component.GetComponent<Hitbox>().GetBoundingBox();
+            var colliderBox = component.GetComponent<Hitbox>().GetBoundingBox();
 
             if (!(self.position.X + self.width > colliderBox.Left && self.position.X < colliderBox.Right) || !self.Hitbox.Intersects(colliderBox))
                 continue;

@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SpaceEventMod.Core.Props;
 using Terraria;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 public class DespawnWithDistance(float distance) : Component
 {
@@ -18,8 +14,8 @@ public class DespawnWithDistanceSystem : ComponentSystem<DespawnWithDistance>
     {
         foreach (var component in components)
         {
-            bool shouldDespawn = (component.GetComponent<Transformation>().Position - Main.LocalPlayer.Center).LengthSquared() > component.Distance * component.Distance;
-            
+            var shouldDespawn = (component.GetComponent<Transformation>().Position - Main.LocalPlayer.Center).LengthSquared() > component.Distance * component.Distance;
+
 
             if (shouldDespawn)
             {

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Gives the prop position, velocity, and rotation.

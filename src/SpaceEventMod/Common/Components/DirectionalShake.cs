@@ -1,8 +1,9 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Props;
 using System;
 using Terraria;
 
-namespace SpaceEventMod.Core.Props.Components;
+namespace SpaceEventMod.Common.Components;
 
 /// <summary>
 /// Makes this prop's <see cref="Sprite"/> component shake in a direction.<br/>
@@ -30,7 +31,7 @@ public class DirectionalShakeSystem : ComponentSystem<DirectionalShake>
                 continue;
 
             component.Time -= 1;
-            component.GetComponent<Sprite>().SpriteDisplacement = MathF.Sin(Main.GameUpdateCount) * component.MaxStrength * ((float)component.Time / (float)component.MaxTime) * component.UnitDirection;
+            component.GetComponent<Sprite>().SpriteDisplacement = MathF.Sin(Main.GameUpdateCount) * component.MaxStrength * (component.Time / (float)component.MaxTime) * component.UnitDirection;
         }
     }
 }
