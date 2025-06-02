@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Props;
 
-namespace SpaceEventMod.Common.Components;
+namespace SpaceEventMod.Common.Components.Behavior;
 
 /// <summary>
 /// Makes this prop ease its position through a second order solver.<br/>
@@ -16,15 +16,4 @@ public class DynamicMovement(float frequency, float dampening, float anticipatio
 {
     public Vector2Dynamics secondOrderSolver = new Vector2Dynamics(frequency, dampening, anticipation, initialInput);
     public Vector2 TargetPosition = initialInput;
-}
-
-public class DynamicMovementSystem : ComponentSystem<DynamicMovement>
-{
-    public override void PostUpdateNPCs()
-    {
-        foreach (var component in components)
-        {
-            component.GetComponent<Transformation>().Position = component.secondOrderSolver.Update(1, component.TargetPosition);
-        }
-    }
 }

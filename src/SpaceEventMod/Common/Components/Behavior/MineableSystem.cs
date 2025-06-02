@@ -1,18 +1,15 @@
+using SpaceEventMod.Common.Components.Animation;
 using SpaceEventMod.Core.Props;
-using Terraria;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria.Audio;
 using Terraria.ID;
+using Terraria;
 
-namespace SpaceEventMod.Common.Components;
-
-/// <summary>
-/// Makes this prop able to be mined with a pickaxe.<br/>
-/// Requires the <see cref="Transformation"/>, <see cref="Health"/>, and <see cref="Hitbox"/> components to function.
-/// If the prop has the <see cref="DirectionalShake"/> component then mining will cause shaking.
-/// </summary>
-public class Mineable() : Component
-{
-}
+namespace SpaceEventMod.Common.Components.Behavior;
 
 public class MiningSystem : ComponentSystem<Mineable>
 {

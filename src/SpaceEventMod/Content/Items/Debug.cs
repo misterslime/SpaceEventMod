@@ -1,5 +1,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Components;
+using SpaceEventMod.Common.Components.Animation;
+using SpaceEventMod.Common.Components.Behavior;
+using SpaceEventMod.Common.Components.Cosmostone;
+using SpaceEventMod.Common.Components.Rendering;
 using SpaceEventMod.Core.Props;
 using Terraria;
 using Terraria.ID;
@@ -36,7 +41,6 @@ public class Debug : ModItem
             .AddComponent(new DirectionalShake(2, Vector2.UnitX, 0, 20))
             .AddComponent(new LowHealthFlashing(Color.Transparent))
             .AddComponent(new Sprite("SpaceEventMod/Assets/Textures/Props/Star", 1f, 0f, Vector2.Zero, Color.White, Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally))
-            .AddComponent(new DespawnWithDistance(60f * 16f))
             .AddComponent(new Bobbing(10))
             .AddComponent(new BobbingRotation(5f))
             .AddComponent(new SeparatedSpawning())

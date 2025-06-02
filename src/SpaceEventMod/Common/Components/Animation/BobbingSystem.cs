@@ -1,15 +1,15 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Common.Components.Behavior;
+using SpaceEventMod.Common.Components.Rendering;
 using SpaceEventMod.Core.Props;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Components;
-
-public class Bobbing(float strength) : Component
-{
-    public float Strength = strength;
-    public int RandomTimeDisplacement = Main.rand.Next(-99999, 99999);
-}
+namespace SpaceEventMod.Common.Components.Animation;
 
 public class BobbingSystem : ComponentSystem<Bobbing>
 {
@@ -25,3 +25,4 @@ public class BobbingSystem : ComponentSystem<Bobbing>
         }
     }
 }
+

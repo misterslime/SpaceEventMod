@@ -1,12 +1,12 @@
 using SpaceEventMod.Core.Props;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Components;
-
-public class DespawnWithDistance(float distance) : Component
-{
-    public float Distance = distance;
-}
+namespace SpaceEventMod.Common.Components.Cosmostone;
 
 public class DespawnWithDistanceSystem : ComponentSystem<DespawnWithDistance>
 {

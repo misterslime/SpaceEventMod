@@ -4,7 +4,7 @@ using SpaceEventMod.Core.Props;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Common.Components;
+namespace SpaceEventMod.Common.Components.Rendering;
 
 /// <summary>
 /// Adds a sprite to the prop to be drawn.<br/>
@@ -24,31 +24,4 @@ public class Sprite(string spritePath, float scale, float rotation, Vector2 spri
     public float Scale = scale;
     public float Rotation = rotation;
     public SpriteEffects Effects = spriteEffects;
-}
-
-public class SpriteSystem : ComponentSystem<Sprite>
-{
-    public override void Load()
-    {
-        On_Main.DrawNPCs += DrawEverything;
-    }
-
-    public override void Unload()
-    {
-        On_Main.DrawNPCs -= DrawEverything;
-    }
-
-    private void DrawEverything(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)
-    {
-        orig(self, behindTiles);
-
-        foreach (var component in components)
-        {
-            var texture = ModContent.Request<Texture2D>(component.SpritePath).Value;
-            var drawPosition = component.GetComponent<Hitbox>().GetCenter() - Main.screenPosition;
-            var origin = texture.Size() * 0.5f;
-
-            Main.EntitySpriteDraw(texture, drawPosition + component.SpriteDisplacement, texture.Frame(), component.DrawColor, component.Rotation, origin, 1f, component.Effects);
-        }
-    }
 }

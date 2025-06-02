@@ -13,14 +13,3 @@ public class Transformation(Vector2 position, Vector2 velocity) : Component
     public Vector2 Position = position;
     public Vector2 Velocity = velocity;
 }
-
-public class TransformationSystem : ComponentSystem<Transformation>
-{
-    public override void PostUpdateNPCs()
-    {
-        foreach (var component in components)
-        {
-            component.Position += component.Velocity;
-        }
-    }
-}

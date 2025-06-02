@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Components;
+using SpaceEventMod.Common.Components.Events;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using SpaceEventMod.Core.Props;
 using System;
@@ -15,9 +16,9 @@ namespace SpaceEventMod.Common.Actions;
 /// </summary>
 /// <param name="rangeExtension">How much further the npc will detect ranges from than the default. Defaults to 0.</param>
 /// <param name="typesToTarget">What alert types the npc will target.</param>
-public class TargetClosestAlertEventSource(float rangeExtension = 0f, params AlertType[] typesToTarget) : Node
+public class TargetClosestAlertEventSource(float rangeExtension = 0f, params AlertEventType[] typesToTarget) : Node
 {
-    private AlertType[] typesToTarget = typesToTarget;
+    private AlertEventType[] typesToTarget = typesToTarget;
     private float rangeExtension = rangeExtension;
 
     public override NodeState Update(int whoAmI)

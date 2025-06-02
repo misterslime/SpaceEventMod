@@ -15,22 +15,3 @@ public class Health(int maxHealth, SoundStyle deathSound) : Component
     public SoundStyle DeathSound = deathSound;
 }
 
-public class HealthSystem : ComponentSystem<Health>
-{
-    public override void PostUpdateNPCs()
-    {
-        foreach (var component in components)
-        {
-            // delete the prop if durability is now below 0
-            if (component.Current <= 0)
-            {
-                if (component.HasComponent<Transformation>())
-                    SoundEngine.PlaySound(component.DeathSound, component.GetComponent<Transformation>().Position);
-
-                ComponentManager.QueuePropRemoval(component.prop);
-                return;
-            }
-        }
-    }
-}
-

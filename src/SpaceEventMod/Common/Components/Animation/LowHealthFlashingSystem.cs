@@ -1,20 +1,15 @@
-using Microsoft.Xna.Framework;
-using SpaceEventMod.Core;
+using SpaceEventMod.Common.Components.Rendering;
 using SpaceEventMod.Core.Props;
+using SpaceEventMod.Core;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
+using Microsoft.Xna.Framework;
 
-namespace SpaceEventMod.Common.Components;
-
-/// <summary>
-/// Makes this prop flash a color when its health is low.<br/>
-/// Requires the <see cref="Sprite"/> and <see cref="Health"/> components to function.
-/// </summary>
-/// <param name="flashColor">Whether the collider is being stood on.</param>
-public class LowHealthFlashing(Color flashColor) : Component
-{
-    public Color FlashColor = flashColor;
-}
+namespace SpaceEventMod.Common.Components.Animation;
 
 public class LowHealthFlashingSystem : ComponentSystem<LowHealthFlashing>
 {
@@ -28,4 +23,3 @@ public class LowHealthFlashingSystem : ComponentSystem<LowHealthFlashing>
         }
     }
 }
-

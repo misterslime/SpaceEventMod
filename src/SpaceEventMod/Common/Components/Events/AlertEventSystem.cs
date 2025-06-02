@@ -3,27 +3,7 @@ using SpaceEventMod.Core.Props;
 using System;
 using System.Collections.Generic;
 
-namespace SpaceEventMod.Common.Components;
-
-public enum AlertType
-{
-    Annoyance = 0,
-    PotentialDanger = 1,
-    Danger = 2
-}
-
-/// <summary>
-/// Makes this prop an event that certain creatures have responses to.
-/// </summary>
-/// <param name="type">The type of response this event will cause.</param>
-/// <param name="range">Range of detection for this event.</param>
-/// <param name="lifespan">How long this event will last.</param>
-public class AlertEvent(AlertType type, float range, int lifespan) : Component
-{
-    public AlertType Type = type;
-    public float Range = range;
-    public int Lifespan = lifespan;
-}
+namespace SpaceEventMod.Common.Components.Events;
 
 public class AlertEventSystem : ComponentSystem<AlertEvent>
 {

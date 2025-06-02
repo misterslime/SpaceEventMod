@@ -1,13 +1,13 @@
+using SpaceEventMod.Common.Components.Rendering;
 using SpaceEventMod.Core.Props;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Components;
-
-public class BobbingRotation(float strength) : Component
-{
-    public float Strength = strength;
-}
+namespace SpaceEventMod.Common.Components.Animation;
 
 public class BobbingRotationSystem : ComponentSystem<BobbingRotation>
 {
@@ -24,4 +24,3 @@ public class BobbingRotationSystem : ComponentSystem<BobbingRotation>
         }
     }
 }
-

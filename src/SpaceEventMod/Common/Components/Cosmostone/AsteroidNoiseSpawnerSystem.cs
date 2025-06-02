@@ -1,19 +1,19 @@
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core;
+using Microsoft.Xna.Framework;
+using SpaceEventMod.Common.Components.Animation;
+using SpaceEventMod.Common.Components.Behavior;
+using SpaceEventMod.Common.Components.Rendering;
 using SpaceEventMod.Core.Props;
+using SpaceEventMod.Core;
 using System;
-using Terraria;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria.ID;
+using Terraria;
 
-namespace SpaceEventMod.Common.Components;
-
-public class AsteroidNoiseSpawner(FastNoiseLite noise, float minimumToSpawnAsteroid, float separationDistance) : Component
-{
-    public FastNoiseLite noise = noise;
-    public float minimumToSpawnAsteroid = minimumToSpawnAsteroid;
-    public float separationDistance = separationDistance;
-}
+namespace SpaceEventMod.Common.Components.Cosmostone;
 
 public class AsteroidNoiseSpawnerSystem : ComponentSystem<AsteroidNoiseSpawner>
 {
@@ -91,4 +91,3 @@ public class AsteroidNoiseSpawnerSystem : ComponentSystem<AsteroidNoiseSpawner>
             .Register();
     }
 }
-
