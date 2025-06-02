@@ -20,8 +20,10 @@ public class BobbingSystem : ComponentSystem<Bobbing>
         foreach (var component in components)
         {
             component.GetComponent<Sprite>().SpriteDisplacement = Vector2.Zero;
-            if (!component.GetComponent<Collider>().StoodOn)
-                component.GetComponent<Sprite>().SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + component.RandomTimeDisplacement) / 60f) * component.Strength * Vector2.UnitY;
+            if (component.HasComponent<Collider>() && component.GetComponent<Collider>().StoodOn)
+                continue;
+
+            component.GetComponent<Sprite>().SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + component.RandomTimeDisplacement) / 60f) * component.Strength * Vector2.UnitY;
         }
     }
 }

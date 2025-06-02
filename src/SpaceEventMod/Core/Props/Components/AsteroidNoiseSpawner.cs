@@ -29,7 +29,7 @@ public class AsteroidNoiseSpawnerSystem : ComponentSystem<AsteroidNoiseSpawner>
 
             float noiseSample = (float)(1 + component.noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
 
-            List<Mineable> asteroids = ComponentManager.GetComponents<Mineable>();
+            List<SeparatedSpawning> asteroids = ComponentManager.GetComponents<SeparatedSpawning>();
 
             float density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.CircEaseIn(noiseSample));
 
@@ -89,6 +89,7 @@ public class AsteroidNoiseSpawnerSystem : ComponentSystem<AsteroidNoiseSpawner>
             .AddComponent(new Sprite(spritePath, 1f, 0f, Vector2.Zero, Color.White, Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally))
             .AddComponent(new DespawnWithDistance(60f * 16f))
             .AddComponent(new Bobbing(4))
+            .AddComponent(new SeparatedSpawning())
             .Register();
     }
 }
