@@ -3,24 +3,24 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions;
+namespace SpaceEventMod.Common.Actions.Conditions;
 
 /// <summary>
 /// Check if the target is in range of this npc's <see cref="IHasHome.HomePosition"/>.
 /// </summary>
 /// <param name="range">How close the target must be.</param>
-public class CheckTargetInHomeRange(float range) : Node
+public struct CheckTargetInHomeRange(float range) : INode
 {
     private float range = range;
 
-    public override NodeState Update(int whoAmI)
+    public NodeState Update(int whoAmI)
     {
-        NPC npc = Main.npc[whoAmI];
+        var npc = Main.npc[whoAmI];
 
         if (npc.ModNPC is not IHasHome home)
             return NodeState.Failure;
 
-        Vector2 targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.target].Center;
+        var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.target].Center;
 
         if (home.HomePosition.WithinRange(targetCenter, range))
             return NodeState.Success;

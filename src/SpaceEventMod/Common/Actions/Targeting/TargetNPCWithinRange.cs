@@ -2,36 +2,38 @@ using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using System;
 using System.Linq;
 using Terraria;
-using static Terraria.Utilities.NPCUtils;
+using Terraria.Utilities;
 
-namespace SpaceEventMod.Common.Actions;
+namespace SpaceEventMod.Common.Actions.Targeting;
 
 /// <summary>
 /// Targets certain npcs within a certain distance of the npc.
 /// </summary>
 /// <param name="range">Distance to be targeted at.</param>
 /// <param name="npcsToTarget">NPC types to target.</param>
-public class TargetNPCWithinRange(float range, params int[] npcsToTarget) : Node
+public struct TargetNPCWithinRange(float range, params int[] npcsToTarget) : INode
 {
     private float range = range;
     private int[] npcsToTarget = npcsToTarget;
 
-    public override NodeState Update(int whoAmI)
+    public NodeState Update(int whoAmI)
     {
-        NPC npc = Main.npc[whoAmI];
+        var npc = Main.npc[whoAmI];
+
+        TargetNPCWithinRange leaf = this;
 
         bool npcSearchFilter(NPC nPC)
         {
-            if (npcsToTarget.Length == 0)
-                return nPC.WithinRange(npc.Center, range);
+            if (leaf.npcsToTarget.Length == 0)
+                return nPC.WithinRange(npc.Center, leaf.range);
             else
-                return npcsToTarget.Contains(nPC.type) && nPC.WithinRange(npc.Center, range);
+                return leaf.npcsToTarget.Contains(nPC.type) && nPC.WithinRange(npc.Center, leaf.range);
         }
 
-        TargetSearchResults results = SearchForTarget(npc, TargetSearchFlag.NPCs, npcFilter: npcSearchFilter);
+        var results = NPCUtils.SearchForTarget(npc, NPCUtils.TargetSearchFlag.NPCs, npcFilter: npcSearchFilter);
         if (results.FoundTarget)
         {
-            TargetType targetType = results.NearestTargetType;
+            var targetType = results.NearestTargetType;
 
             npc.target = results.NearestTargetIndex;
             npc.targetRect = results.NearestTargetHitbox;

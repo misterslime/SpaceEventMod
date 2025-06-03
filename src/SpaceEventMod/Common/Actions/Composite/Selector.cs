@@ -1,16 +1,19 @@
+using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using System.Collections.Generic;
 
-namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
+namespace SpaceEventMod.Common.Actions.Composite;
 
 /// <summary>
 /// A Selector node. Runs until a child node is in progress or until a node returns success.
 /// </summary>
 /// <param name="children">The child nodes of this leaf.</param>
-public class Selector(List<Node> children) : Node(children)
+public struct Selector(params INode[] children) : INode
 {
-    public override NodeState Update(int whoAmI)
+    private INode[] Children = children;
+
+    public NodeState Update(int whoAmI)
     {
-        foreach (Node node in children)
+        foreach (var node in children)
         {
             switch (node.Update(whoAmI))
             {

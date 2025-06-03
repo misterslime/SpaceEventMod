@@ -1,19 +1,19 @@
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions;
+namespace SpaceEventMod.Common.Actions.Motion;
 
 /// <summary>
 /// Multiply the npc's velocity by some amount.
 /// </summary>
 /// <param name="amount">The multiplier.</param>
-public class MultiplyVelocity(float amount) : Node
+public struct MultiplyVelocity(float amount) : INode
 {
     private float amount = amount;
 
-    public override NodeState Update(int whoAmI)
+    public NodeState Update(int whoAmI)
     {
-        NPC npc = Main.npc[whoAmI];
+        var npc = Main.npc[whoAmI];
 
         npc.velocity *= amount;
 

@@ -2,21 +2,21 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions;
+namespace SpaceEventMod.Common.Actions.Motion;
 
 /// <summary>
 /// Move at constant velocity at the npc's target.
 /// </summary>
 /// <param name="speed">Speed the npc will move at.</param>
-public class MoveTowardsTarget(float speed) : Node
+public struct MoveTowardsTarget(float speed) : INode
 {
     private float speed = speed;
 
-    public override NodeState Update(int whoAmI)
+    public NodeState Update(int whoAmI)
     {
-        NPC npc = Main.npc[whoAmI];
+        var npc = Main.npc[whoAmI];
 
-        Vector2 targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.target].Center;
+        var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.target].Center;
 
         npc.velocity = targetCenter - npc.Center;
         npc.velocity.Normalize();

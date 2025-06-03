@@ -6,9 +6,9 @@ namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
 /// A behaviour tree that can easily run complex entity behaviour on an npc.
 /// </summary>
 /// <param name="root">Root node for this tree.</param>
-public class BehaviorTree(Node root)
+public struct BehaviorTree(INode root)
 {
-    private Node RootNode = root;
+    private INode RootNode = root;
 
     /// <summary>
     /// Run this every frame, preferably in <see cref="ModNPC.AI()"/> or <see cref="ModNPC.PreAI()"/>.

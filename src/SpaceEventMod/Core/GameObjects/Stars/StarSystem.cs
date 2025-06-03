@@ -51,10 +51,10 @@ public class StarSystem : ModSystem
 
     private void DrawStars(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)
     {
-        orig(self, behindTiles);
-
-        foreach (Star star in Stars.ToList())
+        for (int i = 0; i < Stars.Count; i++)
         {
+            Star star = Stars[i];
+
             var texture = ModContent.Request<Texture2D>(star.TexturePath).Value;
             var drawPosition = star.GetCenter() - Main.screenPosition;
             var origin = texture.Size() * 0.5f;
@@ -67,6 +67,8 @@ public class StarSystem : ModSystem
 
             Main.EntitySpriteDraw(texture, drawPosition + star.SpriteDisplacement + shakeVector, texture.Frame(), drawColor, star.Rotation, origin, 1f, star.Effects);
         }
+
+        orig(self, behindTiles);
     }
 
     private void MineStars(On_Player.orig_ItemCheck_UseMiningTools_ActuallyUseMiningTool orig, Player self, Item sItem, out bool canHitWalls, int x, int y)

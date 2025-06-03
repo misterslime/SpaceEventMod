@@ -5,4 +5,7 @@ Items: {
 	}
 }
 
-NPCs.Cosmostone.DisplayName: Cosmostone
+NPCs: {
+	Cosmostone.DisplayName: Cosmostone
+	Manaphage.DisplayName: Manaphage
+}

@@ -1,18 +1,19 @@
+using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using System.Collections.Generic;
 
-namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
+namespace SpaceEventMod.Common.Actions.Composite;
 
 /// <summary>
 /// A Sequence node. Runs until a child node fails.
 /// </summary>
 /// <param name="children">The child nodes of this leaf.</param>
-public class Sequence(List<Node> children) : Node(children)
+public struct Sequence(params INode[] children) : INode
 {
-    public override NodeState Update(int whoAmI)
-    {
-        bool inProgress = false;
+    private INode[] Children = children;
 
-        foreach (Node node in children)
+    public NodeState Update(int whoAmI)
+    {
+        foreach (var node in children)
         {
             switch (node.Update(whoAmI))
             {
@@ -21,13 +22,12 @@ public class Sequence(List<Node> children) : Node(children)
                 case NodeState.Success:
                     continue;
                 case NodeState.InProgress:
-                    inProgress = true;
-                    continue;
+                    return NodeState.InProgress;
                 default:
                     return NodeState.Success;
             }
         }
 
-        return inProgress ? NodeState.InProgress : NodeState.Success;
+        return NodeState.Success;
     }
 }
