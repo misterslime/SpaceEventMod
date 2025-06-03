@@ -1,6 +1,6 @@
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 
-namespace SpaceEventMod.Common.Actions;
+namespace SpaceEventMod.Common.Actions.Leaf;
 
 public struct AlwaysSucceeds : INode
 {

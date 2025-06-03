@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Targeting;
+namespace SpaceEventMod.Common.Actions.Leaf.Targeting;
 
 public struct TargetNearestStarPosition : INode
 {
@@ -20,9 +20,9 @@ public struct TargetNearestStarPosition : INode
         if (StarSystem.Stars.Count <= 0 || npc.ModNPC is not ITargetPosition)
             return NodeState.Failure;
 
-        float distanceToStar = float.MaxValue;
+        var distanceToStar = float.MaxValue;
 
-        foreach (Core.GameObjects.Stars.Star star in StarSystem.Stars)
+        foreach (var star in StarSystem.Stars)
         {
             if (Vector2.DistanceSquared(star.GetCenter(), npc.Center) < distanceToStar)
             {

@@ -1,7 +1,7 @@
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using SpaceEventMod.Core.Behavior.StateMachines;
 
-namespace SpaceEventMod.Common.Actions;
+namespace SpaceEventMod.Common.Actions.Leaf;
 
 /// <summary>
 /// Run a <see cref="FiniteStateMachine"/>.
@@ -13,7 +13,7 @@ public struct RunStateMachine(FiniteStateMachine stateMachine) : INode
 
     public NodeState Update(int whoAmI)
     {
-        this.stateMachine?.Update();
+        stateMachine?.Update();
 
         return NodeState.Success;
     }

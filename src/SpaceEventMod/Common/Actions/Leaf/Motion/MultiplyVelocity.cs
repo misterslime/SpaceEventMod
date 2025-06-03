@@ -1,7 +1,7 @@
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Motion;
+namespace SpaceEventMod.Common.Actions.Leaf.Motion;
 
 /// <summary>
 /// Multiply the npc's velocity by some amount.

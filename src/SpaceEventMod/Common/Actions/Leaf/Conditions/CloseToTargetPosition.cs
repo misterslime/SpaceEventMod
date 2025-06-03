@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Conditions;
+namespace SpaceEventMod.Common.Actions.Leaf.Conditions;
 
 public struct CloseToTargetPosition(float range) : INode
 {

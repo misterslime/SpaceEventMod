@@ -4,7 +4,7 @@ using System.Linq;
 using Terraria;
 using Terraria.Utilities;
 
-namespace SpaceEventMod.Common.Actions.Targeting;
+namespace SpaceEventMod.Common.Actions.Leaf.Targeting;
 
 /// <summary>
 /// Targets certain npcs within a certain distance of the npc.
@@ -20,7 +20,7 @@ public struct TargetNPCWithinRange(float range, params int[] npcsToTarget) : INo
     {
         var npc = Main.npc[whoAmI];
 
-        TargetNPCWithinRange leaf = this;
+        var leaf = this;
 
         bool npcSearchFilter(NPC nPC)
         {

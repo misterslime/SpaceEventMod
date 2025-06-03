@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Targeting;
+namespace SpaceEventMod.Common.Actions.Leaf.Targeting;
 
 public struct TargetRandomFacingPosition(float distance, float range) : INode
 {
@@ -23,8 +23,8 @@ public struct TargetRandomFacingPosition(float distance, float range) : INode
         if (npc.ModNPC is not ITargetPosition)
             return NodeState.Failure;
 
-        Vector2 facingVector = npc.rotation.ToRotationVector2();
-        ((ITargetPosition)npc.ModNPC).TargetPosition = npc.Center + (facingVector * distance) + Main.rand.NextVector2Circular(distance, distance);
+        var facingVector = npc.rotation.ToRotationVector2();
+        ((ITargetPosition)npc.ModNPC).TargetPosition = npc.Center + facingVector * distance + Main.rand.NextVector2Circular(distance, distance);
 
         return NodeState.Success;
     }

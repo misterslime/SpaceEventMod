@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Conditions;
+namespace SpaceEventMod.Common.Actions.Leaf.Conditions;
 
 /// <summary>
 /// Check if the target is in range of the npc.

@@ -1,7 +1,7 @@
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Targeting;
+namespace SpaceEventMod.Common.Actions.Leaf.Targeting;
 
 /// <summary>
 /// Target the player if they're close enough to the npc.

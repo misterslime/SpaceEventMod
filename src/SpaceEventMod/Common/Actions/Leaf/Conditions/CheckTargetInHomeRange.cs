@@ -3,7 +3,7 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Conditions;
+namespace SpaceEventMod.Common.Actions.Leaf.Conditions;
 
 /// <summary>
 /// Check if the target is in range of this npc's <see cref="IHasHome.HomePosition"/>.

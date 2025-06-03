@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Motion;
+namespace SpaceEventMod.Common.Actions.Leaf.Motion;
 
 /// <summary>
 /// Move at constant velocity at the npc's target.

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Motion;
+namespace SpaceEventMod.Common.Actions.Leaf.Motion;
 
 public struct DynamicMoveToTargetPosition(bool rotate) : INode
 {

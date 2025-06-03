@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Conditions;
+namespace SpaceEventMod.Common.Actions.Leaf.Conditions;
 
 public struct StarNearby(float range) : INode
 {
@@ -24,9 +24,9 @@ public struct StarNearby(float range) : INode
             return NodeState.Failure;
 
         Core.GameObjects.Stars.Star closestStar;
-        float distanceToStar = float.MaxValue;
+        var distanceToStar = float.MaxValue;
 
-        foreach (Core.GameObjects.Stars.Star star in StarSystem.Stars)
+        foreach (var star in StarSystem.Stars)
         {
             if (Vector2.DistanceSquared(star.GetCenter(), npc.Center) < distanceToStar)
             {

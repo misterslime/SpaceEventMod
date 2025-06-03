@@ -1,33 +1,26 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Motion;
+namespace SpaceEventMod.Common.Actions.Leaf.Motion;
 
 /// <summary>
-/// Makes the npc accelerate to a position within range of its <see cref="IHasHome.HomePosition"/>.
+/// Makes the npc accelerate towards its target.
 /// </summary>
 /// <param name="acceleration">Rate of acceleration.</param>
 /// <param name="maxSpeed">Maximum speed of the npc.</param>
-/// <param name="range">Range that it'll accelerate to.</param>
-public struct AccelerateInRangeOfHome(float acceleration, float maxSpeed, float range) : INode
+public struct AccelerateTowardsTarget(float acceleration, float maxSpeed) : INode
 {
     private float acceleration = acceleration;
     private float maxSpeed = maxSpeed;
-    private float range = range;
 
     public NodeState Update(int whoAmI)
     {
         var npc = Main.npc[whoAmI];
 
-        if (npc.ModNPC is not IHasHome home)
-            return NodeState.Failure;
+        var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.target].Center;
 
-        if (npc.Center.WithinRange(home.HomePosition, range))
-            return NodeState.Failure;
-
-        var accelerationVector = home.HomePosition - npc.Center;
+        var accelerationVector = targetCenter - npc.Center;
         accelerationVector.Normalize();
         accelerationVector *= acceleration;
 

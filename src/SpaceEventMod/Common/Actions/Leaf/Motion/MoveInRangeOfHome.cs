@@ -2,7 +2,7 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using Terraria;
 
-namespace SpaceEventMod.Common.Actions.Motion;
+namespace SpaceEventMod.Common.Actions.Leaf.Motion;
 
 /// <summary>
 /// Move at constant velocity to a certain distance from the npc's <see cref="IHasHome.HomePosition"/>.
