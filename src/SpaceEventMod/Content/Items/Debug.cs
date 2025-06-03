@@ -1,11 +1,4 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Common.Components;
-using SpaceEventMod.Common.Components.Animation;
-using SpaceEventMod.Common.Components.Behavior;
-using SpaceEventMod.Common.Components.Cosmostone;
-using SpaceEventMod.Common.Components.Rendering;
-using SpaceEventMod.Core.Props;
+using SpaceEventMod.Core.GameObjects.Stars;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -28,23 +21,7 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        FastNoiseLite cellular = new FastNoiseLite();
-        cellular.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
-
-        new Prop().AddComponent(new AsteroidNoiseSpawner(cellular, 0.7f, 10 * 16)).Register();
-
-        new Prop().AddComponent(new Transformation(Main.MouseWorld, Vector2.Zero))
-            .AddComponent(new Hitbox(160, 160))
-            .AddComponent(new Health(1000, SoundID.Item70))
-            .AddComponent(new Mineable())
-            .AddComponent(new Grappleable())
-            .AddComponent(new DirectionalShake(2, Vector2.UnitX, 0, 20))
-            .AddComponent(new LowHealthFlashing(Color.Transparent))
-            .AddComponent(new Sprite("SpaceEventMod/Assets/Textures/Props/Star", 1f, 0f, Vector2.Zero, Color.White, Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally))
-            .AddComponent(new Bobbing(10))
-            .AddComponent(new BobbingRotation(5f))
-            .AddComponent(new SeparatedSpawning())
-            .Register();
+        StarSystem.Stars.Add(new Core.GameObjects.Stars.Star(Main.MouseWorld));
 
         return true;
     }
