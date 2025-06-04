@@ -49,7 +49,7 @@ public class SpaceEventMod : Mod
 
     public override IContentSource CreateDefaultContentSource()
     {
-        RedirectContentSource source = new RedirectContentSource(base.CreateDefaultContentSource());
+        var source = new RedirectContentSource(base.CreateDefaultContentSource());
 
         source.AddRedirect("Content", "Assets/Textures");
         return source;

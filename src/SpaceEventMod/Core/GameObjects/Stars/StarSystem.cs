@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.GameObjects.Alerts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -36,9 +35,9 @@ public class StarSystem : ModSystem
 
     public override void PostUpdateNPCs()
     {
-        for (int i = 0; i < Stars.Count; i++)
+        for (var i = 0; i < Stars.Count; i++)
         {
-            Star star = Stars[i];
+            var star = Stars[i];
 
             star.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + star.RandomTimeDisplacement) / 60f) * 10 * Vector2.UnitY;
             star.Rotation = MathF.Sin((Main.GameUpdateCount + star.RandomTimeDisplacement) / 120f) * (MathF.PI / 180f) * 5;
@@ -52,9 +51,9 @@ public class StarSystem : ModSystem
 
     private void DrawStars(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)
     {
-        for (int i = 0; i < Stars.Count; i++)
+        for (var i = 0; i < Stars.Count; i++)
         {
-            Star star = Stars[i];
+            var star = Stars[i];
 
             var texture = ModContent.Request<Texture2D>(star.TexturePath).Value;
             var drawPosition = star.GetCenter() - Main.screenPosition;
@@ -79,9 +78,9 @@ public class StarSystem : ModSystem
         if (self.whoAmI != Main.myPlayer)
             return;
 
-        for (int i = 0; i < Stars.Count; i++)
+        for (var i = 0; i < Stars.Count; i++)
         {
-            Star star = Stars[i];
+            var star = Stars[i];
 
             if (star.GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
             {
@@ -122,9 +121,9 @@ public class StarSystem : ModSystem
         if (self.ai[0] == 2)
             return;
 
-        for (int i = 0; i < Stars.Count; i++)
+        for (var i = 0; i < Stars.Count; i++)
         {
-            Star star = Stars[i];
+            var star = Stars[i];
 
             var colliderBox = star.GetBoundingBox();
 

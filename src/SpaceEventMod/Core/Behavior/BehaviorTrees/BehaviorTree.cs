@@ -1,4 +1,3 @@
-using Terraria;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
@@ -10,7 +9,7 @@ namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
 public class BehaviorTree(INode root)
 {
     private INode RootNode = root;
-    public INode CurrentNode = null; 
+    public INode CurrentNode = null;
 
     /// <summary>
     /// Run this every frame, preferably in <see cref="ModNPC.AI()"/> or <see cref="ModNPC.PreAI()"/>.

@@ -40,13 +40,13 @@ public class SeparatingAxisTheorem
     public Vector2? TestCollisionNormal()
     {
         // Run a test of each polygon against the other
-        Tuple<Vector2?, float> testAB = SolveCollision(polygon1, polygon1Position, polygon2, polygon2Position);
-        Tuple<Vector2?, float> testBA = SolveCollision(polygon2, polygon2Position, polygon1, polygon1Position, true);  // note the 'flip' flag is set.
+        var testAB = SolveCollision(polygon1, polygon1Position, polygon2, polygon2Position);
+        var testBA = SolveCollision(polygon2, polygon2Position, polygon1, polygon1Position, true);  // note the 'flip' flag is set.
 
         if (testAB is null || testBA is null)
             return null;
 
-        Vector2? result = (Math.Abs(testAB.Item2) < Math.Abs(testBA.Item2)) ? testAB.Item1 : testBA.Item1;
+        var result = (Math.Abs(testAB.Item2) < Math.Abs(testBA.Item2)) ? testAB.Item1 : testBA.Item1;
 
         return result;
     }
@@ -62,24 +62,24 @@ public class SeparatingAxisTheorem
     /// <returns></returns>
     private Tuple<Vector2?, float> SolveCollision(Polygon polygon1, Vector2 polygon1Position, Polygon polygon2, Vector2 polygon2Position, bool flipResultPositions = false)
     {
-        float shortestDist = float.MaxValue;
+        var shortestDist = float.MaxValue;
 
         // Get the offset between the two shapes
-        Vector2 offset = polygon1Position - polygon2Position;
+        var offset = polygon1Position - polygon2Position;
 
-        float distance = 0f;
-        Vector2 normal = Vector2.Zero;
+        var distance = 0f;
+        var normal = Vector2.Zero;
 
         // Loop over all of the sides on the first polygon and check the perpendicular axis
-        for (int i = 0; i < polygon1.Vertices.Length; i++)
+        for (var i = 0; i < polygon1.Vertices.Length; i++)
         {
             // Get the perpendicular axis that we will be projecting onto
-            Vector2 axis = GetPerpendicularAxis(polygon1.Vertices, i);
+            var axis = GetPerpendicularAxis(polygon1.Vertices, i);
 
-            Vector2 polygon1Range = ProjectVerticesForMinMax(axis, polygon1.Vertices);
-            Vector2 polygon2Range = ProjectVerticesForMinMax(axis, polygon2.Vertices);
+            var polygon1Range = ProjectVerticesForMinMax(axis, polygon1.Vertices);
+            var polygon2Range = ProjectVerticesForMinMax(axis, polygon2.Vertices);
 
-            float scalerOffset = Vector2.Dot(axis, offset);
+            var scalerOffset = Vector2.Dot(axis, offset);
             polygon1Range.X += scalerOffset;
             polygon2Range.Y += scalerOffset;
 
@@ -87,11 +87,11 @@ public class SeparatingAxisTheorem
             if ((polygon1Range.X - polygon2Range.Y > 0) || (polygon2Range.X - polygon1Range.Y > 0))
                 return null;
 
-            float distanceMinimum = (polygon2Range.Y - polygon1Range.X) * -1;
+            var distanceMinimum = (polygon2Range.Y - polygon1Range.X) * -1;
             if (flipResultPositions)
                 distanceMinimum *= -1;
 
-            float distMinimumAbs = Math.Abs(distanceMinimum);
+            var distMinimumAbs = Math.Abs(distanceMinimum);
             if (distMinimumAbs < shortestDist)
             {
                 shortestDist = distMinimumAbs;
@@ -117,12 +117,12 @@ public class SeparatingAxisTheorem
     private Vector2 ProjectVerticesForMinMax(Vector2 axis, Vector2[] vertices)
     {
         // Note that we project the first point to both min and max
-        float minimum = Vector2.Dot(axis, vertices[0]);
-        float maximum = minimum;
+        var minimum = Vector2.Dot(axis, vertices[0]);
+        var maximum = minimum;
 
-        for (int j = 1; j < vertices.Length; j++)
+        for (var j = 1; j < vertices.Length; j++)
         {
-            float temp = Vector2.Dot(axis, vertices[j]);
+            var temp = Vector2.Dot(axis, vertices[j]);
             if (temp < minimum)
                 minimum = temp;
             if (temp > maximum)
@@ -140,10 +140,10 @@ public class SeparatingAxisTheorem
     /// <returns></returns>
     private Vector2 GetPerpendicularAxis(Vector2[] vertices, int index)
     {
-        Vector2 point1 = vertices[index];
-        Vector2 point2 = index >= vertices.Length - 1 ? vertices[0] : vertices[index + 1];  // Get the next index, or wrap around if at the end
+        var point1 = vertices[index];
+        var point2 = index >= vertices.Length - 1 ? vertices[0] : vertices[index + 1];  // Get the next index, or wrap around if at the end
 
-        Vector2 axis = new Vector2(-(point2.Y - point1.Y), point2.X - point1.X);
+        var axis = new Vector2(-(point2.Y - point1.Y), point2.X - point1.X);
         axis.Normalize();
         return axis;
     }

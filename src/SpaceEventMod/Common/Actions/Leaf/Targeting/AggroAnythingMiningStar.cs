@@ -1,10 +1,7 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using SpaceEventMod.Core.GameObjects.Alerts;
-using SpaceEventMod.Core.GameObjects.Stars;
 using Terraria;
-using Terraria.ID;
 
 namespace SpaceEventMod.Common.Actions.Leaf.Targeting;
 
@@ -21,13 +18,13 @@ public struct AggroAnythingMiningStar(float range, params int[] npcTypeException
             return NodeState.Failure;
 
         var distanceToStar = float.MaxValue;
-        int target = -1;
+        var target = -1;
 
         foreach (var alert in AlertSystem.alerts)
         {
             npc.target = alert.sourceEntity;
 
-            Vector2 targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
+            var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
 
             if (Vector2.DistanceSquared(targetCenter, npc.Center) < distanceToStar && Vector2.DistanceSquared(targetCenter, npc.Center) <= range * range)
             {

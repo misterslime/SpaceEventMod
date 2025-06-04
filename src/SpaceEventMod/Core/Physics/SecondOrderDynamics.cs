@@ -35,7 +35,7 @@ public abstract class SecondOrderDynamics<T>(float frequency, float dampening, f
             previousInputPosition = inputPosition;
         }
 
-        float k2Constrained = MathF.Max(k2, 1.1f * (deltaTime * deltaTime * 0.25f + deltaTime * k1 * 0.5f));
+        var k2Constrained = MathF.Max(k2, 1.1f * (deltaTime * deltaTime * 0.25f + deltaTime * k1 * 0.5f));
         nextPosition += deltaTime * previousVelocity; // integrate position with velocity
         previousVelocity += deltaTime * (inputPosition + k3 * inputVelocity - nextPosition - k1 * previousVelocity) / k2Constrained; // integrate velocity with acceleration
 

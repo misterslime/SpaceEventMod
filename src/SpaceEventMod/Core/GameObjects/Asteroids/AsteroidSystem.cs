@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -37,9 +36,9 @@ public class AsteroidSystem : ModSystem
 
     public override void PostUpdateNPCs()
     {
-        for (int i = 0; i < Asteroids.Count; i++)
+        for (var i = 0; i < Asteroids.Count; i++)
         {
-            Asteroid asteroid = Asteroids[i];
+            var asteroid = Asteroids[i];
 
             var shouldDespawn = (asteroid.Position - Main.LocalPlayer.Center).LengthSquared() > 60f * 16f * 60f * 16f;
 
@@ -69,9 +68,9 @@ public class AsteroidSystem : ModSystem
     {
         orig(self, behindTiles);
 
-        for (int i = 0; i < Asteroids.Count; i++)
+        for (var i = 0; i < Asteroids.Count; i++)
         {
-            Asteroid asteroid = Asteroids[i];
+            var asteroid = Asteroids[i];
 
             var texture = ModContent.Request<Texture2D>(asteroid.TexturePath).Value;
             var drawPosition = asteroid.GetCenter() - Main.screenPosition;
@@ -94,9 +93,9 @@ public class AsteroidSystem : ModSystem
         if (self.whoAmI != Main.myPlayer)
             return;
 
-        for (int i = 0; i < Asteroids.Count; i++)
+        for (var i = 0; i < Asteroids.Count; i++)
         {
-            Asteroid asteroid = Asteroids[i];
+            var asteroid = Asteroids[i];
 
             if (asteroid.GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
             {
@@ -144,9 +143,9 @@ public class AsteroidSystem : ModSystem
         // make the entity's hitbox only be its bottom half
         var entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
 
-        for (int i = 0; i < Asteroids.Count; i++)
+        for (var i = 0; i < Asteroids.Count; i++)
         {
-            Asteroid asteroid = Asteroids[i];
+            var asteroid = Asteroids[i];
 
             var colliderBox = asteroid.GetBoundingBox();
 
@@ -181,9 +180,9 @@ public class AsteroidSystem : ModSystem
         if (self.ai[0] == 2)
             return;
 
-        for (int i = 0; i < Asteroids.Count; i++)
+        for (var i = 0; i < Asteroids.Count; i++)
         {
-            Asteroid asteroid = Asteroids[i];
+            var asteroid = Asteroids[i];
 
             var colliderBox = asteroid.GetBoundingBox();
 

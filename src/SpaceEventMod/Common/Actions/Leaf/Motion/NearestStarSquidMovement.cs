@@ -2,11 +2,6 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
 using SpaceEventMod.Core.GameObjects.Stars;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 
 namespace SpaceEventMod.Common.Actions.Leaf.Motion;
@@ -36,14 +31,14 @@ public struct NearestStarSquidMovement(float jumpDistance, float gravity, int co
             return NodeState.InProgress;
         }
 
-        Vector2 motionVector = Vector2.Zero;
+        var motionVector = Vector2.Zero;
 
         foreach (var star in StarSystem.Stars)
         {
             if (Vector2.DistanceSquared(star.GetCenter(), npc.Center) < distanceToStar)
             {
                 distanceToStar = Vector2.DistanceSquared(star.GetCenter(), npc.Center);
-                Vector2 vectorToStar = star.GetCenter() - npc.Center;
+                var vectorToStar = star.GetCenter() - npc.Center;
                 vectorToStar.Normalize();
 
                 motionVector = vectorToStar * jumpDistance;

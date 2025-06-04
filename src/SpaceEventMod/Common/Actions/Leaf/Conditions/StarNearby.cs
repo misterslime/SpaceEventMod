@@ -1,13 +1,7 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
-using SpaceEventMod.Core.GameObjects.Asteroids;
 using SpaceEventMod.Core.GameObjects.Stars;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 
 namespace SpaceEventMod.Common.Actions.Leaf.Conditions;

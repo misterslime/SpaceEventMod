@@ -89,7 +89,7 @@ public class AsteroidSpawner : ModSystem
 
     public void NewAsteroid(Vector2 spawnPosition, int width, int height, string spritePath)
     {
-        Vector2Dynamics secondOrderSolver = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f, spawnPosition);
+        var secondOrderSolver = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f, spawnPosition);
         AsteroidSystem.Asteroids.Add(new Asteroid(secondOrderSolver, spawnPosition, spritePath, width, height));
     }
 }

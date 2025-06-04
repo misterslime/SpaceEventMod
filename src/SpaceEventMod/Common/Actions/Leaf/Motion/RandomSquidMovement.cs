@@ -2,11 +2,6 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Content.NPCs;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 
 namespace SpaceEventMod.Common.Actions.Leaf.Motion;

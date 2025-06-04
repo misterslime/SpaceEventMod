@@ -31,7 +31,7 @@ public class FiniteStateMachine
     /// </summary>
     /// <param name="key">Key to search for.</param>
     /// <returns>The state with the specified key. If the key is not found it will return <see langword="null"/>.</returns>
-    public State GetState(int key) => states.TryGetValue(key, out State value) ? value : null;
+    public State GetState(int key) => states.TryGetValue(key, out var value) ? value : null;
 
     /// <summary>
     /// Runs an <see cref="Action"/> over all the states in the machine.
@@ -39,7 +39,7 @@ public class FiniteStateMachine
     /// <param name="action">Action to run.</param>
     public void ForEach(Action<KeyValuePair<int, State>> action)
     {
-        foreach (KeyValuePair<int, State> state in states)
+        foreach (var state in states)
             action(state);
     }
 
@@ -65,7 +65,7 @@ public class FiniteStateMachine
     /// <param name="arguments">Arguments to pass into the exit and enter methods of each state.</param>
     public void SetCurrentState(int key, float[] arguments = null)
     {
-        if (states.TryGetValue(key, out State value))
+        if (states.TryGetValue(key, out var value))
             SetCurrentState(value, arguments);
     }
 }

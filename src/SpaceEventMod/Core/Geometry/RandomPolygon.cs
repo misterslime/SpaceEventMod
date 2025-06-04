@@ -24,17 +24,17 @@ public class RandomPolygon
         if (irregularity < 0 || irregularity > 1)
             throw new ArgumentOutOfRangeException(nameof(irregularity), " must be between 0 and 1.");
 
-        UnifiedRandom random = new UnifiedRandom(seed);
+        var random = new UnifiedRandom(seed);
 
         irregularity *= MathHelper.TwoPi / numberOfVertices;
-        List<float> angles = RandomAngles(random, numberOfVertices, irregularity);
+        var angles = RandomAngles(random, numberOfVertices, irregularity);
 
-        List<Vector2> points = new List<Vector2>();
-        float angle = random.NextFloat(0, MathHelper.TwoPi);
+        var points = new List<Vector2>();
+        var angle = random.NextFloat(0, MathHelper.TwoPi);
 
-        for (int i = 0; i < numberOfVertices; i++)
+        for (var i = 0; i < numberOfVertices; i++)
         {
-            float radius = random.NextFloat(minRadius, maxRadius);
+            var radius = random.NextFloat(minRadius, maxRadius);
             points.Add(new Vector2(center.X + radius * MathF.Cos(angle), center.Y + radius * MathF.Sin(angle)));
             angle += angles[i];
         }
@@ -51,21 +51,21 @@ public class RandomPolygon
     /// <returns>A list of the random angles.</returns>
     public static List<float> RandomAngles(UnifiedRandom random, int steps, float irregularity)
     {
-        List<float> angles = new List<float>();
-        float lower = MathHelper.TwoPi / steps - irregularity;
-        float upper = MathHelper.TwoPi / steps + irregularity;
+        var angles = new List<float>();
+        var lower = MathHelper.TwoPi / steps - irregularity;
+        var upper = MathHelper.TwoPi / steps + irregularity;
         float cumulativeSum = 0;
 
-        for (int i = 0; i < steps; i++)
+        for (var i = 0; i < steps; i++)
         {
-            float angle = random.NextFloat(lower, upper);
+            var angle = random.NextFloat(lower, upper);
             angles.Add(angle);
             cumulativeSum += angle;
         }
 
         cumulativeSum /= MathHelper.TwoPi;
 
-        for (int i = 0; i < steps; i++)
+        for (var i = 0; i < steps; i++)
             angles[i] /= cumulativeSum;
 
         return angles;

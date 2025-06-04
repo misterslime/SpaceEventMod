@@ -1,9 +1,4 @@
-using SpaceEventMod.Core.GameObjects.Asteroids;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -20,9 +15,9 @@ public class AlertSystem : ModSystem
 
     public override void PostUpdateNPCs()
     {
-        for (int i = 0; i < alerts.Count; i++)
+        for (var i = 0; i < alerts.Count; i++)
         {
-            Alert alert = alerts[i];
+            var alert = alerts[i];
 
             Main.NewText(alert.sourceEntity);
 
