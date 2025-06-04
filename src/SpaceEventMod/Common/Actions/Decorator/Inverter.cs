@@ -11,9 +11,9 @@ public struct Inverter(INode child) : INode
 {
     private INode Child = child;
 
-    public NodeState Update(int whoAmI)
+    public NodeState Update(BehaviorTree parentTree, int whoAmI)
     {
-        NodeState childState = Child.Update(whoAmI);
+        NodeState childState = Child.Update(parentTree, whoAmI);
 
         if (childState == NodeState.InProgress)
             return NodeState.InProgress;

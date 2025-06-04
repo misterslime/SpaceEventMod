@@ -14,5 +14,5 @@ public enum NodeState
 /// </summary>
 public interface INode
 {
-    public NodeState Update(int whoAmI);
+    public NodeState Update(BehaviorTree parentTree, int whoAmI);
 }

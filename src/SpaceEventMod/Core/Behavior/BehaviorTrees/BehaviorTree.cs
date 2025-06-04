@@ -1,3 +1,4 @@
+using Terraria;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
@@ -6,9 +7,10 @@ namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
 /// A behaviour tree that can easily run complex entity behaviour on an npc.
 /// </summary>
 /// <param name="root">Root node for this tree.</param>
-public struct BehaviorTree(INode root)
+public class BehaviorTree(INode root)
 {
     private INode RootNode = root;
+    public INode CurrentNode = null; 
 
     /// <summary>
     /// Run this every frame, preferably in <see cref="ModNPC.AI()"/> or <see cref="ModNPC.PreAI()"/>.
@@ -17,6 +19,6 @@ public struct BehaviorTree(INode root)
     public void Update(int whoAmI)
     {
         if (RootNode != null)
-            RootNode.Update(whoAmI);
+            RootNode.Update(this, whoAmI);
     }
 }

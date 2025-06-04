@@ -11,11 +11,11 @@ public struct Sequence(params INode[] children) : INode
 {
     private INode[] Children = children;
 
-    public NodeState Update(int whoAmI)
+    public NodeState Update(BehaviorTree parentTree, int whoAmI)
     {
         foreach (var node in children)
         {
-            switch (node.Update(whoAmI))
+            switch (node.Update(parentTree, whoAmI))
             {
                 case NodeState.Failure:
                     return NodeState.Failure;

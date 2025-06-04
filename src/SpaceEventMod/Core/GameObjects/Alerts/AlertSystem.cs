@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Core.GameObjects.Alert;
+namespace SpaceEventMod.Core.GameObjects.Alerts;
 
 public class AlertSystem : ModSystem
 {
@@ -23,6 +23,8 @@ public class AlertSystem : ModSystem
         for (int i = 0; i < alerts.Count; i++)
         {
             Alert alert = alerts[i];
+
+            Main.NewText(alert.sourceEntity);
 
             if (alert.lifespan > 0)
                 alert.lifespan--;

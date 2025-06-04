@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Core.GameObjects.Alert;
+namespace SpaceEventMod.Core.GameObjects.Alerts;
 
 public enum AlertType
 {

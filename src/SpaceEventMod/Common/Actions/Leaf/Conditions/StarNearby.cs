@@ -16,7 +16,7 @@ public struct StarNearby(float range) : INode
 {
     private float range = range;
 
-    public NodeState Update(int whoAmI)
+    public NodeState Update(BehaviorTree parentTree, int whoAmI)
     {
         var npc = Main.npc[whoAmI];
 

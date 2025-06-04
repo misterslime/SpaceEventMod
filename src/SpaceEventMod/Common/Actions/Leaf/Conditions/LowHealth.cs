@@ -8,11 +8,13 @@ using Terraria;
 
 namespace SpaceEventMod.Common.Actions.Leaf.Conditions;
 
-public struct HasTarget : INode
+public struct LowHealth(float threshhold) : INode
 {
+    public float threshhold = threshhold;
+
     public NodeState Update(BehaviorTree parentTree, int whoAmI)
     {
-        var npc = Main.npc[whoAmI];
-        return npc.target == -1 || !npc.HasValidTarget ? NodeState.Failure : NodeState.Success;
+        NPC npc = Main.npc[whoAmI];
+        return npc.life <= threshhold * npc.lifeMax ? NodeState.Success : NodeState.Failure;
     }
 }
