@@ -5,11 +5,11 @@ using Terraria;
 
 namespace SpaceEventMod.Core.GameObjects.Asteroids;
 
-public struct Asteroid(Vector2Dynamics solver, Vector2 spawnPosition, string texturePath, int width, int height)
+public struct Asteroid(Vector2Dynamics solver, Vector2 spawnPosition, int variant, int width, int height)
 {
     public Vector2 Position = spawnPosition;
     public Vector2Dynamics SecondOrderSolver = solver;
-    public string TexturePath = texturePath;
+    public int Variant = variant;
     public int Width = width;
     public int Height = height;
 

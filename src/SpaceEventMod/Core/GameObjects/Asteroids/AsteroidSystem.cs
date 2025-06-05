@@ -72,7 +72,22 @@ public class AsteroidSystem : ModSystem
         {
             var asteroid = Asteroids[i];
 
-            var texture = ModContent.Request<Texture2D>(asteroid.TexturePath).Value;
+            Texture2D GetTexture(int variant)
+            {
+                Texture2D[] textures = [
+                    Assets.Assets.Textures.Props.Asteroid3Small.Value,
+                    Assets.Assets.Textures.Props.Asteroid3Medium.Value,
+                    Assets.Assets.Textures.Props.Asteroid3Large.Value,
+                    Assets.Assets.Textures.Props.Asteroid4Small.Value,
+                    Assets.Assets.Textures.Props.Asteroid4Medium.Value,
+                    Assets.Assets.Textures.Props.Asteroid4Large.Value,
+                ];
+
+                return textures[variant];
+            };
+
+            Texture2D texture = GetTexture(asteroid.Variant);
+
             var drawPosition = asteroid.GetCenter() - Main.screenPosition;
             var origin = texture.Size() * 0.5f;
 

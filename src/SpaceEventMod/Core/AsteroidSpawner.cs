@@ -59,37 +59,12 @@ public class AsteroidSpawner : ModSystem
 
         var asteroidType = Main.rand.Next(6);
 
-        switch (asteroidType)
-        {
-            case 0:
-                NewAsteroid(randomPosition, 48, 16, "SpaceEventMod/Assets/Textures/Props/Asteroid3Small");
-                break;
-
-            case 1:
-                NewAsteroid(randomPosition, 48, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid3Medium");
-                break;
-
-            case 2:
-                NewAsteroid(randomPosition, 48, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid3Large");
-                break;
-
-            case 3:
-                NewAsteroid(randomPosition, 64, 24, "SpaceEventMod/Assets/Textures/Props/Asteroid4Small");
-                break;
-
-            case 4:
-                NewAsteroid(randomPosition, 64, 32, "SpaceEventMod/Assets/Textures/Props/Asteroid4Medium");
-                break;
-
-            case 5:
-                NewAsteroid(randomPosition, 64, 48, "SpaceEventMod/Assets/Textures/Props/Asteroid4Large");
-                break;
-        }
+        NewAsteroid(randomPosition, 48, 16, Main.rand.Next(6));
     }
 
-    public void NewAsteroid(Vector2 spawnPosition, int width, int height, string spritePath)
+    public void NewAsteroid(Vector2 spawnPosition, int width, int height, int variant)
     {
         var secondOrderSolver = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f, spawnPosition);
-        AsteroidSystem.Asteroids.Add(new Asteroid(secondOrderSolver, spawnPosition, spritePath, width, height));
+        AsteroidSystem.Asteroids.Add(new Asteroid(secondOrderSolver, spawnPosition, variant, width, height));
     }
 }
