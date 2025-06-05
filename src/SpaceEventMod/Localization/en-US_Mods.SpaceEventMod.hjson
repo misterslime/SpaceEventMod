@@ -9,3 +9,5 @@ NPCs: {
 	Cosmostone.DisplayName: Cosmostone
 	Manaphage.DisplayName: Manaphage
 }
+
+Projectiles.ManaCloud.DisplayName: Mana Cloud
