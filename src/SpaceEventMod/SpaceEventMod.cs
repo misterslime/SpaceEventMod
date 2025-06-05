@@ -26,7 +26,8 @@ public class SpaceEventMod : Mod
             if (Main.netMode == NetmodeID.Server)
                 return;
 
-            WhitePixel = TransparentPixel = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
+            WhitePixel = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
+            TransparentPixel = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
             WhitePixel.SetData<Color>([Color.White]);
             TransparentPixel.SetData<Color>([Color.Transparent]);
         });
