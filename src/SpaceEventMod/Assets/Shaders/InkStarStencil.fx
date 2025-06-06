@@ -1,6 +1,6 @@
 sampler star : register(s0);
 
-texture ink; //controls the density of clouds across the whole seamap
+texture ink;
 sampler inkSampler = sampler_state
 {
     Texture = (ink);

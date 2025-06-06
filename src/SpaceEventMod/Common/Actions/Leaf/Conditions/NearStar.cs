@@ -6,7 +6,7 @@ using Terraria;
 
 namespace SpaceEventMod.Common.Actions.Leaf.Conditions;
 
-public struct StarNearby(float range) : INode
+public struct NearStar(float range) : INode
 {
     private float range = range;
 

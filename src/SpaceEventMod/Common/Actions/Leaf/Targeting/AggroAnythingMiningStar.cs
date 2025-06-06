@@ -34,7 +34,7 @@ public struct AggroAnythingMiningStar(float range, params int[] npcTypeException
         }
 
         npc.target = target;
-        npc.targetRect = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].getRect() : Main.player[npc.TranslatedTargetIndex].getRect();
+        npc.targetRect = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].getRect() : Main.player[target].getRect();
 
         return NodeState.Success;
     }

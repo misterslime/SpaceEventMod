@@ -5,7 +5,9 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Actions.Leaf.Conditions;
 using SpaceEventMod.Common.Actions.Leaf.Motion;
 using SpaceEventMod.Common.Actions.Leaf.Targeting;
+using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Core.Behavior.BehaviorTrees;
+using SpaceEventMod.Core.Behavior.StateMachines;
 using SpaceEventMod.Core.Physics;
 using System;
 using Terraria;
@@ -15,7 +17,7 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.NPCs;
 
-public class Manaphage : ModNPC, IDynamicMotion, ITimer, ISquidIdleGravity
+public class Manaphage : ModNPC, IDynamicMotion, ITimer, ISquidInk
 {
     public Vector2 TargetPosition
     {
@@ -33,13 +35,17 @@ public class Manaphage : ModNPC, IDynamicMotion, ITimer, ISquidIdleGravity
         set => NPC.ai[2] = value;
     }
 
-    public float Gravity
+    public int Mana
     {
-        get => NPC.ai[3];
+        get => (int)NPC.ai[3];
         set => NPC.ai[3] = value;
     }
 
-    public int JellyfishAnimationTime;
+    public int MaxMana => 3;
+
+    public int MostRecentCloud { get; set; }
+
+    public Vector2 CloudPosition { get; set; }
 
     public Vector2Dynamics SecondOrderSolver { get; set; }
 
@@ -52,20 +58,21 @@ public class Manaphage : ModNPC, IDynamicMotion, ITimer, ISquidIdleGravity
         var entityTargeting = new Selector(
             new HasTarget(),
             new Sequence(
-                new Inverter(new LowHealth(0.3333f)),
+                new Inverter(new NoMana()),
                 new AggroAnythingMiningStar(15 * 16f, Type)));
 
         var livePhageReaction = new Selector(
+            new NoMana(),
+            //new CloudSprayed(),
             new Sequence(
-                new LowHealth(0.3333f),
-                new TargetedSquidMovement(30 * 16f, 1f, 40, 40f * 16f, false)),
-            new TargetedSquidMovement(40 * 16f, 1f, 60, 10f * 16f));
+                //new SprayTargetIfNear(10f * 16f),
+                new TargetedSquidMovement(15 * 16f, 1f, 60, 10f * 16f)));
 
         var findStar = new Sequence(
-            new StarNearby(60 * 16f),
-            new NearestStarSquidMovement(20 * 16f, 1f, 60));
+            new NearStar(60 * 16f),
+            new SquidGoToStar(15 * 16f, 1f, 60));
 
-        var wander = new RandomSquidMovement(20 * 16f, 1f, 480);
+        var wander = new RandomSquidMovement(15 * 16f, 1f, 160);
 
         var root = new Selector(
             new Sequence(
@@ -97,7 +104,8 @@ public class Manaphage : ModNPC, IDynamicMotion, ITimer, ISquidIdleGravity
     public override void OnSpawn(IEntitySource source)
     {
         TargetPosition = NPC.Center;
-        SecondOrderSolver = new Vector2Dynamics(1f / 512f, 1f, 1f, TargetPosition);
+        SecondOrderSolver = new Vector2Dynamics(1f / 128, 1f, 1f, TargetPosition);
+        Mana = MaxMana;
 
         NPC.netUpdate = true;
 
@@ -111,6 +119,7 @@ public class Manaphage : ModNPC, IDynamicMotion, ITimer, ISquidIdleGravity
         NPC.velocity = Vector2.Zero;
         NPC.Center = SecondOrderSolver.Update(1, TargetPosition);
         NPC.rotation = (MathF.Abs(SecondOrderSolver.GetVelocity().X) * NPC.direction) / (6 * MathF.Tau);
+
         return false;
     }
 }

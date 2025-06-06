@@ -16,7 +16,7 @@ public struct RandomSquidMovement(float jumpDistance, float gravity, int cooldow
     {
         var npc = Main.npc[whoAmI];
 
-        if (npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer || npc.ModNPC is not ISquidIdleGravity squidGravity || npc.ModNPC is not Manaphage manaphage)
+        if (npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer || npc.ModNPC is not Manaphage manaphage)
             return NodeState.Failure;
 
         if (timer.Time > 0)
@@ -30,7 +30,6 @@ public struct RandomSquidMovement(float jumpDistance, float gravity, int cooldow
         }
 
         dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + Main.rand.NextVector2Unit() * jumpDistance;
-        squidGravity.Gravity = 0;
         timer.Time = cooldown;
         npc.netUpdate = true;
         return NodeState.Success;

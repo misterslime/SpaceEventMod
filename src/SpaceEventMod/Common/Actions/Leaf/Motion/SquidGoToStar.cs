@@ -6,7 +6,7 @@ using Terraria;
 
 namespace SpaceEventMod.Common.Actions.Leaf.Motion;
 
-public struct NearestStarSquidMovement(float jumpDistance, float gravity, int cooldown) : INode
+public struct SquidGoToStar(float jumpDistance, float gravity, int cooldown) : INode
 {
     private float jumpDistance = jumpDistance;
     private float gravity = gravity;
@@ -16,7 +16,7 @@ public struct NearestStarSquidMovement(float jumpDistance, float gravity, int co
     {
         var npc = Main.npc[whoAmI];
 
-        if (StarSystem.Stars.Count <= 0 || npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer || npc.ModNPC is not ISquidIdleGravity squidGravity)
+        if (StarSystem.Stars.Count <= 0 || npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer)
             return NodeState.Failure;
 
         var distanceToStar = float.MaxValue;
@@ -46,7 +46,6 @@ public struct NearestStarSquidMovement(float jumpDistance, float gravity, int co
         }
 
         dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + motionVector;
-        squidGravity.Gravity = 0;
         timer.Time = cooldown;
         npc.netUpdate = true;
 

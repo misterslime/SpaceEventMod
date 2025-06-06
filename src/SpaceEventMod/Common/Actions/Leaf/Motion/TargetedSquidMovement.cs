@@ -17,7 +17,7 @@ public struct TargetedSquidMovement(float jumpDistance, float gravity, int coold
     {
         var npc = Main.npc[whoAmI];
 
-        if (npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer || npc.ModNPC is not ISquidIdleGravity squidGravity || !npc.HasValidTarget)
+        if (npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer || !npc.HasValidTarget)
             return NodeState.Failure;
 
         var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
@@ -41,7 +41,6 @@ public struct TargetedSquidMovement(float jumpDistance, float gravity, int coold
         vectorToTarget.Normalize();
 
         dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + (towards ? vectorToTarget * jumpDistance : -vectorToTarget * jumpDistance);
-        squidGravity.Gravity = 0;
         timer.Time = cooldown;
         npc.netUpdate = true;
 
