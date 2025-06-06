@@ -9,33 +9,44 @@ using Terraria.Graphics.Renderers;
 using Terraria;
 using Terraria.ModLoader;
 using Newtonsoft.Json.Linq;
+using SpaceEventMod.Content.Dusts;
 
 namespace SpaceEventMod.Core.Graphics;
+
+public struct DrawAction(Effect effect, Action<SpriteBatch> action)
+{
+    public Action<SpriteBatch> action = action;
+    public Effect effect = effect;
+}
 
 [Autoload(Side = ModSide.Client)]
 public class PixelRenderer : ModSystem
 {
     public static RenderTarget2D PixelRenderTarget;
 
-    public static List<Action<SpriteBatch>> DrawActions = new List<Action<SpriteBatch>>();
+    public static List<DrawAction> DrawActions = new List<DrawAction>();
 
     public override void Load()
     {
-        On_Main.CheckMonoliths += DrawToTarget;
-        On_Main.DrawInfernoRings += DrawPixelatedSprites;
-
         Main.QueueMainThreadAction(() =>
         {
+            On_Main.CheckMonoliths += DrawToTarget;
+            On_Main.DrawInfernoRings += DrawPixelatedSprites;
+
             PixelRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
         });
     }
 
     public override void Unload()
     {
-        On_Main.CheckMonoliths -= DrawToTarget;
-        On_Main.DrawInfernoRings -= DrawPixelatedSprites;
+        Main.QueueMainThreadAction(() =>
+        {
+            On_Main.CheckMonoliths -= DrawToTarget;
+            On_Main.DrawInfernoRings -= DrawPixelatedSprites;
 
-        PixelRenderTarget = null;
+            PixelRenderTarget?.Dispose();
+            PixelRenderTarget = null;
+        });
     }
 
     private static void DrawToTarget(On_Main.orig_CheckMonoliths orig)
@@ -45,12 +56,8 @@ public class PixelRenderer : ModSystem
             orig();
             return;
         }
-        
-        // Credit to Nycro for the math here!
-        // (and also to fry for helping me a lot with this impl)
-        Matrix pixelationMatrix = Main.GameViewMatrix.TransformationMatrix
-            * Matrix.CreateScale(0.5f / Main.GameViewMatrix.Zoom.X, 0.5f / Main.GameViewMatrix.Zoom.Y, 1f)
-            * Matrix.CreateTranslation(Main.GameViewMatrix.Translation.X * 0.5f, Main.GameViewMatrix.Translation.Y * 0.5f, 0f);
+
+        Matrix pixelationMatrix = GetPixelationMatrix();
 
         if (PixelRenderTarget == null || PixelRenderTarget.Width != Main.screenWidth || PixelRenderTarget.Height != Main.screenHeight)
         {
@@ -63,12 +70,12 @@ public class PixelRenderer : ModSystem
             Main.graphics.GraphicsDevice.SetRenderTarget(PixelRenderTarget);
             Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 
-            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, pixelationMatrix);
-
-            foreach (Action<SpriteBatch> action in DrawActions)
-                action.Invoke(Main.spriteBatch);
-
-            Main.spriteBatch.End();
+            foreach (DrawAction drawAction in DrawActions)
+            {
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, drawAction.effect, pixelationMatrix);
+                drawAction.action.Invoke(Main.spriteBatch);
+                Main.spriteBatch.End();
+            }
 
             Main.instance.GraphicsDevice.SetRenderTarget(null);
             DrawActions.Clear();
@@ -87,15 +94,24 @@ public class PixelRenderer : ModSystem
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
         Main.spriteBatch.Draw(PixelRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
-        PixelRenderTarget.Dispose();
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.Transform);
 
         orig(self);
     }
 
-    public static void Draw(Action<SpriteBatch> action)
+    public static Matrix GetPixelationMatrix()
     {
-        DrawActions.Add(action);
+        // Credit to Nycro for the math here!
+        // (and also to fry for helping me a lot with this impl)
+        return Main.GameViewMatrix.TransformationMatrix
+            * Matrix.CreateScale(0.5f / Main.GameViewMatrix.Zoom.X, 0.5f / Main.GameViewMatrix.Zoom.Y, 1f)
+            * Matrix.CreateTranslation(Main.GameViewMatrix.Translation.X * 0.5f, Main.GameViewMatrix.Translation.Y * 0.5f, 0f);
+    }
+
+    public static void Draw(Effect effect, Action<SpriteBatch> action)
+    {
+        DrawAction drawAction = new DrawAction(effect, action);
+        DrawActions.Add(drawAction);
     }
 }

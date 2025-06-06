@@ -9,17 +9,17 @@ using System.Linq;
 using Terraria;
 using Terraria.Graphics.Renderers;
 using Terraria.ModLoader;
-using static Terraria.GameContent.Animations.IL_Actions.NPCs;
 
 namespace SpaceEventMod.Content.Dusts;
 
-public struct ManaInkData(int variant, int lifetime, float spin, Vector2 orbitPosition, int parentProjectile)
+public struct ManaInkData(int variant, InkType inkType, int lifetime, float spin, Vector2 targetPosition, int parent = -1)
 {
     public int FrameVariant = variant;
+    public InkType InkType = inkType;
     public int Lifetime = lifetime;
     public float Spin = spin;
-    public Vector2 OrbitPosition = orbitPosition;
-    public int ParentProjectile = parentProjectile;
+    public Vector2 TargetPosition = targetPosition;
+    public int Parent = parent;
 }
 
 public class ManaInk : ModDust
@@ -41,28 +41,48 @@ public class ManaInk : ModDust
 
         dust.color = Main.hslToRgb((Main.rgbToHsl(dust.color).X) % 1, Main.rgbToHsl(dust.color).Y, Main.rgbToHsl(dust.color).Z);
         dust.rotation += manaInkData.Spin;
-        dust.velocity *= 0.85f;
 
-        Vector2 toOrbitPosition = manaInkData.OrbitPosition - dust.position;
+        Vector2 toTarget = manaInkData.TargetPosition - dust.position;
 
-        Vector2 orbitVelocity = new Vector2(-toOrbitPosition.Y, toOrbitPosition.X);
-        Vector2 returnVelocity = Vector2.Zero;
-
-        if (!Main.projectile[manaInkData.ParentProjectile].active || Main.projectile[manaInkData.ParentProjectile].type != ModContent.DustType<ManaInk>())
-        {
-            returnVelocity = toOrbitPosition;
-            returnVelocity.Normalize();
-        }
-
-        orbitVelocity.Normalize();
-
-        dust.position += dust.velocity + orbitVelocity * MathF.Sqrt(toOrbitPosition.Length()) * 0.05f + returnVelocity * 0.3f;
+        if (manaInkData.InkType == InkType.Orbiting)
+            Orbit(dust, toTarget, manaInkData);
+        else if (manaInkData.InkType == InkType.Spraying)
+            Spray(dust, toTarget, manaInkData);
 
         dust.fadeIn--;
         if (dust.fadeIn <= 0)
             dust.active = false;
 
         return false;
+    }
+
+    public void Orbit(Dust dust, Vector2 toTarget, ManaInkData manaInkData)
+    {
+        dust.velocity *= 0.85f;
+        Vector2 orbitVelocity = new Vector2(-toTarget.Y, toTarget.X);
+        Vector2 returnVelocity = Vector2.Zero;
+
+        if (!Main.projectile[manaInkData.Parent].active || Main.projectile[manaInkData.Parent].type != ModContent.DustType<ManaInk>())
+        {
+            returnVelocity = toTarget;
+            returnVelocity.Normalize();
+        }
+
+        orbitVelocity.Normalize();
+
+        dust.position += dust.velocity + orbitVelocity * MathF.Sqrt(toTarget.Length()) * 0.05f + returnVelocity * 0.3f;
+    }
+
+    public void Spray(Dust dust, Vector2 toTarget, ManaInkData manaInkData)
+    {
+        Vector2 returnVelocity = toTarget;
+        returnVelocity.Normalize();
+
+        dust.velocity += returnVelocity * 0.25f;
+        dust.position += dust.velocity;
+
+        if (toTarget.Length() <= 32)
+            dust.active = false;
     }
 
     public override bool PreDraw(Dust dust) => false;
