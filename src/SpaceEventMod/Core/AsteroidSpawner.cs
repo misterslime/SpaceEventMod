@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.GameObjects.Asteroids;
 using SpaceEventMod.Core.GameObjects.Stars;
 using SpaceEventMod.Core.Physics;
@@ -59,7 +60,23 @@ public class AsteroidSpawner : ModSystem
 
         var asteroidType = Main.rand.Next(6);
 
-        NewAsteroid(randomPosition, 48, 16, Main.rand.Next(6));
+        Point GetDimensions(int variant)
+        {
+            Point[] dimensions = [
+                new Point(48, 16),
+                new Point(48, 32),
+                new Point(48, 48),
+                new Point(64, 24),
+                new Point(64, 32),
+                new Point(64, 48),
+            ];
+
+            return dimensions[variant];
+        }
+
+        Point dimensions = GetDimensions(asteroidType);
+
+        NewAsteroid(randomPosition, dimensions.X, dimensions.Y, asteroidType);
     }
 
     public void NewAsteroid(Vector2 spawnPosition, int width, int height, int variant)
