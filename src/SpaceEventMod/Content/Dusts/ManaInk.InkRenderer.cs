@@ -61,24 +61,9 @@ public class InkRenderer : ModSystem
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
 
-        IEnumerable<Dust> inkDusts = Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active);
-
-        Texture2D inkGlow = Assets.Assets.Textures.Dusts.MediumSmoke_Glow.Value;
         Texture2D inkTexture = Assets.Assets.Textures.Dusts.MediumSmoke.Value;
 
-        foreach (Dust dust in inkDusts)
-        {
-            if (dust.customData == null || dust.customData is not ManaInkData manaInkData)
-                continue;
-
-            Rectangle frame = new Rectangle(0, 38 * manaInkData.FrameVariant, 36, 38);
-
-            Color drawColor = new Color(69, 77, 255);
-
-            Main.spriteBatch.Draw(inkGlow, dust.position - Main.screenPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
-        }
-
-        foreach (Dust dust in inkDusts)
+        foreach (Dust dust in Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active))
         {
             if (dust.customData == null || dust.customData is not ManaInkData manaInkData)
                 return;
@@ -102,6 +87,20 @@ public class InkRenderer : ModSystem
 
         PixelRenderer.Draw(null, (SpriteBatch spriteBatch) =>
         {
+            Texture2D inkGlow = Assets.Assets.Textures.Dusts.MediumSmoke_Glow.Value;
+
+            foreach (Dust dust in Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active))
+            {
+                if (dust.customData == null || dust.customData is not ManaInkData manaInkData)
+                    continue;
+
+                Rectangle frame = new Rectangle(0, 38 * manaInkData.FrameVariant, 36, 38);
+
+                Color drawColor = new Color(69, 77, 255);
+
+                Main.spriteBatch.Draw(inkGlow, dust.position - Main.screenPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
+            }
+
             spriteBatch.Draw(InkRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         });
 

@@ -34,7 +34,17 @@ public struct TargetedSquidMovement(float jumpDistance, float gravity, int coold
             if (dynamicMotion.TargetPosition.Distance(npc.Center) <= 16)
                 dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + new Vector2(0, gravity);
 
-            return NodeState.InProgress;
+            if (npc.ModNPC is IDynamicStretch squidAnimationp)
+            {
+                if (timer.Time < 15)
+                    squidAnimationp.TargetStretching = new Vector2(1.1f, 0.75f);
+                else if (timer.Time >= cooldown - 5)
+                    squidAnimationp.TargetStretching = new Vector2(0.8f, 1.25f);
+                else
+                    squidAnimationp.TargetStretching = Vector2.One;
+            }
+
+            return NodeState.Failure;
         }
 
         var vectorToTarget = targetCenter - npc.Center;
@@ -44,7 +54,7 @@ public struct TargetedSquidMovement(float jumpDistance, float gravity, int coold
         timer.Time = cooldown;
         npc.netUpdate = true;
 
-        return NodeState.InProgress;
+        return NodeState.Failure;
     }
 }
 

@@ -19,6 +19,7 @@ public struct InkStarData(InkType inkType, Vector2 targetPosition, Color pixelCo
     public InkType InkType = inkType;
     public Vector2 TargetPosition = targetPosition;
     public Color PixelColor = pixelColor;
+    public int RandomTimeDisplacement = Main.rand.Next(-99999, 99999);
 }
 
 public class InkStar : ModDust
@@ -40,7 +41,7 @@ public class InkStar : ModDust
             return false;
         }
 
-        float opacity = (float)Math.Sin((dust.fadeIn / 20) * MathHelper.Pi);
+        float opacity = (float)Math.Sin(((inkStarData.RandomTimeDisplacement + dust.fadeIn) / 20) * MathHelper.Pi);
 
         Color lightColor = dust.color * opacity;
         Lighting.AddLight(dust.position, lightColor.R / 255f, lightColor.G / 255f, lightColor.B / 255f);

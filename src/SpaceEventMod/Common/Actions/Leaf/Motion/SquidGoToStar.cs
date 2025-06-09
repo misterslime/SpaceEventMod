@@ -28,6 +28,16 @@ public struct SquidGoToStar(float jumpDistance, float gravity, int cooldown) : I
             if (dynamicMotion.TargetPosition.Distance(npc.Center) <= 16)
                 dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + new Vector2(0, gravity);
 
+            if (npc.ModNPC is IDynamicStretch squidAnimationp)
+            {
+                if (timer.Time < 15)
+                    squidAnimationp.TargetStretching = new Vector2(1.1f, 0.75f);
+                else if (timer.Time >= cooldown - 5)
+                    squidAnimationp.TargetStretching = new Vector2(0.8f, 1.25f);
+                else
+                    squidAnimationp.TargetStretching = Vector2.One;
+            }
+
             return NodeState.InProgress;
         }
 

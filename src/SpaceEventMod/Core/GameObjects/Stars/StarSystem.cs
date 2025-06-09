@@ -106,7 +106,7 @@ public class StarSystem : ModSystem
                 if (Main.myPlayer == self.whoAmI && star.Durability > 0)
                 {
                     SoundEngine.PlaySound(SoundID.Tink, Main.MouseWorld);
-                    AlertSystem.alerts.Add(new Alert(AlertType.MiningStar, self.whoAmI, 10));
+                    AlertSystem.alerts.Add(new Alert(AlertType.MiningStar, self.whoAmI, 1));
                 }
             }
 
