@@ -1,13 +1,6 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
-using SpaceEventMod.Core;
-using SpaceEventMod.Core.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Terraria;
-using Terraria.Graphics.Renderers;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Dusts;
@@ -42,7 +35,7 @@ public class ManaInk : ModDust
         dust.color = Main.hslToRgb((Main.rgbToHsl(dust.color).X) % 1, Main.rgbToHsl(dust.color).Y, Main.rgbToHsl(dust.color).Z);
         dust.rotation += manaInkData.Spin;
 
-        Vector2 toTarget = manaInkData.TargetPosition - dust.position;
+        var toTarget = manaInkData.TargetPosition - dust.position;
 
         if (manaInkData.InkType == InkType.Orbiting)
             Orbit(dust, toTarget, manaInkData);
@@ -59,8 +52,8 @@ public class ManaInk : ModDust
     public void Orbit(Dust dust, Vector2 toTarget, ManaInkData manaInkData)
     {
         dust.velocity *= 0.85f;
-        Vector2 orbitVelocity = new Vector2(-toTarget.Y, toTarget.X);
-        Vector2 returnVelocity = Vector2.Zero;
+        var orbitVelocity = new Vector2(-toTarget.Y, toTarget.X);
+        var returnVelocity = Vector2.Zero;
 
         if (!Main.projectile[manaInkData.Parent].active || Main.projectile[manaInkData.Parent].type != ModContent.DustType<ManaInk>())
         {
@@ -75,7 +68,7 @@ public class ManaInk : ModDust
 
     public void Spray(Dust dust, Vector2 toTarget, ManaInkData manaInkData)
     {
-        Vector2 returnVelocity = toTarget;
+        var returnVelocity = toTarget;
         returnVelocity.Normalize();
 
         dust.velocity += returnVelocity * 0.25f;

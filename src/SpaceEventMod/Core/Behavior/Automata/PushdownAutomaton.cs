@@ -10,7 +10,7 @@ public class PushdownAutomaton<T>(T context) : IAutomata<T>
     protected Dictionary<int, IState<T>> States = [];
     protected Stack<int> stateStack = [];
 
-    public IState<T> CurrentState => stateStack.Count > 0 ? States[stateStack.Peek()] : null;
+    protected IState<T> CurrentState => stateStack.Count > 0 ? States[stateStack.Peek()] : null;
     public T Context { get; set; } = context;
 
     /// <summary>

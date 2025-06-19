@@ -1,15 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Newtonsoft.Json.Linq;
-using SpaceEventMod.Core;
 using SpaceEventMod.Core.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
-using Terraria.Graphics.Light;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Dusts;
@@ -61,14 +55,14 @@ public class InkRenderer : ModSystem
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
 
-        Texture2D inkTexture = Assets.Assets.Textures.Dusts.MediumSmoke.Value;
+        var inkTexture = Assets.Assets.Textures.Dusts.MediumSmoke.Value;
 
-        foreach (Dust dust in Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active))
+        foreach (var dust in Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active))
         {
             if (dust.customData == null || dust.customData is not ManaInkData manaInkData)
                 return;
 
-            Rectangle frame = new Rectangle(0, 34 * manaInkData.FrameVariant, 32, 34);
+            var frame = new Rectangle(0, 34 * manaInkData.FrameVariant, 32, 34);
 
             Main.spriteBatch.Draw(inkTexture, dust.position - Main.screenPosition, frame, dust.color, dust.rotation, frame.Size() / 2f, dust.scale, SpriteEffects.None, 0f);
         }
@@ -87,16 +81,16 @@ public class InkRenderer : ModSystem
 
         PixelRenderer.Draw(null, (SpriteBatch spriteBatch) =>
         {
-            Texture2D inkGlow = Assets.Assets.Textures.Dusts.MediumSmoke_Glow.Value;
+            var inkGlow = Assets.Assets.Textures.Dusts.MediumSmoke_Glow.Value;
 
-            foreach (Dust dust in Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active))
+            foreach (var dust in Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active))
             {
                 if (dust.customData == null || dust.customData is not ManaInkData manaInkData)
                     continue;
 
-                Rectangle frame = new Rectangle(0, 38 * manaInkData.FrameVariant, 36, 38);
+                var frame = new Rectangle(0, 38 * manaInkData.FrameVariant, 36, 38);
 
-                Color drawColor = new Color(69, 77, 255);
+                var drawColor = new Color(69, 77, 255);
 
                 Main.spriteBatch.Draw(inkGlow, dust.position - Main.screenPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
             }
@@ -104,21 +98,21 @@ public class InkRenderer : ModSystem
             spriteBatch.Draw(InkRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         });
 
-        Effect inkStencilShader = Assets.Assets.Shaders.InkStarStencil.Value;
+        var inkStencilShader = Assets.Assets.Shaders.InkStarStencil.Value;
 
         inkStencilShader.Parameters["ink"].SetValue(InkRenderTarget);
         inkStencilShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth / 2, Main.screenHeight / 2));
 
         PixelRenderer.Draw(inkStencilShader, (SpriteBatch spriteBatch) =>
         {
-            Texture2D whitePixel = SpaceEventMod.WhitePixel;
+            var whitePixel = SpaceEventMod.WhitePixel;
 
-            foreach (Dust dust in Main.dust.Where(d => d.type == ModContent.DustType<InkStar>() && d.active))
+            foreach (var dust in Main.dust.Where(d => d.type == ModContent.DustType<InkStar>() && d.active))
             {
                 if (dust.customData == null || dust.customData is not InkStarData manaInkData)
                     return;
 
-                float opacity = (float)Math.Sin((dust.fadeIn / 20) * MathHelper.Pi);
+                var opacity = (float)Math.Sin((dust.fadeIn / 20) * MathHelper.Pi);
 
                 spriteBatch.Draw(SpaceEventMod.WhitePixel, dust.position - Main.screenPosition, SpaceEventMod.WhitePixel.Bounds, manaInkData.PixelColor * opacity, 0f, SpaceEventMod.WhitePixel.Size() * 0.5f, 2f, SpriteEffects.None, 0f);
             }

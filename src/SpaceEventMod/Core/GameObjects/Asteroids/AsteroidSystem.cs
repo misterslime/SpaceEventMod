@@ -84,9 +84,10 @@ public class AsteroidSystem : ModSystem
                 ];
 
                 return textures[variant];
-            };
+            }
+            ;
 
-            Texture2D texture = GetTexture(asteroid.Variant);
+            var texture = GetTexture(asteroid.Variant);
 
             var drawPosition = asteroid.GetCenter() - Main.screenPosition;
             var origin = texture.Size() * 0.5f;

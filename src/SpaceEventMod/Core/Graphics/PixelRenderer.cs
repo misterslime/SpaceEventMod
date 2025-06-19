@@ -1,15 +1,9 @@
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria.Graphics.Renderers;
 using Terraria;
 using Terraria.ModLoader;
-using Newtonsoft.Json.Linq;
-using SpaceEventMod.Content.Dusts;
 
 namespace SpaceEventMod.Core.Graphics;
 
@@ -57,7 +51,7 @@ public class PixelRenderer : ModSystem
             return;
         }
 
-        Matrix pixelationMatrix = GetPixelationMatrix();
+        var pixelationMatrix = GetPixelationMatrix();
 
         if (PixelRenderTarget == null || PixelRenderTarget.Width != Main.screenWidth || PixelRenderTarget.Height != Main.screenHeight)
         {
@@ -70,7 +64,7 @@ public class PixelRenderer : ModSystem
             Main.graphics.GraphicsDevice.SetRenderTarget(PixelRenderTarget);
             Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 
-            foreach (DrawAction drawAction in DrawActions)
+            foreach (var drawAction in DrawActions)
             {
                 Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, drawAction.effect, pixelationMatrix);
                 drawAction.action.Invoke(Main.spriteBatch);
@@ -111,7 +105,7 @@ public class PixelRenderer : ModSystem
 
     public static void Draw(Effect effect, Action<SpriteBatch> action)
     {
-        DrawAction drawAction = new DrawAction(effect, action);
+        var drawAction = new DrawAction(effect, action);
         DrawActions.Add(drawAction);
     }
 }
