@@ -1,17 +1,9 @@
-using Humanizer;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Common.Actions.Composite;
-using SpaceEventMod.Common.Actions.Decorator;
 using SpaceEventMod.Common.Actions.Interfaces;
-using SpaceEventMod.Common.Actions.Leaf.Attacking;
-using SpaceEventMod.Common.Actions.Leaf.Conditions;
-using SpaceEventMod.Common.Actions.Leaf.Motion;
-using SpaceEventMod.Common.Actions.Leaf.Targeting;
-using SpaceEventMod.Content.Dusts;
-using SpaceEventMod.Core;
-using SpaceEventMod.Core.Behavior.BehaviorTrees;
-using SpaceEventMod.Core.Behavior.StateMachines;
+using SpaceEventMod.Common.Actions.NPCs;
+using SpaceEventMod.Core.Behavior.Automata;
+using SpaceEventMod.Core.GameObjects.Stars;
 using SpaceEventMod.Core.Physics;
 using System;
 using Terraria;
@@ -24,7 +16,7 @@ namespace SpaceEventMod.Content.NPCs;
 
 public class Manaphage : ModNPC, IDynamicMotion, IDynamicStretch, ITimer, ISquidInk
 {
-    private static BehaviorTree BehaviorTree;
+    public PushdownAutomaton<ModNPC> PushdownAutomaton;
 
     public Vector2 TargetPosition
     {
@@ -67,34 +59,6 @@ public class Manaphage : ModNPC, IDynamicMotion, IDynamicStretch, ITimer, ISquid
     public override void SetStaticDefaults()
     {
         NPCID.Sets.UsesNewTargetting[Type] = true;
-
-        var entityTargeting = new Selector(
-            new HasTarget(),
-            new Sequence(
-                new Inverter(new NoMana()),
-                new AggroAnythingMiningStar(15 * 16f, Type)));
-
-        var livePhageReaction = new Selector(
-            new NoMana(),
-            new Sequence(
-                new Inverter(new TargetedSquidMovement(15 * 16f, 1f, 60, 15f * 16f))),
-                new SprayInkCloud(15f * 16f));
-
-        var findStar = new Sequence(
-            new NearStar(60 * 16f),
-            new SquidGoToStar(15 * 16f, 1f, 60));
-
-        var wander = new RandomSquidMovement(15 * 16f, 0.35f, 160);
-
-        var root = new Selector(
-            new Selector(
-                new SprayInkCloudAnimation(),
-                new Sequence(entityTargeting, livePhageReaction)
-            ),
-            findStar,
-            wander);
-
-        BehaviorTree = new BehaviorTree(root);
     }
 
     public override void SetDefaults()
@@ -116,6 +80,56 @@ public class Manaphage : ModNPC, IDynamicMotion, IDynamicStretch, ITimer, ISquid
 
     public override void OnSpawn(IEntitySource source)
     {
+        PushdownAutomaton = new PushdownAutomaton<ModNPC>(this);
+
+        var randomSquidMovement = new RandomSquidMovement(15 * 16f, 0.35f, 160);
+        var squidGoToStar = new SquidGoToStar(15 * 16f, 1f, 60, 15 * 16f);
+        var targetedSquidMovement = new TargetedSquidMovement(15 * 16f, 1f, 60);
+        var sprayInkCloud = new SprayInkCloud();
+
+        bool CanSprayInk()
+        {
+            if (!NPC.HasValidTarget)
+                return false;
+
+            var targetCenter = NPC.HasNPCTarget ? Main.npc[NPC.TranslatedTargetIndex].Center : Main.player[NPC.TranslatedTargetIndex].Center;
+
+            return targetCenter.WithinRange(NPC.Center, 15f * 16f);
+        }
+
+        bool NearStar()
+        {
+            if (StarSystem.Stars.Count <= 0)
+                return false;
+
+            Core.GameObjects.Stars.Star closestStar;
+            var distanceToStar = float.MaxValue;
+
+            foreach (var star in StarSystem.Stars)
+            {
+                if (Vector2.DistanceSquared(star.GetCenter(), NPC.Center) < distanceToStar)
+                {
+                    distanceToStar = Vector2.DistanceSquared(star.GetCenter(), NPC.Center);
+                    closestStar = star;
+                }
+            }
+
+            if (Math.Sqrt(distanceToStar) <= 60 * 16f)
+                return true;
+
+            return false;
+        }
+
+        PushdownAutomaton.Add(0, randomSquidMovement)
+            .Add(1, squidGoToStar)
+            .Add(2, targetedSquidMovement)
+            .Add(3, sprayInkCloud)
+            .AddTransition(0, 1, NearStar)
+            .AddTransition(1, 2, () => NPC.HasValidTarget)
+            .AddTransition(1, 3, CanSprayInk)
+            .AddTransition(2, 3, CanSprayInk)
+            .PushState(0);
+
         TargetPosition = NPC.Center;
         SecondOrderSolver = new Vector2Dynamics(1f / 128, 0.7f, 0.2f, TargetPosition);
         Mana = MaxMana;
@@ -133,7 +147,7 @@ public class Manaphage : ModNPC, IDynamicMotion, IDynamicStretch, ITimer, ISquid
     {
         NPC.rotation = NPC.rotation.AngleLerp((MathF.Abs(SecondOrderSolver.GetVelocity().X) * NPC.direction) / (6 * MathF.Tau), 0.5f);
 
-        BehaviorTree?.Update(NPC.whoAmI);
+        PushdownAutomaton.Update();
         NPC.direction = TargetPosition.X >= NPC.Center.X ? 1 : -1;
         NPC.velocity = Vector2.Zero;
         NPC.Center = SecondOrderSolver.Update(1, TargetPosition);
@@ -143,9 +157,9 @@ public class Manaphage : ModNPC, IDynamicMotion, IDynamicStretch, ITimer, ISquid
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        Texture2D texture = TextureAssets.Npc[Type].Value;
-        Vector2 drawPosition = NPC.Center - Main.screenPosition;
-        Vector2 stretchFactor = Stretching == null ? Vector2.One : Stretching.Update(1, TargetStretching);
+        var texture = TextureAssets.Npc[Type].Value;
+        var drawPosition = NPC.Center - Main.screenPosition;
+        var stretchFactor = Stretching == null ? Vector2.One : Stretching.Update(1, TargetStretching);
 
         Main.EntitySpriteDraw(texture, drawPosition, texture.Frame(), NPC.GetAlpha(drawColor), NPC.rotation, texture.Size() * 0.5f, NPC.scale * stretchFactor, 0);
 

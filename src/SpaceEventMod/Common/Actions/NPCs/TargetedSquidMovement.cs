@@ -1,31 +1,30 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
-using SpaceEventMod.Core.Behavior.BehaviorTrees;
+using SpaceEventMod.Core.Behavior.Automata;
 using Terraria;
+using Terraria.ModLoader;
 
-namespace SpaceEventMod.Common.Actions.Leaf.Motion;
+namespace SpaceEventMod.Common.Actions.NPCs;
 
-public struct TargetedSquidMovement(float jumpDistance, float gravity, int cooldown, float targetDistance, bool towards = true) : INode
+public struct TargetedSquidMovement(float jumpDistance, float gravity, int cooldown, bool towards = true) : IState<ModNPC>
 {
     private float jumpDistance = jumpDistance;
     private float gravity = gravity;
     private int cooldown = cooldown;
-    private float targetDistance = targetDistance;
     private bool towards = towards;
 
-    public NodeState Update(BehaviorTree parentTree, int whoAmI)
+    public void Enter(IAutomata<ModNPC> stateMachine)
     {
-        var npc = Main.npc[whoAmI];
+    }
 
-        if (npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer || !npc.HasValidTarget)
-            return NodeState.Failure;
+    public bool Update(IAutomata<ModNPC> stateMachine)
+    {
+        var npc = stateMachine.Context.NPC;
+
+        if (stateMachine.Context is not IDynamicMotion dynamicMotion || stateMachine.Context is not ITimer timer || !npc.HasValidTarget)
+            return true;
 
         var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
-
-        if (targetCenter.WithinRange(npc.Center, targetDistance) && towards)
-            return NodeState.Success;
-        else if (!targetCenter.WithinRange(npc.Center, targetDistance) && !towards)
-            return NodeState.Success;
 
         if (timer.Time > 0)
         {
@@ -34,7 +33,7 @@ public struct TargetedSquidMovement(float jumpDistance, float gravity, int coold
             if (dynamicMotion.TargetPosition.Distance(npc.Center) <= 16)
                 dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + new Vector2(0, gravity);
 
-            if (npc.ModNPC is IDynamicStretch squidAnimationp)
+            if (stateMachine.Context is IDynamicStretch squidAnimationp)
             {
                 if (timer.Time < 15)
                     squidAnimationp.TargetStretching = new Vector2(1.1f, 0.75f);
@@ -44,7 +43,7 @@ public struct TargetedSquidMovement(float jumpDistance, float gravity, int coold
                     squidAnimationp.TargetStretching = Vector2.One;
             }
 
-            return NodeState.Failure;
+            return false;
         }
 
         var vectorToTarget = targetCenter - npc.Center;
@@ -54,7 +53,12 @@ public struct TargetedSquidMovement(float jumpDistance, float gravity, int coold
         timer.Time = cooldown;
         npc.netUpdate = true;
 
-        return NodeState.Failure;
+        return false;
+    }
+
+    public void Exit(IAutomata<ModNPC> stateMachine)
+    {
+
     }
 }
 

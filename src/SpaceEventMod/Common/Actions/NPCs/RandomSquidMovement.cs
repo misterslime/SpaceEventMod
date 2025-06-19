@@ -1,32 +1,37 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Content.NPCs;
-using SpaceEventMod.Core.Behavior.BehaviorTrees;
+using SpaceEventMod.Core.Behavior.Automata;
 using Terraria;
+using Terraria.ModLoader;
 
-namespace SpaceEventMod.Common.Actions.Leaf.Motion;
+namespace SpaceEventMod.Common.Actions.NPCs;
 
-public struct RandomSquidMovement(float jumpDistance, float gravity, int cooldown) : INode
+public struct RandomSquidMovement(float jumpDistance, float gravity, int cooldown) : IState<ModNPC>
 {
     private float jumpDistance = jumpDistance;
     private float gravity = gravity;
     private int cooldown = cooldown;
 
-    public NodeState Update(BehaviorTree parentTree, int whoAmI)
+    public void Enter(IAutomata<ModNPC> stateMachine)
     {
-        var npc = Main.npc[whoAmI];
+    }
 
-        if (npc.ModNPC is not IDynamicMotion dynamicMotion || npc.ModNPC is not ITimer timer || npc.ModNPC is not Manaphage manaphage)
-            return NodeState.Failure;
+    public bool Update(IAutomata<ModNPC> stateMachine)
+    {
+        var npc = stateMachine.Context;
+
+        if (stateMachine.Context is not IDynamicMotion dynamicMotion || stateMachine.Context is not ITimer timer || stateMachine.Context is not Manaphage manaphage)
+            return true;
 
         if (timer.Time > 0)
         {
             timer.Time--;
 
-            if (dynamicMotion.TargetPosition.Distance(npc.Center) <= 16)
+            if (dynamicMotion.TargetPosition.Distance(stateMachine.Context.NPC.Center) <= 16)
                 dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + new Vector2(0, gravity);
 
-            if (npc.ModNPC is IDynamicStretch squidAnimationp)
+            if (stateMachine.Context is IDynamicStretch squidAnimationp)
             {
                 if (timer.Time < 15)
                     squidAnimationp.TargetStretching = new Vector2(1.1f, 0.75f);
@@ -36,13 +41,18 @@ public struct RandomSquidMovement(float jumpDistance, float gravity, int cooldow
                     squidAnimationp.TargetStretching = Vector2.One;
             }
 
-            return NodeState.InProgress;
+            return false;
         }
 
         dynamicMotion.TargetPosition = dynamicMotion.TargetPosition + Main.rand.NextVector2Unit() * jumpDistance;
         timer.Time = cooldown;
-        npc.netUpdate = true;
+        stateMachine.Context.NPC.netUpdate = true;
 
-        return NodeState.Success;
+        return false;
+    }
+
+    public void Exit(IAutomata<ModNPC> stateMachine)
+    {
+
     }
 }

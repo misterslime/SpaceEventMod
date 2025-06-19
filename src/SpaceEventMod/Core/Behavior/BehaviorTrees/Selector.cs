@@ -1,6 +1,4 @@
-using SpaceEventMod.Core.Behavior.BehaviorTrees;
-
-namespace SpaceEventMod.Common.Actions.Composite;
+namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
 
 /// <summary>
 /// A Selector node. Runs until a child node is in progress or until a node returns success.

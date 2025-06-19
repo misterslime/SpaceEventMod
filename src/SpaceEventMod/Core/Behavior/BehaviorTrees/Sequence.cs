@@ -1,6 +1,4 @@
-using SpaceEventMod.Core.Behavior.BehaviorTrees;
-
-namespace SpaceEventMod.Common.Actions.Composite;
+namespace SpaceEventMod.Core.Behavior.BehaviorTrees;
 
 /// <summary>
 /// A Sequence node. Runs until a child node fails.
