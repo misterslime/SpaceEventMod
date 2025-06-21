@@ -4,7 +4,6 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Actions.NPCs;
 using SpaceEventMod.Core.Behavior.Automata;
 using SpaceEventMod.Core.GameObjects.Stars;
-using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using System;
 using Terraria;
@@ -12,10 +11,11 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Star = SpaceEventMod.Core.GameObjects.Stars.Star;
 
 namespace SpaceEventMod.Content.NPCs;
 
-public class Manaphage : ModNPC, IMovement
+public class Manaphage : ModNPC, IMovement, IWantStar
 {
     public static StateMachine<ModNPC> StateMachine;
 
@@ -57,6 +57,8 @@ public class Manaphage : ModNPC, IMovement
 
     public FloatDynamics VisualRotationSolver { get; set; }
 
+    public Star ObservedStar { get; set; }
+
     public override void SetStaticDefaults()
     {
         NPCID.Sets.UsesNewTargetting[Type] = true;
@@ -87,7 +89,7 @@ public class Manaphage : ModNPC, IMovement
 
             var npc = modNPC.NPC;
 
-            Core.GameObjects.Stars.Star closestStar;
+            Star closestStar;
             var distanceToStar = float.MaxValue;
 
             foreach (var star in StarSystem.Stars)
@@ -111,6 +113,8 @@ public class Manaphage : ModNPC, IMovement
             .Add(3, sprayInkCloud)
             .AddTransition(-1, 0, (modNPC) => true) // always add a transition between -1 and the default when using pushdown automata otherwise it will crash
             .AddTransition(0, 1, NearStar)
+            .AddTransition(0, 2, (modNPC) => modNPC.NPC.HasValidTarget)
+            .AddTransition(0, 3, CanSprayInk)
             .AddTransition(1, 2, (modNPC) => modNPC.NPC.HasValidTarget)
             .AddTransition(1, 3, CanSprayInk)
             .AddTransition(2, 3, CanSprayInk);
@@ -151,7 +155,7 @@ public class Manaphage : ModNPC, IMovement
         TargetStretching = Vector2.One;
 
         NPC.rotation = 0f;
-        VisualRotationSolver = new FloatDynamics(1f / 60, 1f, 1f, NPC.rotation);
+        VisualRotationSolver = new FloatDynamics(1f / 30, 1f, 1f, NPC.rotation);
 
         NPC.scale = Main.rand.NextFloat(0.8f, 1.1f);
         NPC.netUpdate = true;

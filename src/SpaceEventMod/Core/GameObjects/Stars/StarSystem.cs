@@ -33,7 +33,7 @@ public class StarSystem : ModSystem
         Stars.Clear();
     }
 
-    public override void PostUpdateNPCs()
+    public override void PreUpdateNPCs()
     {
         for (var i = 0; i < Stars.Count; i++)
         {
@@ -44,6 +44,8 @@ public class StarSystem : ModSystem
 
             if (star.ShakeTime > 0)
                 star.ShakeTime--;
+
+            star.UpdateSubscribedNPCs();
 
             Stars[i] = star;
         }
@@ -106,7 +108,13 @@ public class StarSystem : ModSystem
                 if (Main.myPlayer == self.whoAmI && star.Durability > 0)
                 {
                     SoundEngine.PlaySound(SoundID.Tink, Main.MouseWorld);
-                    AlertSystem.alerts.Add(new Alert(AlertType.MiningStar, self.whoAmI, 1));
+
+                    star.InformSubscribedNPCs((npc) =>
+                    {
+                        npc.target = self.whoAmI;
+
+                        npc.targetRect = Main.player[self.whoAmI].getRect();
+                    });
                 }
             }
 

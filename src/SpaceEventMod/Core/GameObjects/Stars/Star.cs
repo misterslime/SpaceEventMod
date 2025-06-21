@@ -1,15 +1,24 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Actions.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Terraria;
+using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.GameObjects.Stars;
 
 public struct Star(Vector2 spawnPosition)
 {
+    private HashSet<int> SubscribedNPCs = [];
+
+    public readonly string TexturePath = "SpaceEventMod/Assets/Textures/Props/Star";
+    public readonly int Width = 160;
+    public readonly int Height = 160;
+    public readonly int RandomTimeDisplacement = Main.rand.Next(-99999, 99999);
+
     public Vector2 Position = spawnPosition;
-    public string TexturePath = "SpaceEventMod/Assets/Textures/Props/Star";
-    public int Width = 160;
-    public int Height = 160;
     public float Rotation = 0;
 
     public int Durability = 1000;
@@ -20,16 +29,57 @@ public struct Star(Vector2 spawnPosition)
     public Vector2 SpriteDisplacement = Vector2.Zero;
     public SpriteEffects Effects = Main.rand.NextBool(2) ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
 
-    public int RandomTimeDisplacement = Main.rand.Next(-99999, 99999);
-
-    public Rectangle GetBoundingBox()
+    public readonly Rectangle GetBoundingBox()
     {
         return new Rectangle((int)this.Position.X, (int)this.Position.Y, this.Width, this.Height);
     }
 
-    public Vector2 GetCenter()
+    public readonly Vector2 GetCenter()
     {
         return this.Position + new Vector2(this.Width, this.Height) * 0.5f;
+    }
+
+    public void SubscribeNPC(int npcID)
+    {
+        SubscribedNPCs.Add(npcID);
+        UpdateSubscribedNPCs();
+    }
+
+    public void UnsubscribeNPC(int npcID)
+    {
+        SubscribedNPCs.Remove(npcID);
+        UpdateSubscribedNPCs();
+    }
+
+    public void IsNPCSubscribed(int npcID)
+    {
+        SubscribedNPCs.Contains(npcID);
+    }
+
+    public void UpdateSubscribedNPCs()
+    {
+        foreach (var npcIndex in SubscribedNPCs.ToList())
+        {
+            if (!Main.npc[npcIndex].active)
+            {
+                SubscribedNPCs.Remove(npcIndex);
+                continue;
+            }
+
+            if (Main.npc[npcIndex].ModNPC is not IWantStar wantStar)
+                continue;
+
+            wantStar.ObservedStar = this;
+        }
+    }
+
+    public void InformSubscribedNPCs(Action<NPC> action)
+    {
+        foreach (int npcIndex in SubscribedNPCs.ToList())
+        {
+            if (Main.npc[npcIndex].active)
+                action.Invoke(Main.npc[npcIndex]);
+        }
     }
 }
 
