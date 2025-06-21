@@ -15,7 +15,7 @@ using Star = SpaceEventMod.Core.GameObjects.Stars.Star;
 
 namespace SpaceEventMod.Content.NPCs;
 
-public class Manaphage : ModNPC, IMovement, IWantStar
+public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 {
     public static StateMachine<ModNPC> StateMachine;
 
@@ -59,6 +59,18 @@ public class Manaphage : ModNPC, IMovement, IWantStar
 
     public Star ObservedStar { get; set; }
 
+    public Vector2 RelativePosition { get; set; }
+
+    private enum ManaphageStates
+    {
+        Wander,
+        GoToStar,
+        DrinkStar,
+        ChasePlayer,
+        SprayInkCloud,
+        Sleeping
+    }
+
     public override void SetStaticDefaults()
     {
         NPCID.Sets.UsesNewTargetting[Type] = true;
@@ -68,7 +80,9 @@ public class Manaphage : ModNPC, IMovement, IWantStar
         var wander = new MovementRandomJitter(15 * 16f, 160);
         var goToStar = new MovementToStar(15 * 16f, 120);
         var chasePlayer = new MovementTowardsTarget(true, 15 * 16f, 100);
-        var sprayInkCloud = new SprayInkCloud();
+        var drinkStar = new DrinkStar();
+        var sprayInkCloud = new ManaphageSprayInkCloud();
+        var sleeping = new ManaphageSleepingRegen();
 
         bool CanSprayInk(ModNPC modNPC)
         {
@@ -101,23 +115,48 @@ public class Manaphage : ModNPC, IMovement, IWantStar
                 }
             }
 
-            if (Math.Sqrt(distanceToStar) <= 60 * 16f)
-                return true;
-
-            return false;
+            return Math.Sqrt(distanceToStar) <= 60 * 16f;
         }
 
-        StateMachine.Add(0, wander)
-            .Add(1, goToStar)
-            .Add(2, chasePlayer)
-            .Add(3, sprayInkCloud)
-            .AddTransition(-1, 0, (modNPC) => true) // always add a transition between -1 and the default when using pushdown automata otherwise it will crash
-            .AddTransition(0, 1, NearStar)
-            .AddTransition(0, 2, (modNPC) => modNPC.NPC.HasValidTarget)
-            .AddTransition(0, 3, CanSprayInk)
-            .AddTransition(1, 2, (modNPC) => modNPC.NPC.HasValidTarget)
-            .AddTransition(1, 3, CanSprayInk)
-            .AddTransition(2, 3, CanSprayInk);
+        bool OnStar(ModNPC modNPC)
+        {
+            if (modNPC is not IWantStar wantStar)
+                throw new Exception("ModNPC is not IWantStar.");
+
+            if (StarSystem.Stars.Count <= 0 || !StarSystem.Stars.Contains(wantStar.ObservedStar))
+                return false;
+
+            return modNPC.NPC.getRect().Intersects(wantStar.ObservedStar.GetBoundingBox());
+        }
+
+        bool CanSleep(ModNPC modNPC)
+        {
+            var npc = modNPC.NPC;
+
+            return npc.life < npc.lifeMax * 0.5 && !npc.HasValidTarget;
+        }
+
+        StateMachine
+            .AddState((int)ManaphageStates.Wander, wander)
+            .AddState((int)ManaphageStates.GoToStar, goToStar)
+            .AddState((int)ManaphageStates.DrinkStar, drinkStar)
+            .AddState((int)ManaphageStates.ChasePlayer, chasePlayer)
+            .AddState((int)ManaphageStates.SprayInkCloud, sprayInkCloud)
+            .AddState((int)ManaphageStates.Sleeping, sleeping)
+            .AddTransition(-1,                               (int)ManaphageStates.Wander,        (modNPC) => true) // always add a transition between -1 and the default when using pushdown automata otherwise it will crash
+            .AddTransition((int)ManaphageStates.Wander,      (int)ManaphageStates.GoToStar,      NearStar)
+            .AddTransition((int)ManaphageStates.Wander,      (int)ManaphageStates.ChasePlayer,   (modNPC) => modNPC.NPC.HasValidTarget)
+            .AddTransition((int)ManaphageStates.Wander,      (int)ManaphageStates.SprayInkCloud, CanSprayInk)
+            .AddTransition((int)ManaphageStates.Wander,      (int)ManaphageStates.Sleeping,      CanSleep)
+            .AddTransition((int)ManaphageStates.GoToStar,    (int)ManaphageStates.DrinkStar,     OnStar)
+            .AddTransition((int)ManaphageStates.GoToStar,    (int)ManaphageStates.ChasePlayer,   (modNPC) => modNPC.NPC.HasValidTarget)
+            .AddTransition((int)ManaphageStates.GoToStar,    (int)ManaphageStates.SprayInkCloud, CanSprayInk)
+            .AddTransition((int)ManaphageStates.GoToStar,    (int)ManaphageStates.Sleeping,      CanSleep)
+            .AddTransition((int)ManaphageStates.DrinkStar,   (int)ManaphageStates.ChasePlayer,   (modNPC) => modNPC.NPC.HasValidTarget)
+            .AddTransition((int)ManaphageStates.DrinkStar,   (int)ManaphageStates.SprayInkCloud, CanSprayInk)
+            .AddTransition((int)ManaphageStates.ChasePlayer, (int)ManaphageStates.SprayInkCloud, CanSprayInk)
+            .AddTransition((int)ManaphageStates.Sleeping,    (int)ManaphageStates.ChasePlayer,   (modNPC) => modNPC.NPC.HasValidTarget)
+            .AddTransition((int)ManaphageStates.Sleeping,    (int)ManaphageStates.SprayInkCloud, CanSprayInk);
     }
 
     public override void Unload()
@@ -163,45 +202,59 @@ public class Manaphage : ModNPC, IMovement, IWantStar
         base.OnSpawn(source);
     }
 
+    public override bool PreAI()
+    {
+        PushdownAutomaton.Update(this, StateMachine);
+
+        return false;
+    }
+
     public void EntityMovement(Vector2 motionVector, params float[] arguments)
     {
+        motionVector = motionVector.RotatedByRandom(0.6);
         motionVector.Normalize();
         float jumpDistance = arguments[0];
         int cooldown = (int)arguments[1];
 
-        if (Time > 0)
+        Time--;
+
+        if (TargetPosition.Distance(NPC.Center) <= 16)
+            TargetPosition += new Vector2(0, 0.35f);
+
+        if (Time < 15)
+            TargetStretching = new Vector2(1.1f, 0.75f);
+        else if (Time >= cooldown - 5)
+            TargetStretching = new Vector2(0.8f, 1.25f);
+        else
+            TargetStretching = Vector2.One;
+
+        if (Time <= 0)
         {
-            Time--;
+            Time = cooldown;
 
-            if (TargetPosition.Distance(NPC.Center) <= 16)
-                TargetPosition += new Vector2(0, 0.35f);
+            TargetPosition += motionVector * jumpDistance;
+            NPC.direction = TargetPosition.X >= NPC.Center.X ? 1 : -1;
 
-            if (Time < 15)
-                TargetStretching = new Vector2(1.1f, 0.75f);
-            else if (Time >= cooldown - 5)
-                TargetStretching = new Vector2(0.8f, 1.25f);
-            else
-                TargetStretching = Vector2.One;
-
-            return;
+            NPC.netUpdate = true;
         }
 
-        Time = cooldown;
-
-        TargetPosition += motionVector * jumpDistance;
-        NPC.direction = TargetPosition.X >= NPC.Center.X ? 1 : -1;
-
-        NPC.netUpdate = true;
+        NPC.Center = SecondOrderSolver.Update(1, TargetPosition);
+        NPC.rotation = VisualRotationSolver.Update(1, NPC.rotation.AngleLerp((MathF.Abs(SecondOrderSolver.GetVelocity().X) * NPC.direction) / (6 * MathF.PI), 0.95f));
+        NPC.velocity = Vector2.Zero;
     }
 
-    public override bool PreAI()
+    public bool DrinkAnimation()
     {
-        NPC.rotation = NPC.rotation.AngleLerp((MathF.Abs(SecondOrderSolver.GetVelocity().X) * NPC.direction) / (6 * MathF.PI), 0.95f);
+        var starPosition = ObservedStar.GetCenter();
 
-        PushdownAutomaton.Update(this, StateMachine);
-        NPC.Center = SecondOrderSolver.Update(1, TargetPosition);
+        Vector2 toStar = starPosition + ObservedStar.SpriteDisplacement - NPC.Center;
+        toStar.Normalize();
 
-        return false;
+        NPC.rotation = VisualRotationSolver.Update(1, toStar.ToRotation() + ObservedStar.Rotation - MathHelper.PiOver2);
+
+        NPC.Center = ObservedStar.GetCenter() + ObservedStar.SpriteDisplacement + RelativePosition.RotatedBy(ObservedStar.Rotation);
+
+        return true;
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
@@ -209,9 +262,8 @@ public class Manaphage : ModNPC, IMovement, IWantStar
         var texture = TextureAssets.Npc[Type].Value;
         var drawPosition = NPC.Center - Main.screenPosition;
         var stretchFactor = Stretching?.Update(1, TargetStretching) ?? Vector2.One;
-        var rotation = VisualRotationSolver?.Update(1, NPC.rotation) ?? NPC.rotation;
 
-        Main.EntitySpriteDraw(texture, drawPosition, texture.Frame(), NPC.GetAlpha(drawColor), rotation, texture.Size() * 0.5f, NPC.scale * stretchFactor, 0);
+        Main.EntitySpriteDraw(texture, drawPosition, texture.Frame(), NPC.GetAlpha(drawColor), NPC.rotation, texture.Size() * 0.5f, NPC.scale * stretchFactor, 0);
 
         return false;
     }

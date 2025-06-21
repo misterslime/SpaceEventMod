@@ -13,6 +13,8 @@ public struct MovementTowardsTarget(bool towards, params float[] arguments) : IS
 
     public void Enter(ModNPC modNPC)
     {
+        if (modNPC is ITimer timer)
+            timer.Time = 0;
     }
 
     public bool Update(ModNPC modNPC)

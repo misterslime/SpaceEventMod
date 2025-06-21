@@ -13,6 +13,8 @@ public struct MovementRandomJitter(params float[] arguments) : IState<ModNPC>
 
     public void Enter(ModNPC modNPC)
     {
+        if (modNPC is ITimer timer)
+            timer.Time = 0;
     }
 
     public bool Update(ModNPC modNPC)

@@ -10,7 +10,7 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Common.Actions.NPCs;
 
-public struct SprayInkCloud : IState<ModNPC>
+public struct ManaphageSprayInkCloud : IState<ModNPC>
 {
     public void Enter(ModNPC modNPC)
     {
@@ -38,13 +38,15 @@ public struct SprayInkCloud : IState<ModNPC>
         if (npc.ModNPC is not Manaphage manaphage)
             throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
+        npc.Center = manaphage.SecondOrderSolver.Update(1, manaphage.TargetPosition);
+
         if (manaphage.Time <= 0)
             manaphage.IsSpraying = false;
 
         if (manaphage.Time > 0 && manaphage.IsSpraying)
         {
             var desiredRotation = (manaphage.CloudPosition - npc.Center).ToRotation() - MathHelper.PiOver2;
-            npc.rotation = desiredRotation.AngleLerp(0f, EasingFunctions.SineEaseInOut(Math.Clamp((manaphage.Time - 100f) / 20f, 0f, 1f)));
+            npc.rotation = manaphage.VisualRotationSolver.Update(1, desiredRotation);
 
             manaphage.Time--;
 

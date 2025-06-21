@@ -14,8 +14,8 @@ public struct Star(Vector2 spawnPosition)
     private HashSet<int> SubscribedNPCs = [];
 
     public readonly string TexturePath = "SpaceEventMod/Assets/Textures/Props/Star";
-    public readonly int Width = 160;
-    public readonly int Height = 160;
+    public readonly int Width = 68;
+    public readonly int Height = 68;
     public readonly int RandomTimeDisplacement = Main.rand.Next(-99999, 99999);
 
     public Vector2 Position = spawnPosition;

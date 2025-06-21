@@ -39,15 +39,23 @@ public class StarSystem : ModSystem
         {
             var star = Stars[i];
 
+            // delete the prop if durability is now below 0
+            if (star.Durability <= 0)
+            {
+                SoundEngine.PlaySound(SoundID.Item70, star.Position);
+                Stars.RemoveAt(i);
+                i--;
+                continue;
+            }
+
             star.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + star.RandomTimeDisplacement) / 60f) * 10 * Vector2.UnitY;
             star.Rotation = MathF.Sin((Main.GameUpdateCount + star.RandomTimeDisplacement) / 120f) * (MathF.PI / 180f) * 5;
 
             if (star.ShakeTime > 0)
                 star.ShakeTime--;
 
-            star.UpdateSubscribedNPCs();
-
             Stars[i] = star;
+            Stars[i].UpdateSubscribedNPCs();
         }
     }
 
@@ -119,6 +127,7 @@ public class StarSystem : ModSystem
             }
 
             Stars[i] = star;
+            Stars[i].UpdateSubscribedNPCs();
         }
     }
 

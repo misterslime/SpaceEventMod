@@ -18,6 +18,9 @@ public struct MovementToStar(params float[] arguments) : IState<ModNPC>
     {
         var npc = modNPC.NPC;
 
+        if (modNPC is ITimer timer)
+            timer.Time = 0;
+
         if (modNPC is not IWantStar wantStar)
             throw new Exception("Tried to run MovementToStar state code on a non-valid npc type.");
 
@@ -45,7 +48,7 @@ public struct MovementToStar(params float[] arguments) : IState<ModNPC>
         if (modNPC is not IMovement npcMovement || modNPC is not IWantStar wantStar)
             throw new Exception("Tried to run MovementToStar state code on a non-valid npc type.");
 
-        if (StarSystem.Stars.Count <= 0 || !StarSystem.Stars.Contains(wantStar.ObservedStar))
+        if (npc.HasValidTarget || StarSystem.Stars.Count <= 0 || !StarSystem.Stars.Contains(wantStar.ObservedStar))
             return true;
 
         var vectorToStar = wantStar.ObservedStar.GetCenter() - npc.Center;

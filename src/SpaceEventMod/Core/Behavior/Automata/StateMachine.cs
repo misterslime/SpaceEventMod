@@ -20,7 +20,7 @@ public class StateMachine<T>
     /// </summary>
     /// <param name="key">Key of the state in the dictionary.</param>
     /// <param name="state">State to add.</param>
-    public StateMachine<T> Add(int key, IState<T> state)
+    public StateMachine<T> AddState(int key, IState<T> state)
     {
         States.Add(key, state);
 
