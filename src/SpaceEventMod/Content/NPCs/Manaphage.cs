@@ -215,4 +215,16 @@ public class Manaphage : ModNPC, IMovement, IWantStar
 
         return false;
     }
+
+    public override void OnHitByItem(Player player, Item item, NPC.HitInfo hit, int damageDone)
+    {
+        NPC.target = player.whoAmI;
+        NPC.targetRect = Main.player[player.whoAmI].getRect();
+    }
+
+    public override void OnHitByProjectile(Projectile projectile, NPC.HitInfo hit, int damageDone)
+    {
+        NPC.target = projectile.owner;
+        NPC.targetRect = Main.player[projectile.owner].getRect();
+    }
 }
