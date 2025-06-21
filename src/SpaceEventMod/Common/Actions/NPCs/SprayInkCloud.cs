@@ -14,40 +14,43 @@ public struct SprayInkCloud : IState<ModNPC>
 {
     public void Enter(IAutomata<ModNPC> stateMachine)
     {
-        var npc = stateMachine.Context.NPC;
+        var npc = stateMachine.Context;
 
-        if (stateMachine.Context is not ITimer timer || stateMachine.Context is not ISquidInk squidInk || stateMachine.Context is not IDynamicMotion dynamicMotion || !npc.HasValidTarget)
+        if (!npc.NPC.HasValidTarget)
             return;
 
-        var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
+        if (npc is not Manaphage manaphage)
+            throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
-        squidInk.CloudPosition = targetCenter;
-        squidInk.IsSpraying = true;
-        //squidInk.Mana--;
+        var targetCenter = npc.NPC.HasNPCTarget ? Main.npc[npc.NPC.TranslatedTargetIndex].Center : Main.player[npc.NPC.TranslatedTargetIndex].Center;
 
-        npc.target = -1;
-        timer.Time = 120;
-        dynamicMotion.TargetPosition = npc.Center;
+        manaphage.CloudPosition = targetCenter;
+        manaphage.IsSpraying = true;
+        //manaphage.Mana--;
+
+        npc.NPC.target = -1;
+        manaphage.TargetPosition = npc.NPC.Center;
+        manaphage.Time = 120;
     }
 
     public bool Update(IAutomata<ModNPC> stateMachine)
     {
         var npc = stateMachine.Context.NPC;
 
-        if (stateMachine.Context is not ITimer timer || stateMachine.Context is not ISquidInk squidInk)
-            return true;
+        if (npc.ModNPC is not Manaphage manaphage)
+            throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
-        if (timer.Time <= 0)
-            squidInk.IsSpraying = false;
+        if (manaphage.Time <= 0)
+            manaphage.IsSpraying = false;
 
-        if (timer.Time > 0 && squidInk.IsSpraying)
+        if (manaphage.Time > 0 && manaphage.IsSpraying)
         {
-            var desiredRotation = (squidInk.CloudPosition - npc.Center).ToRotation() - MathHelper.PiOver2;
-            npc.rotation = desiredRotation.AngleLerp(0f, EasingFunctions.SineEaseInOut(Math.Clamp((timer.Time - 100f) / 20f, 0f, 1f)));
+            var desiredRotation = (manaphage.CloudPosition - npc.Center).ToRotation() - MathHelper.PiOver2;
+            npc.rotation = desiredRotation.AngleLerp(0f, EasingFunctions.SineEaseInOut(Math.Clamp((manaphage.Time - 100f) / 20f, 0f, 1f)));
 
-            timer.Time--;
+            manaphage.Time--;
 
-            if (timer.Time > 100)
+            if (manaphage.Time > 100)
                 return false;
 
             var rotate = MathHelper.ToRadians(Main.rand.NextFloat(-3, 0));
@@ -57,18 +60,18 @@ public struct SprayInkCloud : IState<ModNPC>
             mist.color = new Color(9, 17, 51);
             mist.fadeIn = 120;
             mist.scale = 1.1f;
-            mist.customData = new ManaInkData(Main.rand.Next(3), InkType.Spraying, 120, rotate, squidInk.CloudPosition);
+            mist.customData = new ManaInkData(Main.rand.Next(3), InkType.Spraying, 120, rotate, manaphage.CloudPosition);
 
             var sparkle = Dust.NewDustPerfect(npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * 29, ModContent.DustType<InkStar>(), Main.rand.NextVector2Circular(3, 3));
             sparkle.noGravity = true;
             sparkle.color = new Color(89, 97, 255);
             sparkle.fadeIn = 20;
             sparkle.scale = 1f;
-            sparkle.customData = new InkStarData(InkType.Spraying, squidInk.CloudPosition, Color.Lerp(Color.Yellow, Color.Purple, Main.rand.NextFloat()));
+            sparkle.customData = new InkStarData(InkType.Spraying, manaphage.CloudPosition, Color.Lerp(Color.Yellow, Color.Purple, Main.rand.NextFloat()));
 
-            if (timer.Time == 70)
+            if (manaphage.Time == 70)
             {
-                var cloud = Projectile.NewProjectile(npc.GetSource_FromAI(), squidInk.CloudPosition.X, squidInk.CloudPosition.Y, 0, 0, ModContent.ProjectileType<ManaCloud>(), 80, 0f, Main.myPlayer, 0, 0, 0);
+                var cloud = Projectile.NewProjectile(npc.GetSource_FromAI(), manaphage.CloudPosition.X, manaphage.CloudPosition.Y, 0, 0, ModContent.ProjectileType<ManaCloud>(), 80, 0f, Main.myPlayer, 0, 0, 0);
 
                 if (Main.projectile.IndexInRange(cloud))
                     Main.projectile[cloud].netUpdate = true;
