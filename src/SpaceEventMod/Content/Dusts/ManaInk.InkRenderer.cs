@@ -67,7 +67,7 @@ public class InkRenderer : ModSystem
 
             var drawPosition = Vector2.Lerp(manaInkData.TargetPosition, dust.position, EasingFunctions.SineEaseInOut(Math.Clamp((manaInkData.Lifetime - dust.fadeIn) / 60, 0, 1)));
 
-            Main.spriteBatch.Draw(inkTexture, drawPosition - Main.screenPosition, frame, dust.color, dust.rotation, frame.Size() / 2f, dust.scale, SpriteEffects.None, 0f);
+            Main.spriteBatch.Draw(inkTexture, (manaInkData.InkType == InkType.Orbiting ? drawPosition : dust.position) - Main.screenPosition, frame, dust.color, dust.rotation, frame.Size() / 2f, dust.scale, SpriteEffects.None, 0f);
         }
 
         Main.spriteBatch.End();
@@ -97,7 +97,7 @@ public class InkRenderer : ModSystem
 
                 var drawPosition = Vector2.Lerp(manaInkData.TargetPosition, dust.position, EasingFunctions.SineEaseInOut(Math.Clamp((manaInkData.Lifetime - dust.fadeIn) / 60, 0, 1)));
 
-                Main.spriteBatch.Draw(inkGlow, drawPosition - Main.screenLastPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
+                Main.spriteBatch.Draw(inkGlow, (manaInkData.InkType == InkType.Orbiting ? drawPosition : dust.position) - Main.screenLastPosition - dust.velocity, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
             }
 
             spriteBatch.Draw(InkRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);

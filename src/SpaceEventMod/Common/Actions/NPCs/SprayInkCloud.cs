@@ -53,12 +53,15 @@ public struct SprayInkCloud : IState<ModNPC>
 
             var rotate = MathHelper.ToRadians(Main.rand.NextFloat(-3, 0));
 
-            var mist = Dust.NewDustPerfect(npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * 29, ModContent.DustType<ManaInk>(), Main.rand.NextVector2Circular(1, 1));
-            mist.noGravity = true;
-            mist.color = new Color(9, 17, 51);
-            mist.fadeIn = 120;
-            mist.scale = 0f;
-            mist.customData = new ManaInkData(Main.rand.Next(3), InkType.Spraying, 120, rotate, manaphage.CloudPosition);
+            for (int i = 0; i < 2; i++)
+            {
+                var mist = Dust.NewDustPerfect(npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * 29, ModContent.DustType<ManaInk>(), Main.rand.NextVector2Circular(1, 1));
+                mist.noGravity = true;
+                mist.color = new Color(9, 17, 51);
+                mist.fadeIn = 120;
+                mist.scale = 0.2f;
+                mist.customData = new ManaInkData(Main.rand.Next(3), InkType.Spraying, 120, rotate, manaphage.CloudPosition);
+            }
 
             var sparkle = Dust.NewDustPerfect(npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * 29, ModContent.DustType<InkStar>(), Main.rand.NextVector2Circular(3, 3));
             sparkle.noGravity = true;
