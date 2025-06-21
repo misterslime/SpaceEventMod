@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Content.NPCs;
 using System;
 using Terraria;
 using Terraria.ModLoader;
@@ -27,10 +28,8 @@ public class ManaInk : ModDust
             return false;
         }
 
-        if (dust.fadeIn / (float)manaInkData.Lifetime > 0.8f)
+        if (dust.scale < 1f)
             dust.scale += 0.01f;
-        else
-            dust.scale *= 0.99f;
 
         dust.color = Main.hslToRgb((Main.rgbToHsl(dust.color).X) % 1, Main.rgbToHsl(dust.color).Y, Main.rgbToHsl(dust.color).Z);
         dust.rotation += manaInkData.Spin;
@@ -53,14 +52,8 @@ public class ManaInk : ModDust
     {
         dust.velocity *= 0.85f;
         var orbitVelocity = new Vector2(-toTarget.Y, toTarget.X);
-        var returnVelocity = Vector2.Zero;
-
-        if (!Main.projectile[manaInkData.Parent].active || Main.projectile[manaInkData.Parent].type != ModContent.DustType<ManaInk>())
-        {
-            returnVelocity = toTarget;
-            returnVelocity.Normalize();
-        }
-
+        var returnVelocity = toTarget;
+        returnVelocity.Normalize();
         orbitVelocity.Normalize();
 
         dust.position += dust.velocity + orbitVelocity * MathF.Sqrt(toTarget.Length()) * 0.05f + returnVelocity * 0.3f;

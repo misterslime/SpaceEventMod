@@ -57,7 +57,7 @@ public struct SprayInkCloud : IState<ModNPC>
             mist.noGravity = true;
             mist.color = new Color(9, 17, 51);
             mist.fadeIn = 120;
-            mist.scale = 1.1f;
+            mist.scale = 0f;
             mist.customData = new ManaInkData(Main.rand.Next(3), InkType.Spraying, 120, rotate, manaphage.CloudPosition);
 
             var sparkle = Dust.NewDustPerfect(npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * 29, ModContent.DustType<InkStar>(), Main.rand.NextVector2Circular(3, 3));

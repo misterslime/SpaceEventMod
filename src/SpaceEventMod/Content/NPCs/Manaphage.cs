@@ -67,7 +67,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar
 
         var wander = new MovementRandomJitter(15 * 16f, 160);
         var goToStar = new MovementToStar(15 * 16f, 120);
-        var chasePlayer = new MovementTowardsTarget(true, 15 * 16f, 60);
+        var chasePlayer = new MovementTowardsTarget(true, 15 * 16f, 100);
         var sprayInkCloud = new SprayInkCloud();
 
         bool CanSprayInk(ModNPC modNPC)

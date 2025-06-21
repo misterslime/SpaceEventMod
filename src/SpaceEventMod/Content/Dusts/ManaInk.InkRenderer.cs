@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core;
 using SpaceEventMod.Core.Graphics;
 using System;
 using System.Linq;
@@ -64,7 +65,9 @@ public class InkRenderer : ModSystem
 
             var frame = new Rectangle(0, 34 * manaInkData.FrameVariant, 32, 34);
 
-            Main.spriteBatch.Draw(inkTexture, dust.position - Main.screenPosition, frame, dust.color, dust.rotation, frame.Size() / 2f, dust.scale, SpriteEffects.None, 0f);
+            var drawPosition = Vector2.Lerp(manaInkData.TargetPosition, dust.position, EasingFunctions.SineEaseInOut(Math.Clamp((manaInkData.Lifetime - dust.fadeIn) / 60, 0, 1)));
+
+            Main.spriteBatch.Draw(inkTexture, drawPosition - Main.screenPosition, frame, dust.color, dust.rotation, frame.Size() / 2f, dust.scale, SpriteEffects.None, 0f);
         }
 
         Main.spriteBatch.End();
@@ -92,7 +95,9 @@ public class InkRenderer : ModSystem
 
                 var drawColor = new Color(69, 77, 255);
 
-                Main.spriteBatch.Draw(inkGlow, dust.position - Main.screenLastPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
+                var drawPosition = Vector2.Lerp(manaInkData.TargetPosition, dust.position, EasingFunctions.SineEaseInOut(Math.Clamp((manaInkData.Lifetime - dust.fadeIn) / 60, 0, 1)));
+
+                Main.spriteBatch.Draw(inkGlow, drawPosition - Main.screenLastPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
             }
 
             spriteBatch.Draw(InkRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
