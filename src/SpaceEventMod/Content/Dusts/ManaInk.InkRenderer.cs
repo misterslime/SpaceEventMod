@@ -92,7 +92,7 @@ public class InkRenderer : ModSystem
 
                 var drawColor = new Color(69, 77, 255);
 
-                Main.spriteBatch.Draw(inkGlow, dust.position - Main.screenPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
+                Main.spriteBatch.Draw(inkGlow, dust.position - Main.screenLastPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, dust.scale, SpriteEffects.None, 0f);
             }
 
             spriteBatch.Draw(InkRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
