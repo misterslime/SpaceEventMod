@@ -12,13 +12,12 @@ public struct MovementToStar(params float[] arguments) : IState<ModNPC>
 {
     private float[] arguments = arguments;
 
-    public void Enter(IAutomata<ModNPC> stateMachine)
+    public void Enter(ModNPC modNPC)
     {
     }
 
-    public bool Update(IAutomata<ModNPC> stateMachine)
+    public bool Update(ModNPC modNPC)
     {
-        var modNPC = stateMachine.Context;
         var npc = modNPC.NPC;
 
         if (StarSystem.Stars.Count <= 0 || modNPC is not IMovement npcMovement)
@@ -78,7 +77,7 @@ public struct MovementToStar(params float[] arguments) : IState<ModNPC>
         npc.targetRect = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].getRect() : Main.player[npc.TranslatedTargetIndex].getRect();
     }
 
-    public void Exit(IAutomata<ModNPC> stateMachine)
+    public void Exit(ModNPC modNPC)
     {
 
     }

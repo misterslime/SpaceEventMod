@@ -6,18 +6,17 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Common.Actions.NPCs;
 
-public struct MovementTargeted(bool towards, params float[] arguments) : IState<ModNPC>
+public struct MovementTowardsTarget(bool towards, params float[] arguments) : IState<ModNPC>
 {
     private bool towards = towards;
     private float[] arguments = arguments;
 
-    public void Enter(IAutomata<ModNPC> stateMachine)
+    public void Enter(ModNPC modNPC)
     {
     }
 
-    public bool Update(IAutomata<ModNPC> stateMachine)
+    public bool Update(ModNPC modNPC)
     {
-        var modNPC = stateMachine.Context;
         var npc = modNPC.NPC;
 
         if (modNPC is not IMovement npcMovement || !npc.HasValidTarget)
@@ -32,7 +31,7 @@ public struct MovementTargeted(bool towards, params float[] arguments) : IState<
         return false;
     }
 
-    public void Exit(IAutomata<ModNPC> stateMachine)
+    public void Exit(ModNPC modNPC)
     {
 
     }

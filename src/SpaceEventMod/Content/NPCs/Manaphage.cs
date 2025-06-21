@@ -4,6 +4,7 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Actions.NPCs;
 using SpaceEventMod.Core.Behavior.Automata;
 using SpaceEventMod.Core.GameObjects.Stars;
+using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using System;
 using Terraria;
@@ -16,6 +17,8 @@ namespace SpaceEventMod.Content.NPCs;
 
 public class Manaphage : ModNPC, IMovement
 {
+    public static StateMachine<ModNPC> StateMachine;
+
     public PushdownAutomaton<ModNPC> PushdownAutomaton;
 
     public Vector2 CloudPosition
@@ -57,6 +60,65 @@ public class Manaphage : ModNPC, IMovement
     public override void SetStaticDefaults()
     {
         NPCID.Sets.UsesNewTargetting[Type] = true;
+
+        StateMachine = new StateMachine<ModNPC>();
+
+        var wander = new MovementRandomJitter(15 * 16f, 160);
+        var goToStar = new MovementToStar(15 * 16f, 120);
+        var chasePlayer = new MovementTowardsTarget(true, 15 * 16f, 60);
+        var sprayInkCloud = new SprayInkCloud();
+
+        bool CanSprayInk(ModNPC modNPC)
+        {
+            var npc = modNPC.NPC;
+
+            if (!npc.HasValidTarget)
+                return false;
+
+            var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
+
+            return targetCenter.WithinRange(npc.Center, 15f * 16f);
+        }
+
+        bool NearStar(ModNPC modNPC)
+        {
+            if (StarSystem.Stars.Count <= 0)
+                return false;
+
+            var npc = modNPC.NPC;
+
+            Core.GameObjects.Stars.Star closestStar;
+            var distanceToStar = float.MaxValue;
+
+            foreach (var star in StarSystem.Stars)
+            {
+                if (Vector2.DistanceSquared(star.GetCenter(), npc.Center) < distanceToStar)
+                {
+                    distanceToStar = Vector2.DistanceSquared(star.GetCenter(), npc.Center);
+                    closestStar = star;
+                }
+            }
+
+            if (Math.Sqrt(distanceToStar) <= 60 * 16f)
+                return true;
+
+            return false;
+        }
+
+        StateMachine.Add(0, wander)
+            .Add(1, goToStar)
+            .Add(2, chasePlayer)
+            .Add(3, sprayInkCloud)
+            .AddTransition(-1, 0, (modNPC) => true) // always add a transition between -1 and the default when using pushdown automata otherwise it will crash
+            .AddTransition(0, 1, NearStar)
+            .AddTransition(1, 2, (modNPC) => modNPC.NPC.HasValidTarget)
+            .AddTransition(1, 3, CanSprayInk)
+            .AddTransition(2, 3, CanSprayInk);
+    }
+
+    public override void Unload()
+    {
+        StateMachine = null;
     }
 
     public override void SetDefaults()
@@ -78,58 +140,9 @@ public class Manaphage : ModNPC, IMovement
 
     public override void OnSpawn(IEntitySource source)
     {
-        PushdownAutomaton = new PushdownAutomaton<ModNPC>(this);
+        PushdownAutomaton = new PushdownAutomaton<ModNPC>();
+        PushdownAutomaton.PushState(0);
 
-        var wander = new MovementRandomJitter(15 * 16f, 160);
-        var goToStar = new MovementToStar(15 * 16f, 120);
-        var chasePlayer = new MovementTargeted(true, 15 * 16f, 60);
-        var sprayInkCloud = new SprayInkCloud();
-
-        bool CanSprayInk()
-        {
-            if (!NPC.HasValidTarget)
-                return false;
-
-            var targetCenter = NPC.HasNPCTarget ? Main.npc[NPC.TranslatedTargetIndex].Center : Main.player[NPC.TranslatedTargetIndex].Center;
-
-            return targetCenter.WithinRange(NPC.Center, 15f * 16f);
-        }
-
-        bool NearStar()
-        {
-            if (StarSystem.Stars.Count <= 0)
-                return false;
-
-            Core.GameObjects.Stars.Star closestStar;
-            var distanceToStar = float.MaxValue;
-
-            foreach (var star in StarSystem.Stars)
-            {
-                if (Vector2.DistanceSquared(star.GetCenter(), NPC.Center) < distanceToStar)
-                {
-                    distanceToStar = Vector2.DistanceSquared(star.GetCenter(), NPC.Center);
-                    closestStar = star;
-                }
-            }
-
-            if (Math.Sqrt(distanceToStar) <= 60 * 16f)
-                return true;
-
-            return false;
-        }
-
-        PushdownAutomaton.Add(0, wander)
-            .Add(1, goToStar)
-            .Add(2, chasePlayer)
-            .Add(3, sprayInkCloud)
-            .AddTransition(0, 1, NearStar)
-            .AddTransition(1, 2, () => NPC.HasValidTarget)
-            .AddTransition(1, 3, CanSprayInk)
-            .AddTransition(2, 3, CanSprayInk)
-            .PushState(0);
-
-        // yes im making the npc's velocity be the target position for the solver mwehehehehe
-        // that shit netsyncs
         TargetPosition = NPC.Center;
         SecondOrderSolver = new Vector2Dynamics(1f / 128, 0.7f, 0.2f, TargetPosition);
         Mana = MaxMana;
@@ -181,9 +194,8 @@ public class Manaphage : ModNPC, IMovement
     {
         NPC.rotation = NPC.rotation.AngleLerp((MathF.Abs(SecondOrderSolver.GetVelocity().X) * NPC.direction) / (6 * MathF.PI), 0.95f);
 
-        PushdownAutomaton.Update();
+        PushdownAutomaton.Update(this, StateMachine);
         NPC.Center = SecondOrderSolver.Update(1, TargetPosition);
-        NPC.velocity = Vector2.Zero;
 
         return false;
     }
@@ -192,8 +204,8 @@ public class Manaphage : ModNPC, IMovement
     {
         var texture = TextureAssets.Npc[Type].Value;
         var drawPosition = NPC.Center - Main.screenPosition;
-        var stretchFactor = Stretching == null ? Vector2.One : Stretching.Update(1, TargetStretching);
-        var rotation = VisualRotationSolver == null ? 0f : VisualRotationSolver.Update(1, NPC.rotation);
+        var stretchFactor = Stretching?.Update(1, TargetStretching) ?? Vector2.One;
+        var rotation = VisualRotationSolver?.Update(1, NPC.rotation) ?? NPC.rotation;
 
         Main.EntitySpriteDraw(texture, drawPosition, texture.Frame(), NPC.GetAlpha(drawColor), rotation, texture.Size() * 0.5f, NPC.scale * stretchFactor, 0);
 

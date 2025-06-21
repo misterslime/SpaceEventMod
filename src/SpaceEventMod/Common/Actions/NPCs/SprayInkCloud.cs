@@ -12,30 +12,28 @@ namespace SpaceEventMod.Common.Actions.NPCs;
 
 public struct SprayInkCloud : IState<ModNPC>
 {
-    public void Enter(IAutomata<ModNPC> stateMachine)
+    public void Enter(ModNPC modNPC)
     {
-        var npc = stateMachine.Context;
-
-        if (!npc.NPC.HasValidTarget)
+        if (!modNPC.NPC.HasValidTarget)
             return;
 
-        if (npc is not Manaphage manaphage)
+        if (modNPC is not Manaphage manaphage)
             throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
-        var targetCenter = npc.NPC.HasNPCTarget ? Main.npc[npc.NPC.TranslatedTargetIndex].Center : Main.player[npc.NPC.TranslatedTargetIndex].Center;
+        var targetCenter = modNPC.NPC.HasNPCTarget ? Main.npc[modNPC.NPC.TranslatedTargetIndex].Center : Main.player[modNPC.NPC.TranslatedTargetIndex].Center;
 
         manaphage.CloudPosition = targetCenter;
         manaphage.IsSpraying = true;
         //manaphage.Mana--;
 
-        npc.NPC.target = -1;
-        manaphage.TargetPosition = npc.NPC.Center;
+        modNPC.NPC.target = -1;
+        manaphage.TargetPosition = modNPC.NPC.Center;
         manaphage.Time = 120;
     }
 
-    public bool Update(IAutomata<ModNPC> stateMachine)
+    public bool Update(ModNPC modNPC)
     {
-        var npc = stateMachine.Context.NPC;
+        var npc = modNPC.NPC;
 
         if (npc.ModNPC is not Manaphage manaphage)
             throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
@@ -83,7 +81,7 @@ public struct SprayInkCloud : IState<ModNPC>
         return true;
     }
 
-    public void Exit(IAutomata<ModNPC> stateMachine)
+    public void Exit(ModNPC modNPC)
     {
 
     }

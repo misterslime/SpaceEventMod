@@ -11,15 +11,13 @@ public struct MovementRandomJitter(params float[] arguments) : IState<ModNPC>
 {
     private float[] arguments = arguments;
 
-    public void Enter(IAutomata<ModNPC> stateMachine)
+    public void Enter(ModNPC modNPC)
     {
     }
 
-    public bool Update(IAutomata<ModNPC> stateMachine)
+    public bool Update(ModNPC modNPC)
     {
-        var npc = stateMachine.Context;
-
-        if (npc is not IMovement npcMovement)
+        if (modNPC is not IMovement npcMovement)
             return true;
 
         npcMovement.EntityMovement(Main.rand.NextVector2Unit(), arguments);
@@ -27,7 +25,7 @@ public struct MovementRandomJitter(params float[] arguments) : IState<ModNPC>
         return false;
     }
 
-    public void Exit(IAutomata<ModNPC> stateMachine)
+    public void Exit(ModNPC modNPC)
     {
 
     }

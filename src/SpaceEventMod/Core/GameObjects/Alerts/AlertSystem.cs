@@ -19,8 +19,6 @@ public class AlertSystem : ModSystem
         {
             var alert = alerts[i];
 
-            Main.NewText(alert.sourceEntity);
-
             if (alert.lifespan > 0)
                 alert.lifespan--;
             else
