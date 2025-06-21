@@ -40,10 +40,7 @@ public struct ManaphageSprayInkCloud : IState<ModNPC>
 
         npc.Center = manaphage.SecondOrderSolver.Update(1, manaphage.TargetPosition);
 
-        if (manaphage.Time <= 0)
-            manaphage.IsSpraying = false;
-
-        if (manaphage.Time > 0 && manaphage.IsSpraying)
+        if (manaphage.Time > 0)
         {
             var desiredRotation = (manaphage.CloudPosition - npc.Center).ToRotation() - MathHelper.PiOver2;
             npc.rotation = manaphage.VisualRotationSolver.Update(1, desiredRotation);
