@@ -10,4 +10,7 @@ NPCs: {
 	Manaphage.DisplayName: Manaphage
 }
 
-Projectiles.ManaCloud.DisplayName: Mana Cloud
+Projectiles: {
+	ManaCloud.DisplayName: Mana Cloud
+	InkSpit.DisplayName: Ink Spit
+}

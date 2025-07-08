@@ -6,6 +6,7 @@ using SpaceEventMod.Core;
 using SpaceEventMod.Core.Behavior.Automata;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Common.Actions.NPCs;
@@ -18,7 +19,7 @@ public struct ManaphageSprayInkCloud : IState<ModNPC>
             return;
 
         if (modNPC is not Manaphage manaphage)
-            throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
+            throw new Exception("Tried to run ManaphageSprayInkCloud state code on a non-valid npc type.");
 
         var targetCenter = modNPC.NPC.HasNPCTarget ? Main.npc[modNPC.NPC.TranslatedTargetIndex].Center : Main.player[modNPC.NPC.TranslatedTargetIndex].Center;
 
@@ -39,6 +40,7 @@ public struct ManaphageSprayInkCloud : IState<ModNPC>
             throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
         manaphage.PositionKinematics = Manaphage.PositionSolver.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
+        manaphage.TargetStretching = Vector2.One;
 
         if (manaphage.Time > 0)
         {
@@ -69,7 +71,7 @@ public struct ManaphageSprayInkCloud : IState<ModNPC>
             sparkle.scale = 1f;
             sparkle.customData = new InkStarData(InkType.Spraying, manaphage.CloudPosition, Color.Lerp(Color.Yellow, Color.Purple, Main.rand.NextFloat()));
 
-            if (manaphage.Time == 70)
+            if (manaphage.Time == 70 && Main.netMode != NetmodeID.MultiplayerClient)
             {
                 var cloud = Projectile.NewProjectile(npc.GetSource_FromAI(), manaphage.CloudPosition.X, manaphage.CloudPosition.Y, 0, 0, ModContent.ProjectileType<ManaCloud>(), 80, 0f, Main.myPlayer, 0, 0, 0);
 

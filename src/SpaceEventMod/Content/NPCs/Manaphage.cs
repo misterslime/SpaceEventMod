@@ -19,9 +19,9 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 {
     public static StateMachine<ModNPC> StateMachine;
 
-    public static readonly Vector2Dynamics PositionSolver = new Vector2Dynamics(1f / 128f, 1f, 0.1f);
+    public static readonly Vector2Dynamics PositionSolver = new Vector2Dynamics(1f / 128f, 0.85f, 0.2f);
 
-    public static readonly Vector2Dynamics StretchSolver = new Vector2Dynamics(1f / 60f, 0.5f, 0.5f);
+    public static readonly Vector2Dynamics StretchSolver = new Vector2Dynamics(1f / 40f, 0.5f, -0.5f);
 
     public PushdownAutomaton<ModNPC> PushdownAutomaton;
 
@@ -83,6 +83,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
         DrinkStar,
         ChasePlayer,
         SprayInkCloud,
+        SpitInk,
         Sleeping
     }
 
@@ -92,11 +93,12 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
         StateMachine = new StateMachine<ModNPC>();
 
-        var wander = new MovementRandomJitter(15 * 16f, 160);
-        var goToStar = new MovementToStar(15 * 16f, 120);
-        var chasePlayer = new MovementTowardsTarget(true, 15 * 16f, 100);
+        var wander = new MovementRandomJitter();
+        var goToStar = new MovementToStar();
+        var chasePlayer = new MovementTowardsTarget(true);
         var drinkStar = new DrinkStar();
         var sprayInkCloud = new ManaphageSprayInkCloud();
+        var spitInk = new ManaphageInkSpit();
         var sleeping = new ManaphageSleepingRegen();
 
         bool CanSprayInk(ModNPC modNPC)
@@ -157,6 +159,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
             .AddState((int)ManaphageStates.DrinkStar, drinkStar)
             .AddState((int)ManaphageStates.ChasePlayer, chasePlayer)
             .AddState((int)ManaphageStates.SprayInkCloud, sprayInkCloud)
+            .AddState((int)ManaphageStates.SpitInk, spitInk)
             .AddState((int)ManaphageStates.Sleeping, sleeping)
             .AddTransition(-1,                               (int)ManaphageStates.Wander,        (modNPC) => true) // always add a transition between -1 and the default when using pushdown automata otherwise it will crash
             .AddTransition((int)ManaphageStates.Wander,      (int)ManaphageStates.GoToStar,      NearStar)
@@ -170,6 +173,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
             .AddTransition((int)ManaphageStates.DrinkStar,   (int)ManaphageStates.ChasePlayer,   (modNPC) => modNPC.NPC.HasValidTarget)
             .AddTransition((int)ManaphageStates.DrinkStar,   (int)ManaphageStates.SprayInkCloud, CanSprayInk)
             .AddTransition((int)ManaphageStates.ChasePlayer, (int)ManaphageStates.SprayInkCloud, CanSprayInk)
+            .AddTransition((int)ManaphageStates.ChasePlayer, (int)ManaphageStates.SpitInk,       (modNPC) => Main.rand.NextBool(240))
             .AddTransition((int)ManaphageStates.Sleeping,    (int)ManaphageStates.ChasePlayer,   (modNPC) => modNPC.NPC.HasValidTarget)
             .AddTransition((int)ManaphageStates.Sleeping,    (int)ManaphageStates.SprayInkCloud, CanSprayInk);
     }
@@ -228,8 +232,13 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
     {
         motionVector = motionVector.RotatedByRandom(0.6);
         motionVector.Normalize();
-        float jumpDistance = arguments[0];
-        int cooldown = (int)arguments[1];
+        float jumpDistance = 15 * 16f;
+        int cooldown = 160;
+
+        if (NPC.HasValidTarget)
+            cooldown = 100;
+        else if (StarSystem.Stars.Contains(ObservedStar))
+            cooldown = 120;
 
         Time--;
 
@@ -267,6 +276,8 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
         NPC.rotation = NPC.rotation.AngleLerp(toStar.ToRotation() + ObservedStar.Rotation - MathHelper.PiOver2, 0.95f);
 
         NPC.Center = ObservedStar.GetCenter() + ObservedStar.SpriteDisplacement + RelativePosition.RotatedBy(ObservedStar.Rotation);
+
+        TargetStretching = Vector2.One;
 
         return true;
     }
