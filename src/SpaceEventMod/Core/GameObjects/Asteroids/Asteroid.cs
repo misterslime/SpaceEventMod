@@ -5,17 +5,16 @@ using Terraria;
 
 namespace SpaceEventMod.Core.GameObjects.Asteroids;
 
-public struct Asteroid(Vector2Dynamics solver, Vector2 spawnPosition, int variant, int width, int height)
+public struct Asteroid(Kinematics<Vector2> initialPosition, int variant, int width, int height)
 {
-    public Vector2 Position = spawnPosition;
-    public Vector2Dynamics SecondOrderSolver = solver;
+    public Kinematics<Vector2> Transform = initialPosition;
     public int Variant = variant;
     public int Width = width;
     public int Height = height;
 
     public int Durability = 200;
 
-    public Vector2 RestPosition = spawnPosition;
+    public Vector2 RestPosition = initialPosition.Position;
     public bool BeingStoodOn = false;
 
     public Vector2 ShakeDirection = Vector2.UnitX;
@@ -28,11 +27,11 @@ public struct Asteroid(Vector2Dynamics solver, Vector2 spawnPosition, int varian
 
     public Rectangle GetBoundingBox()
     {
-        return new Rectangle((int)this.Position.X, (int)this.Position.Y, this.Width, this.Height);
+        return new Rectangle((int)this.Transform.Position.X, (int)this.Transform.Position.Y, this.Width, this.Height);
     }
 
     public Vector2 GetCenter()
     {
-        return this.Position + new Vector2(this.Width, this.Height) * 0.5f;
+        return this.Transform.Position + new Vector2(this.Width, this.Height) * 0.5f;
     }
 }

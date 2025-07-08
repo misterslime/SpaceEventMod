@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -12,6 +13,8 @@ namespace SpaceEventMod.Core.GameObjects.Asteroids;
 public class AsteroidSystem : ModSystem
 {
     public static List<Asteroid> Asteroids = new List<Asteroid>();
+
+    public static readonly Vector2Dynamics AsteroidMovement = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f);
 
     public override void Load()
     {
@@ -40,7 +43,7 @@ public class AsteroidSystem : ModSystem
         {
             var asteroid = Asteroids[i];
 
-            var shouldDespawn = (asteroid.Position - Main.LocalPlayer.Center).LengthSquared() > 60f * 16f * 60f * 16f;
+            var shouldDespawn = (asteroid.GetCenter() - Main.LocalPlayer.Center).LengthSquared() > 60f * 16f * 60f * 16f;
 
             if (shouldDespawn)
             {
@@ -54,7 +57,7 @@ public class AsteroidSystem : ModSystem
             else
                 asteroid.SpriteDisplacement = Vector2.Zero;
 
-            asteroid.Position = asteroid.SecondOrderSolver.Update(1, asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 48f : asteroid.RestPosition);
+            asteroid.Transform = AsteroidMovement.Update(1, asteroid.Transform, asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 48f : asteroid.RestPosition);
             asteroid.BeingStoodOn = false;
 
             if (asteroid.ShakeTime > 0)

@@ -19,6 +19,10 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 {
     public static StateMachine<ModNPC> StateMachine;
 
+    public static readonly Vector2Dynamics PositionSolver = new Vector2Dynamics(1f / 128f, 1f, 0.1f);
+
+    public static readonly Vector2Dynamics StretchSolver = new Vector2Dynamics(1f / 60f, 0.5f, 0.5f);
+
     public PushdownAutomaton<ModNPC> PushdownAutomaton;
 
     public Vector2 CloudPosition
@@ -45,17 +49,28 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public Vector2 TargetPosition { get; set; }
 
+    public Kinematics<Vector2> PositionKinematics
+    {
+        get => new Kinematics<Vector2>(NPC.Center, NPC.velocity).SetPreviousPosition(PreviousPosition);
+        set
+        {
+            NPC.Center = value.Position;
+            NPC.velocity = value.Velocity;
+            PreviousPosition = value.PreviousPosition;
+        }
+    }
+
+    public Vector2 PreviousPosition { get; set; }
+
+    public Kinematics<Vector2> StretchingKinematics { get; set; }
+
     public int MaxMana => 3;
 
     public bool IsSpraying { get; set; }
 
-    public Vector2Dynamics SecondOrderSolver { get; set; }
-
-    public Vector2Dynamics Stretching { get; set; }
+    public bool Spawned { get; set; } = false;
 
     public Vector2 TargetStretching { get; set; }
-
-    public FloatDynamics VisualRotationSolver { get; set; }
 
     public Star ObservedStar { get; set; }
 
@@ -187,17 +202,17 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
         PushdownAutomaton.PushState(0);
 
         TargetPosition = NPC.Center;
-        SecondOrderSolver = new Vector2Dynamics(1f / 128, 0.7f, 0.2f, TargetPosition);
         Mana = MaxMana;
 
-        Stretching = new Vector2Dynamics(1f / 60, 0.5f, 0.5f, Vector2.One);
         TargetStretching = Vector2.One;
+        StretchingKinematics = new Kinematics<Vector2>(Vector2.One);
 
         NPC.rotation = 0f;
-        VisualRotationSolver = new FloatDynamics(1f / 30, 1f, 1f, NPC.rotation);
 
         NPC.scale = Main.rand.NextFloat(0.8f, 1.1f);
         NPC.netUpdate = true;
+
+        PreviousPosition = NPC.position;
 
         base.OnSpawn(source);
     }
@@ -238,9 +253,8 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
             NPC.netUpdate = true;
         }
 
-        NPC.Center = SecondOrderSolver.Update(1, TargetPosition);
-        NPC.rotation = VisualRotationSolver.Update(1, NPC.rotation.AngleLerp((MathF.Abs(SecondOrderSolver.GetVelocity().X) * NPC.direction) / (6 * MathF.PI), 0.95f));
-        NPC.velocity = Vector2.Zero;
+        PositionKinematics = PositionSolver.Update(1, PositionKinematics, TargetPosition);
+        NPC.rotation = NPC.rotation.AngleLerp(NPC.velocity.X / (6 * MathF.PI), 0.95f);
     }
 
     public bool DrinkAnimation()
@@ -250,7 +264,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
         Vector2 toStar = starPosition + ObservedStar.SpriteDisplacement - NPC.Center;
         toStar.Normalize();
 
-        NPC.rotation = VisualRotationSolver.Update(1, toStar.ToRotation() + ObservedStar.Rotation - MathHelper.PiOver2);
+        NPC.rotation = NPC.rotation.AngleLerp(toStar.ToRotation() + ObservedStar.Rotation - MathHelper.PiOver2, 0.95f);
 
         NPC.Center = ObservedStar.GetCenter() + ObservedStar.SpriteDisplacement + RelativePosition.RotatedBy(ObservedStar.Rotation);
 
@@ -261,9 +275,10 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
     {
         var texture = TextureAssets.Npc[Type].Value;
         var drawPosition = NPC.Center - Main.screenPosition;
-        var stretchFactor = Stretching?.Update(1, TargetStretching) ?? Vector2.One;
+        var scale = Vector2.One;
+        StretchingKinematics = StretchSolver.Update(1, StretchingKinematics, TargetStretching);
 
-        Main.EntitySpriteDraw(texture, drawPosition, texture.Frame(), NPC.GetAlpha(drawColor), NPC.rotation, texture.Size() * 0.5f, NPC.scale * stretchFactor, 0);
+        Main.EntitySpriteDraw(texture, drawPosition, texture.Frame(), NPC.GetAlpha(drawColor), NPC.rotation, texture.Size() * 0.5f, NPC.scale * StretchingKinematics.Position, 0);
 
         return false;
     }

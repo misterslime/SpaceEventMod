@@ -38,12 +38,12 @@ public struct ManaphageSprayInkCloud : IState<ModNPC>
         if (npc.ModNPC is not Manaphage manaphage)
             throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
-        npc.Center = manaphage.SecondOrderSolver.Update(1, manaphage.TargetPosition);
+        manaphage.PositionKinematics = Manaphage.PositionSolver.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
 
         if (manaphage.Time > 0)
         {
             var desiredRotation = (manaphage.CloudPosition - npc.Center).ToRotation() - MathHelper.PiOver2;
-            npc.rotation = manaphage.VisualRotationSolver.Update(1, desiredRotation);
+            npc.rotation = npc.rotation.AngleLerp(desiredRotation, 0.95f);
 
             manaphage.Time--;
 

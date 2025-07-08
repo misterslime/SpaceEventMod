@@ -30,9 +30,9 @@ public struct ManaphageSleepingRegen : IState<ModNPC>
         if (context is not Manaphage manaphage)
             throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
-        context.NPC.rotation = manaphage.VisualRotationSolver.Update(1, 0f);
+        context.NPC.rotation = context.NPC.rotation.AngleLerp(0f, 0.95f);
 
-        if (manaphage.SecondOrderSolver.GetVelocity().LengthSquared() <= 1f)
+        if (context.NPC.velocity.LengthSquared() <= 1f)
         {
             if (manaphage.Time >= 40)
             {
