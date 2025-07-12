@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content.Sources;
+using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Sources;
 using Terraria;
 using Terraria.ID;
@@ -16,6 +17,8 @@ public class SpaceEventMod : Mod
 
     internal static Texture2D TransparentPixel;
 
+    internal static PrimitiveBatch PrimitiveBatch;
+
     public override void Load()
     {
         Instance = this;
@@ -25,6 +28,8 @@ public class SpaceEventMod : Mod
         {
             if (Main.netMode == NetmodeID.Server)
                 return;
+
+            PrimitiveBatch = new PrimitiveBatch(Main.graphics.GraphicsDevice);
 
             WhitePixel = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
             TransparentPixel = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);

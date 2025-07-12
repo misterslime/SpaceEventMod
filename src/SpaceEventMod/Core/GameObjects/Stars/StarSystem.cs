@@ -15,14 +15,14 @@ public class StarSystem : ModSystem
 
     public override void Load()
     {
-        On_Main.DrawNPCs += DrawStars;
+        On_Main.DrawDust += DrawStars;
         On_Projectile.AI_007_GrapplingHooks += GrappleStars;
         On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool += MineStars;
     }
 
     public override void Unload()
     {
-        On_Main.DrawNPCs -= DrawStars;
+        On_Main.DrawDust -= DrawStars;
         On_Projectile.AI_007_GrapplingHooks -= GrappleStars;
         On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool -= MineStars;
     }
@@ -58,8 +58,10 @@ public class StarSystem : ModSystem
         }
     }
 
-    private void DrawStars(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)
+    private void DrawStars(On_Main.orig_DrawDust orig, Main self)
     {
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
         for (var i = 0; i < Stars.Count; i++)
         {
             var star = Stars[i];
@@ -77,7 +79,9 @@ public class StarSystem : ModSystem
             Main.EntitySpriteDraw(texture, drawPosition + star.SpriteDisplacement + shakeVector, texture.Frame(), drawColor, star.Rotation, origin, 1f, star.Effects);
         }
 
-        orig(self, behindTiles);
+        Main.spriteBatch.End();
+
+        orig(self);
     }
 
     private void MineStars(On_Player.orig_ItemCheck_UseMiningTools_ActuallyUseMiningTool orig, Player self, Item sItem, out bool canHitWalls, int x, int y)

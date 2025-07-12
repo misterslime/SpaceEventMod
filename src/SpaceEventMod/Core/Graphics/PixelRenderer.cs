@@ -7,7 +7,16 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Graphics;
 
-public struct DrawAction(Effect effect, Action<SpriteBatch> action)
+public interface IDrawAction;
+
+public struct PrimitiveDrawAction(Effect effect, PrimitiveType primitiveType, Action<PrimitiveBatch> action) : IDrawAction
+{
+    public Action<PrimitiveBatch> action = action;
+    public PrimitiveType primitiveType = primitiveType;
+    public Effect effect = effect;
+}
+
+public struct SpriteDrawAction(Effect effect, Action<SpriteBatch> action) : IDrawAction
 {
     public Action<SpriteBatch> action = action;
     public Effect effect = effect;
@@ -18,14 +27,13 @@ public class PixelRenderer : ModSystem
 {
     public static RenderTarget2D PixelRenderTarget;
 
-    public static List<DrawAction> DrawActions = new List<DrawAction>();
+    public static List<IDrawAction> DrawActions = new List<IDrawAction>();
 
     public override void Load()
     {
         Main.QueueMainThreadAction(() =>
         {
             On_Main.CheckMonoliths += DrawToTarget;
-            On_Main.DrawInfernoRings += DrawPixelatedSprites;
 
             PixelRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
         });
@@ -36,14 +44,13 @@ public class PixelRenderer : ModSystem
         Main.QueueMainThreadAction(() =>
         {
             On_Main.CheckMonoliths -= DrawToTarget;
-            On_Main.DrawInfernoRings -= DrawPixelatedSprites;
 
             PixelRenderTarget?.Dispose();
             PixelRenderTarget = null;
         });
     }
 
-    private static void DrawToTarget(On_Main.orig_CheckMonoliths orig)
+    private void DrawToTarget(On_Main.orig_CheckMonoliths orig)
     {
         if (Main.gameMenu)
         {
@@ -66,9 +73,18 @@ public class PixelRenderer : ModSystem
 
             foreach (var drawAction in DrawActions)
             {
-                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, drawAction.effect, pixelationMatrix);
-                drawAction.action.Invoke(Main.spriteBatch);
-                Main.spriteBatch.End();
+                if (drawAction is SpriteDrawAction spriteDrawAction)
+                {
+                    Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, spriteDrawAction.effect, pixelationMatrix);
+                    spriteDrawAction.action.Invoke(Main.spriteBatch);
+                    Main.spriteBatch.End();
+                }
+                else if (drawAction is PrimitiveDrawAction primitiveDrawAction)
+                {
+                    SpaceEventMod.PrimitiveBatch.Begin(primitiveDrawAction.primitiveType);
+                    primitiveDrawAction.action.Invoke(SpaceEventMod.PrimitiveBatch);
+                    SpaceEventMod.PrimitiveBatch.End();
+                }
             }
 
             Main.instance.GraphicsDevice.SetRenderTarget(null);
@@ -78,20 +94,14 @@ public class PixelRenderer : ModSystem
         orig();
     }
 
-    private static void DrawPixelatedSprites(On_Main.orig_DrawInfernoRings orig, Main self)
+    public override void PostDrawTiles()
     {
         if (PixelRenderTarget == null)
             return;
 
-        Main.spriteBatch.End();
-
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
         Main.spriteBatch.Draw(PixelRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
-
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.Transform);
-
-        orig(self);
     }
 
     public static Matrix GetPixelationMatrix()
@@ -105,7 +115,13 @@ public class PixelRenderer : ModSystem
 
     public static void Draw(Effect effect, Action<SpriteBatch> action)
     {
-        var drawAction = new DrawAction(effect, action);
+        var drawAction = new SpriteDrawAction(effect, action);
+        DrawActions.Add(drawAction);
+    }
+
+    public static void Draw(Effect effect, PrimitiveType primitiveType, Action<PrimitiveBatch> action)
+    {
+        var drawAction = new PrimitiveDrawAction(effect, primitiveType, action);
         DrawActions.Add(drawAction);
     }
 }

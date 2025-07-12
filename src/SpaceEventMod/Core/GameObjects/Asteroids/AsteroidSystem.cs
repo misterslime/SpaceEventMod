@@ -18,7 +18,7 @@ public class AsteroidSystem : ModSystem
 
     public override void Load()
     {
-        On_Main.DrawNPCs += DrawAsteroids;
+        On_Main.DrawDust += DrawAsteroids;
         On_Collision.SlopeCollision += CheckSlopeCollision;
         On_Projectile.AI_007_GrapplingHooks += GrappleAsteroids;
         On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool += MineAsteroid;
@@ -26,7 +26,7 @@ public class AsteroidSystem : ModSystem
 
     public override void Unload()
     {
-        On_Main.DrawNPCs -= DrawAsteroids;
+        On_Main.DrawDust -= DrawAsteroids;
         On_Collision.SlopeCollision -= CheckSlopeCollision;
         On_Projectile.AI_007_GrapplingHooks -= GrappleAsteroids;
         On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool -= MineAsteroid;
@@ -67,10 +67,12 @@ public class AsteroidSystem : ModSystem
         }
     }
 
-    private void DrawAsteroids(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)
+    private void DrawAsteroids(On_Main.orig_DrawDust orig, Main self)
     {
-        orig(self, behindTiles);
+        orig(self);
 
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+        
         for (var i = 0; i < Asteroids.Count; i++)
         {
             var asteroid = Asteroids[i];
@@ -103,6 +105,8 @@ public class AsteroidSystem : ModSystem
 
             Main.EntitySpriteDraw(texture, drawPosition + asteroid.SpriteDisplacement + shakeVector, texture.Frame(), drawColor, 0f, origin, 1f, asteroid.Effects);
         }
+
+        Main.spriteBatch.End();
     }
 
     private void MineAsteroid(On_Player.orig_ItemCheck_UseMiningTools_ActuallyUseMiningTool orig, Player self, Item sItem, out bool canHitWalls, int x, int y)
