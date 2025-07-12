@@ -1,3 +1,4 @@
+using SpaceEventMod.Core.GameObjects;
 using SpaceEventMod.Core.GameObjects.Stars;
 using Terraria;
 using Terraria.ID;
@@ -21,7 +22,9 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        StarSystem.Stars.Add(new Core.GameObjects.Stars.Star(Main.MouseWorld));
+        //StarSystem.Stars.Add(new Core.GameObjects.Stars.Star(Main.MouseWorld));
+
+        FirmamentSeaSystem.CreateSea(Main.MouseWorld);
 
         return true;
     }

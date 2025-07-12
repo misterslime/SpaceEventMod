@@ -148,7 +148,7 @@ public class PrimitiveBatch : IDisposable
     // this function can only be called once begin has been called.
     // if there is not enough room in the vertices buffer, Flush is called
     // automatically.
-    public void AddVertex(Vector2 vertex, Color color)
+    public PrimitiveBatch AddVertex(Vector2 vertex, Color color)
     {
         if (!hasBegun)
         {
@@ -172,6 +172,8 @@ public class PrimitiveBatch : IDisposable
         vertices[positionInBuffer].Color = color;
 
         positionInBuffer++;
+
+        return this;
     }
 
     // End is called once all the primitives have been drawn using AddVertex.
