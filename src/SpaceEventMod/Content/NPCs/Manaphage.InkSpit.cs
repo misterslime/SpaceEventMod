@@ -30,9 +30,7 @@ public class InkSpit : ModProjectile
         if (Timer > 120)
             Projectile.Kill();
 
-        if (Timer > 60)
-            Projectile.velocity.Y += 0.2f;
-
+        Projectile.velocity.Y += Projectile.ai[1];
         Projectile.rotation = Projectile.velocity.ToRotation();
 
         Timer++;

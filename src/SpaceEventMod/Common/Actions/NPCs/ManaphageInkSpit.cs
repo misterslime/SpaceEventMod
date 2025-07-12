@@ -20,11 +20,15 @@ public struct ManaphageInkSpit : IState<ModNPC>
             throw new Exception("Tried to run ManaphageInkSpit state code on a non-valid npc type.");
 
         manaphage.TargetPosition = context.NPC.Center;
-        manaphage.Time = 120;
+        manaphage.Time = 150;
     }
 
     public void Exit(ModNPC context)
     {
+        if (context is not Manaphage manaphage)
+            throw new Exception("Tried to run ManaphageInkSpit state code on a non-valid npc type.");
+
+        manaphage.TargetStretching = new Vector2(1f, 1f);
     }
 
     public bool Update(ModNPC context)
@@ -34,57 +38,52 @@ public struct ManaphageInkSpit : IState<ModNPC>
         if (context is not Manaphage manaphage)
             throw new Exception("Tried to run ManaphageInkSpit state code on a non-valid npc type.");
 
-        if (manaphage.Time <= 0)
+        if (manaphage.Time <= 0 || !npc.HasValidTarget)
             return true;
 
-        if (manaphage.Time >= 80)
+        var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
+
+        var toTarget = targetCenter - npc.Center;
+
+        var speed = 10f;
+
+        var gravity = 0.1f;
+
+        var theta = GetArtilleryAngle(new Vector2(toTarget.X, -toTarget.Y), speed, -gravity);
+
+        if (theta is null)
+            return true;
+
+        if (manaphage.Time >= 110)
         {
-            var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
-            var desiredRotation = (targetCenter - npc.Center).ToRotation() - MathHelper.PiOver2;
-            npc.rotation = npc.rotation.AngleLerp(desiredRotation, 0.1f);
+            npc.rotation = npc.rotation.AngleLerp(theta.Value - MathHelper.PiOver2, 0.1f);
 
             manaphage.TargetStretching = new Vector2(1.2f, 0.8f);
             manaphage.PositionKinematics = Manaphage.PositionSolver.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
-
-            if (manaphage.Time == 80)
-            {
-                var toTarget = npc.Center - targetCenter;
-                toTarget.Normalize();
-                manaphage.TargetPosition += toTarget * 16 * 7;
-            }
-        } else
+        }
+        else
         {
-            npc.rotation = npc.rotation.AngleLerp(npc.velocity.X / (6 * MathF.PI), 0.4f);
+            npc.rotation = npc.rotation.AngleLerp(-npc.velocity.X / (3 * MathF.PI), 0.35f);
 
             manaphage.PositionKinematics = SuddenJerk.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
 
-            if (manaphage.Time == 79 && Main.netMode != NetmodeID.MultiplayerClient)
+            if (manaphage.Time == 109 && Main.netMode != NetmodeID.MultiplayerClient)
             {
-                var targetCenter = npc.HasNPCTarget ? Main.npc[npc.TranslatedTargetIndex].Center : Main.player[npc.TranslatedTargetIndex].Center;
-                var toTarget = targetCenter - npc.Center;
+                var projectileVelocity = new Vector2((float)Math.Cos(theta.Value), -(float)Math.Sin(theta.Value));
+                projectileVelocity.Normalize();
+                manaphage.TargetPosition -= projectileVelocity * 16 * 7;
 
-                for (int i = 0; i < 3; i++)
+                if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
-                    var inkVelocity = toTarget + Main.rand.NextVector2Circular(16f * 4, 16f * 4);
-                    inkVelocity.Normalize();
-                    inkVelocity *= 12f + Main.rand.NextFloat(-2, 2);
+                    projectileVelocity *= speed;
+                    var finalInk = Projectile.NewProjectile(npc.GetSource_FromAI(), npc.Center.X, npc.Center.Y, projectileVelocity.X, projectileVelocity.Y, ModContent.ProjectileType<InkSpit>(), 80, 1f, Main.myPlayer, 0, gravity, 0);
 
-                    var ink = Projectile.NewProjectile(npc.GetSource_FromAI(), npc.Center.X, npc.Center.Y, inkVelocity.X, inkVelocity.Y, ModContent.ProjectileType<InkSpit>(), 80, 1f, Main.myPlayer, 0, 0, 0);
-
-                    if (Main.projectile.IndexInRange(ink))
-                        Main.projectile[ink].netUpdate = true;
+                    if (Main.projectile.IndexInRange(finalInk))
+                        Main.projectile[finalInk].netUpdate = true;
                 }
-
-                toTarget.Normalize();
-                toTarget *= 12f;
-
-                var finalInk = Projectile.NewProjectile(npc.GetSource_FromAI(), npc.Center.X, npc.Center.Y, toTarget.X, toTarget.Y, ModContent.ProjectileType<InkSpit>(), 80, 1f, Main.myPlayer, 0, 0, 0);
-
-                if (Main.projectile.IndexInRange(finalInk))
-                    Main.projectile[finalInk].netUpdate = true;
             }
 
-            if (manaphage.Time > 70)
+            if (manaphage.Time > 100)
                 manaphage.TargetStretching = new Vector2(0.90f, 1.1f);
             else
                 manaphage.TargetStretching = Vector2.One;
@@ -93,5 +92,34 @@ public struct ManaphageInkSpit : IState<ModNPC>
         manaphage.Time--;
 
         return false;
+    }
+
+    /// <summary>
+    /// Function that gets the angle you'd need to hit a target given your projectile is affected by gravity.
+    /// 
+    /// Because this was math'd in desmos where down is negative,
+    /// you'll have to ensure that you flip the sign of the target vector's y component.
+    /// Math was done by @azaliesthyl on discord :D
+    /// </summary>
+    /// <param name="target">Vector from launch to target.</param>
+    /// <param name="throwingVelocity">Velocity the projectile is shot at.</param>
+    /// <param name="gravity">Acceleration due to gravity.</param>
+    /// <returns>The angle of the velocity, returns null if it cannot hit.</returns>
+    public float? GetArtilleryAngle(Vector2 target, float throwingVelocity, float gravity)
+    {
+        float theta = 0;
+        var A = (gravity * MathF.Pow(target.X, 2)) / (2 * MathF.Pow(throwingVelocity, 2));
+
+        if (-MathF.Sqrt(MathF.Pow(target.X, 2) + MathF.Pow(target.Y, 2)) <= (gravity / MathF.Pow(throwingVelocity, 2)) * MathF.Pow(target.X, 2) - target.Y)
+        {
+            if (0 <= target.X)
+                theta = MathF.Atan((-target.X + MathF.Sqrt(MathF.Pow(target.X, 2) - (4 * A * (A - target.Y)))) / (2 * A));
+            if (0 > target.X)
+                theta = MathF.PI + MathF.Atan((-target.X - MathF.Sqrt(MathF.Pow(target.X, 2) - (4 * A * (A - target.Y)))) / (2 * A));
+
+            return theta;
+        }
+
+        return null;
     }
 }

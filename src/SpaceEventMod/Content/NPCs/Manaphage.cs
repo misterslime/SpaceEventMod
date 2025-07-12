@@ -21,8 +21,9 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public static readonly Vector2Dynamics PositionSolver = new Vector2Dynamics(1f / 128f, 0.85f, 0.2f);
 
-    public static readonly Vector2Dynamics StretchSolver = new Vector2Dynamics(1f / 40f, 0.5f, -0.5f);
+    public static readonly Vector2Dynamics StretchSolver = new Vector2Dynamics(1f / 40f, 0.3f, -0.5f);
 
+    #region Fields and properties
     public PushdownAutomaton<ModNPC> PushdownAutomaton;
 
     public Vector2 CloudPosition
@@ -75,6 +76,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
     public Star ObservedStar { get; set; }
 
     public Vector2 RelativePosition { get; set; }
+    #endregion
 
     private enum ManaphageStates
     {
@@ -224,7 +226,6 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
     public override bool PreAI()
     {
         PushdownAutomaton.Update(this, StateMachine);
-
         return false;
     }
 
