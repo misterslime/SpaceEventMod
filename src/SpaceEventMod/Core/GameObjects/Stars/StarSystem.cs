@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.GameObjects.Alerts;
 using System;
 using System.Collections.Generic;
 using Terraria;

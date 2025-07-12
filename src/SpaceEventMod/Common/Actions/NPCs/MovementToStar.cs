@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.Automata;
-using SpaceEventMod.Core.GameObjects.Alerts;
 using SpaceEventMod.Core.GameObjects.Stars;
 using System;
 using Terraria;
