@@ -14,7 +14,7 @@ public class AsteroidSystem : ModSystem
 {
     public static List<Asteroid> Asteroids = new List<Asteroid>();
 
-    public static readonly Vector2Dynamics AsteroidMovement = new Vector2Dynamics(1f / 128f, 0.5f, 0.2f);
+    public static readonly Vector2Dynamics AsteroidMovement = new Vector2Dynamics(1f / 64f, 0.5f, 0.2f);
 
     public override void Load()
     {
@@ -52,10 +52,7 @@ public class AsteroidSystem : ModSystem
                 continue;
             }
 
-            if (!asteroid.BeingStoodOn)
-                asteroid.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + asteroid.RandomTimeDisplacement) / 60f) * 4 * Vector2.UnitY;
-            else
-                asteroid.SpriteDisplacement = Vector2.Zero;
+            asteroid.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + asteroid.RandomTimeDisplacement) / 60f) * 4 * Vector2.UnitY;
 
             asteroid.Transform = AsteroidMovement.Update(1, asteroid.Transform, asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 48f : asteroid.RestPosition);
             asteroid.BeingStoodOn = false;

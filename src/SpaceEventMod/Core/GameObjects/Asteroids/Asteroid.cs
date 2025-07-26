@@ -27,7 +27,7 @@ public struct Asteroid(Kinematics<Vector2> initialPosition, int variant, int wid
 
     public Rectangle GetBoundingBox()
     {
-        return new Rectangle((int)this.Transform.Position.X, (int)this.Transform.Position.Y, this.Width, this.Height);
+        return new Rectangle((int)this.Transform.Position.X + (int)this.SpriteDisplacement.Y, (int)this.Transform.Position.Y + (int)this.SpriteDisplacement.Y, this.Width, this.Height);
     }
 
     public Vector2 GetCenter()
