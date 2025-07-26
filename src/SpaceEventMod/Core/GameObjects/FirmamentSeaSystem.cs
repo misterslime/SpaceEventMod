@@ -53,10 +53,105 @@ public struct FirmamentSea
 public class FirmamentSeaSystem : ModSystem
 {
     public static FirmamentSea firmamentSea;
+    public static RenderTarget2D BackgroundRenderTarget;
 
     public override void Load()
     {
         firmamentSea = new FirmamentSea();
+
+        Main.QueueMainThreadAction(() =>
+        {
+            On_Main.CheckMonoliths += DrawToTarget;
+            On_Main.DrawDust += DrawSea;
+
+            BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+        });
+    }
+
+    public override void Unload()
+    {
+        Main.QueueMainThreadAction(() =>
+        {
+            On_Main.CheckMonoliths -= DrawToTarget;
+            On_Main.DrawDust -= DrawSea;
+
+            BackgroundRenderTarget?.Dispose();
+            BackgroundRenderTarget = null;
+        });
+    }
+
+    private static void DrawToTarget(On_Main.orig_CheckMonoliths orig)
+    {
+        if (Main.gameMenu)
+        {
+            orig();
+            return;
+        }
+
+        if (BackgroundRenderTarget == null || BackgroundRenderTarget.Width != Main.screenWidth || BackgroundRenderTarget.Height != Main.screenHeight)
+        {
+            BackgroundRenderTarget?.Dispose();
+            BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+        }
+
+        Main.graphics.GraphicsDevice.SetRenderTarget(BackgroundRenderTarget);
+        Main.graphics.GraphicsDevice.Clear(Color.Black);
+
+        if (firmamentSea.Nodes is not null)
+        {
+            float GetNormalHeight(float height)
+            {
+                if (height > 0 && height < 1)
+                    return 1;
+                else if (height <= 0 && height > -1)
+                    return 1;
+
+                return MathF.Abs(height);
+            }
+
+            Color midnightBlue = new Color(10, 0, 100);
+            Color lightBlue = new Color(0, 78, 255);
+
+            SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
+
+            for (int i = 0; i < firmamentSea.Nodes.Length - 1; i++)
+            {
+                float difference = firmamentSea.Nodes[i + 1].Height - firmamentSea.Nodes[i].Height;
+
+                float waveOffset = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * i)) / GetNormalHeight(difference * MathF.PI);
+                float waveOffset2 = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * (i + 1))) / GetNormalHeight(difference * MathF.PI);
+
+                Vector2 begin = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * i, firmamentSea.Nodes[i].Height + waveOffset) - Main.screenPosition;
+                Vector2 end = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * (i + 1), firmamentSea.Nodes[i + 1].Height + waveOffset2) - Main.screenPosition;
+
+                begin *= 0.5f;
+                begin = new Vector2(MathF.Floor(begin.X), MathF.Floor(begin.Y));
+                begin *= 2f;
+
+                end *= 0.5f;
+                end = new Vector2(MathF.Floor(end.X), MathF.Floor(end.Y));
+                end *= 2f;
+
+                Vector2 point1 = begin;
+                Vector2 point2 = new Vector2(begin.X, begin.Y - 240f);
+                Vector2 point3 = new Vector2(end.X, end.Y - 240f);
+                Vector2 point4 = end;
+
+                SpaceEventMod.PrimitiveBatch
+                    .AddVertex(point1, Color.White)
+                    .AddVertex(point2, Color.Black)
+                    .AddVertex(point3, Color.Black)
+                    .AddVertex(point4, Color.White)
+                    .AddVertex(point1, Color.White)
+                    .AddVertex(point3, Color.Black);
+            }
+
+            SpaceEventMod.PrimitiveBatch.End();
+        }
+
+        Main.instance.GraphicsDevice.SetRenderTarget(null);
+
+        orig();
     }
 
     public static void CreateSea(Vector2 position)
@@ -81,7 +176,7 @@ public class FirmamentSeaSystem : ModSystem
         }
 
         sea.Nodes = nodes;
-        sea.Spread = 0.25f;
+        sea.Spread = 0.1f;
 
         List<float> sineOffsets = new List<float>();
         List<float> sineAmplitudes = new List<float>();
@@ -120,7 +215,7 @@ public class FirmamentSeaSystem : ModSystem
             SeaSurfaceNode node = nodes[i];
 
             float x = node.Height;
-            float acceleration = -k * x - node.Velocity * 0.025f;
+            float acceleration = -k * x - node.Velocity * 0.3f;
 
             node.Height += node.Velocity;
             node.Velocity += acceleration;
@@ -188,7 +283,7 @@ public class FirmamentSeaSystem : ModSystem
             {
                 if (player.getRect().Contains(new Point((int)nodePosition.X, (int)nodePosition.Y)))
                 {
-                    node.Velocity = player.velocity.Y * 1.5f;
+                    node.Velocity = player.velocity.Y * 2f;
                 }
             }
 
@@ -204,13 +299,13 @@ public class FirmamentSeaSystem : ModSystem
                     {
                         if (LineLine(nodePosition, end, projectile.Center - projectile.velocity * 3f, projectile.Center + projectile.velocity))
                         {
-                            node.Velocity = projectile.velocity.Y * 2f;
+                            node.Velocity = projectile.velocity.Y;
                             projectile.Kill();
                         }
 
                         if (LineRect(nodePosition, end, projectile.getRect()))
                         {
-                            node.Velocity = projectile.velocity.Y * 2f;
+                            node.Velocity = projectile.velocity.Y;
                             projectile.Kill();
                         }
                     }
@@ -227,9 +322,9 @@ public class FirmamentSeaSystem : ModSystem
         firmamentSea = sea;
     }
 
-    public override void PostDrawTiles()
+    public void DrawSea(On_Main.orig_DrawDust orig, Main self)
     {
-        if (firmamentSea.Nodes is null)
+        if (BackgroundRenderTarget == null || firmamentSea.Nodes is null)
             return;
 
         float GetNormalHeight(float height)
@@ -271,41 +366,28 @@ public class FirmamentSeaSystem : ModSystem
                 Vector2 point4 = end;
 
                 primitiveBatch
-                    .AddVertex(point1, lightBlue)
+                    .AddVertex(point1, Color.Transparent)
                     .AddVertex(point2, midnightBlue)
                     .AddVertex(point3, midnightBlue)
-                    .AddVertex(point4, lightBlue)
-                    .AddVertex(point1, lightBlue)
+                    .AddVertex(point4, Color.Transparent)
+                    .AddVertex(point1, Color.Transparent)
                     .AddVertex(point3, midnightBlue);
             }
         });
 
-        PixelRenderer.Draw(null, (SpriteBatch spriteBatch) =>
+        var inkStencilShader = Assets.Assets.Shaders.FirmamentSeaBackground.Value;
+
+        inkStencilShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Extra.Noise.Foam.Value);
+        inkStencilShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Extra.FirmamentSeaColors.Value);
+        inkStencilShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly);
+        inkStencilShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth / 2, Main.screenHeight / 2));
+
+        PixelRenderer.Draw(inkStencilShader, (SpriteBatch spriteBatch) =>
         {
-            Color midnightBlue = new Color(10, 0, 100);
-            Color lightBlue = new Color(0, 78, 255);
-
-            for (int i = 0; i < firmamentSea.Nodes.Length - 1; i++)
-            {
-                float difference = firmamentSea.Nodes[i + 1].Height - firmamentSea.Nodes[i].Height;
-
-                float waveOffset = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * i)) / GetNormalHeight(difference * MathF.PI);
-                float waveOffset2 = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * (i + 1))) / GetNormalHeight(difference * MathF.PI);
-
-                Vector2 begin = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * i, firmamentSea.Nodes[i].Height + waveOffset - 2f) - Main.screenPosition;
-                Vector2 end = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * (i + 1), firmamentSea.Nodes[i + 1].Height + waveOffset2 - 2f) - Main.screenPosition;
-
-                begin *= 0.5f;
-                begin = new Vector2(MathF.Floor(begin.X), MathF.Floor(begin.Y));
-                begin *= 2f;
-
-                end *= 0.5f;
-                end = new Vector2(MathF.Floor(end.X), MathF.Floor(end.Y));
-                end *= 2f;
-
-                DrawLine(spriteBatch, begin, end, new Color(142, 157, 255), 2);
-            }
+            spriteBatch.Draw(BackgroundRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         });
+
+        orig(self);
     }
 
     public bool LineRect(Vector2 lineStart, Vector2 lineEnd, Rectangle rectangle)
