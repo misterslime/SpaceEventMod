@@ -380,7 +380,8 @@ public class FirmamentSeaSystem : ModSystem
         inkStencilShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Extra.Noise.Foam.Value);
         inkStencilShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Extra.FirmamentSeaColors.Value);
         inkStencilShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly);
-        inkStencilShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth / 2, Main.screenHeight / 2));
+        inkStencilShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
+        inkStencilShader.Parameters["screenWorldPosition"].SetValue(Main.screenPosition * 0.5f); // this is being halved because its being pixelated
 
         PixelRenderer.Draw(inkStencilShader, (SpriteBatch spriteBatch) =>
         {

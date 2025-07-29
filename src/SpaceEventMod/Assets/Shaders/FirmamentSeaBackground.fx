@@ -13,12 +13,15 @@ sampler paletteSampler = sampler_state
 };
 
 float2 screenSize;
+float2 screenWorldPosition;
 float globalTime;
 
-float4 PixelShaderFunction(float2 coords : TEXCOORD0, float4 sampleColor : COLOR0) : COLOR0
+float4 PixelShaderFunction(float2 coords : TEXCOORD0, float2 screenPosition : SV_POSITION, float4 sampleColor : COLOR0) : COLOR0
 {
-    float2 noiseCoords = float2(coords.x + globalTime * 0.007, coords.y + globalTime * -0.002);
-    float sample = (tex2D(noiseSampler, noiseCoords).r * 0.45) + (tex2D(seaTarget, coords).r * 0.65);
+    float2 screenWorldCoords = (screenPosition + screenWorldPosition) / screenSize;
+
+    float2 noiseCoords = float2(globalTime * 0.007, globalTime * -0.002);
+    float sample = (tex2D(noiseSampler, screenWorldCoords + noiseCoords).r + tex2D(seaTarget, coords).r) * 0.5f;
     
     float mask = step(0.5, sample);
 	
