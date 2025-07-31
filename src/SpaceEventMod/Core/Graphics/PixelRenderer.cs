@@ -70,12 +70,12 @@ public class PixelRenderer : ModSystem
         {
             Main.graphics.GraphicsDevice.SetRenderTarget(PixelRenderTarget);
             Main.graphics.GraphicsDevice.Clear(Color.Transparent);
-
+            
             foreach (var drawAction in DrawActions)
             {
                 if (drawAction is SpriteDrawAction spriteDrawAction)
                 {
-                    Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, spriteDrawAction.effect, pixelationMatrix);
+                    Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, spriteDrawAction.effect, pixelationMatrix);
                     spriteDrawAction.action.Invoke(Main.spriteBatch);
                     Main.spriteBatch.End();
                 }

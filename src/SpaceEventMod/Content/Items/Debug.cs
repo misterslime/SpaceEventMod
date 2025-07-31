@@ -1,4 +1,4 @@
-using SpaceEventMod.Core.GameObjects;
+using SpaceEventMod.Core.GameObjects.FirmamentSea;
 using SpaceEventMod.Core.GameObjects.Stars;
 using Terraria;
 using Terraria.ID;
