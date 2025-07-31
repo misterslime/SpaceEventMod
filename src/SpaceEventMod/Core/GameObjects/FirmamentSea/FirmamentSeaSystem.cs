@@ -48,49 +48,4 @@ public partial class FirmamentSeaSystem : ModSystem
             BackgroundRenderTarget = null;
         });
     }
-
-    public static void CreateSea(Vector2 position)
-    {
-        var sea = new FirmamentSea();
-
-        sea.Position = position;
-        sea.NodeWidth = 16;
-        sea.Active = true;
-
-        var count = 64;
-
-        var nodes = new HookeSpring[count];
-
-        for (var i = 0; i < nodes.Length; i++)
-        {
-            var node = new HookeSpring();
-
-            node.Height = 0;
-
-            nodes[i] = node;
-        }
-
-        sea.Nodes = nodes;
-        sea.Spread = 0.1f;
-
-        var sineOffsets = new List<float>();
-        var sineAmplitudes = new List<float>();
-        var sineStretches = new List<float>();
-        var offsetStretches = new List<float>();
-
-        for (var i = 0; i < 7; i++)
-        {
-            sineOffsets.Add(-1 + 2 * Main.rand.NextFloat());
-            sineAmplitudes.Add(5f * Main.rand.NextFloat());
-            sineStretches.Add(0.05f * Main.rand.NextFloat());
-            offsetStretches.Add(10f * Main.rand.NextFloat());
-        }
-
-        sea.SineOffsets = sineOffsets.ToArray();
-        sea.SineAmplitudes = sineAmplitudes.ToArray();
-        sea.SineStretches = sineStretches.ToArray();
-        sea.OffsetStretches = offsetStretches.ToArray();
-
-        firmamentSea = sea;
-    }
 }

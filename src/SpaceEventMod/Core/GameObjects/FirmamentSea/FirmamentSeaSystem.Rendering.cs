@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Graphics;
+using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +33,7 @@ public partial class FirmamentSeaSystem : ModSystem
         Main.graphics.GraphicsDevice.SetRenderTarget(BackgroundRenderTarget);
         Main.graphics.GraphicsDevice.Clear(Color.Black);
 
-        if (firmamentSea.Nodes is not null)
+        if (firmamentSea.Springs is not null)
         {
             float GetNormalHeight(float height)
             {
@@ -48,38 +49,53 @@ public partial class FirmamentSeaSystem : ModSystem
 
             SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
 
-            for (var i = 0; i < firmamentSea.Nodes.Length - 1; i++)
+            for (int chunk = 0; chunk < firmamentSea.Springs.GetLength(0); chunk++)
             {
-                var difference = firmamentSea.Nodes[i + 1].Height - firmamentSea.Nodes[i].Height;
 
-                var waveOffset = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * i)) / GetNormalHeight(difference * MathF.PI);
-                var waveOffset2 = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * (i + 1))) / GetNormalHeight(difference * MathF.PI);
+                for (int spring = 0; spring < firmamentSea.Springs.GetLength(1); spring++)
+                {
+                    HookeSpring? next = null;
+                    var nodeLocation = chunk * firmamentSea.ChunkSize + spring;
 
-                var begin = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * i, firmamentSea.Nodes[i].Height) - Main.screenPosition;
-                var end = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * (i + 1), firmamentSea.Nodes[i + 1].Height) - Main.screenPosition;
+                    if (spring < firmamentSea.Springs.GetLength(1) - 1)
+                        next = firmamentSea.Springs[chunk, spring + 1];
+                    else if (chunk < firmamentSea.Springs.GetLength(0) - 1)
+                        next = firmamentSea.Springs[chunk + 1, 0];
 
-                begin *= 0.5f;
-                begin = new Vector2(MathF.Floor(begin.X), MathF.Floor(begin.Y));
-                begin *= 2f;
+                    if (next is not null)
+                    {
+                        var difference = next.Value.Height - firmamentSea.Springs[chunk, spring].Height;
 
-                end *= 0.5f;
-                end = new Vector2(MathF.Floor(end.X), MathF.Floor(end.Y));
-                end *= 2f;
+                        var waveOffset = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * nodeLocation)) / GetNormalHeight(difference * MathF.PI);
+                        var waveOffset2 = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * (nodeLocation + 1))) / GetNormalHeight(difference * MathF.PI);
 
-                var point1 = begin;
-                var point2 = new Vector2(begin.X, 0f);
-                var point3 = new Vector2(end.X, 0f);
-                var point4 = end;
+                        var begin = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * nodeLocation, firmamentSea.Springs[chunk, spring].Height) - Main.screenPosition;
+                        var end = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * (nodeLocation + 1), next.Value.Height) - Main.screenPosition;
 
-                // red is used to show how high up in the sea the pixel is
-                // blue to tell if the pixel is in the sea at all
-                SpaceEventMod.PrimitiveBatch
-                    .AddVertex(point1, Color.Magenta)
-                    .AddVertex(point2, Color.Blue)
-                    .AddVertex(point3, Color.Blue)
-                    .AddVertex(point4, Color.Magenta)
-                    .AddVertex(point1, Color.Magenta)
-                    .AddVertex(point3, Color.Blue);
+                        begin *= 0.5f;
+                        begin = new Vector2(MathF.Floor(begin.X), MathF.Floor(begin.Y));
+                        begin *= 2f;
+
+                        end *= 0.5f;
+                        end = new Vector2(MathF.Floor(end.X), MathF.Floor(end.Y));
+                        end *= 2f;
+
+                        var point1 = begin;
+                        var point2 = new Vector2(begin.X, 0f);
+                        var point3 = new Vector2(end.X, 0f);
+                        var point4 = end;
+
+                        // red is used to show how high up in the sea the pixel is
+                        // blue to tell if the pixel is in the sea at all
+                        SpaceEventMod.PrimitiveBatch
+                            .AddVertex(point1, Color.Magenta)
+                            .AddVertex(point2, Color.Blue)
+                            .AddVertex(point3, Color.Blue)
+                            .AddVertex(point4, Color.Magenta)
+                            .AddVertex(point1, Color.Magenta)
+                            .AddVertex(point3, Color.Blue);
+                    }
+                }
             }
 
             SpaceEventMod.PrimitiveBatch.End();
@@ -92,7 +108,7 @@ public partial class FirmamentSeaSystem : ModSystem
 
     public void DrawSea(On_Main.orig_DrawDust orig, Main self)
     {
-        if (BackgroundRenderTarget == null || firmamentSea.Nodes is null)
+        if (BackgroundRenderTarget == null || firmamentSea.Springs is null)
             return;
 
         var inkStencilShader = Assets.Assets.Shaders.FirmamentSea.Value;
@@ -109,5 +125,14 @@ public partial class FirmamentSeaSystem : ModSystem
         });
 
         orig(self);
+    }
+
+    public void DrawLine(SpriteBatch spriteBatch, Vector2 begin, Vector2 end, Color color, int width = 1)
+    {
+        var r = new Rectangle((int)begin.X, (int)begin.Y, (int)(end - begin).Length() + width, width);
+        var v = Vector2.Normalize(begin - end);
+        var angle = (float)Math.Acos(Vector2.Dot(v, -Vector2.UnitX));
+        if (begin.Y > end.Y) angle = MathHelper.TwoPi - angle;
+        spriteBatch.Draw(SpaceEventMod.WhitePixel, r, null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
     }
 }

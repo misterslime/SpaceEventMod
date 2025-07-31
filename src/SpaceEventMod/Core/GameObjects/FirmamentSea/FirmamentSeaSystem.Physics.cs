@@ -15,65 +15,163 @@ public partial class FirmamentSeaSystem : ModSystem
 {
     public override void PostUpdatePlayers()
     {
-        if (firmamentSea.Nodes is null)
+        if (firmamentSea.Springs is null)
             return;
-
-        const float k = 0.012f; // adjust this value to your liking
 
         var sea = firmamentSea;
 
-        var nodes = firmamentSea.Nodes;
+        // update springs
+        var springs = firmamentSea.Springs;
 
-        nodes = nodes.UpdateArray(0.05f, 0.025f).PropagateWaves(0.25f, 8);
-
-        // sea surface collisions
-        for (var i = 0; i < nodes.Length; i++)
-        {
-            var node = nodes[i];
-
-            var nodePosition = sea.Position + new Vector2(sea.NodeWidth * i, node.Height);
-
-            foreach (var player in Main.ActivePlayers)
-            {
-                if (player.getRect().Contains(new Point((int)nodePosition.X, (int)nodePosition.Y)))
-                {
-                    node.Velocity = player.velocity.Y * 2f;
-                }
-            }
-
-            foreach (var projectile in Main.ActiveProjectiles)
-            {
-                if (i < nodes.Length - 1)
-                {
-                    var nodeNext = nodes[i + 1];
-
-                    var end = sea.Position + new Vector2(sea.NodeWidth * (i + 1), nodeNext.Height);
-
-                    if (!(projectile.getRect().Left > end.X || projectile.getRect().Right < nodePosition.X))
-                    {
-                        if (LineLine(nodePosition, end, projectile.Center - projectile.velocity * 3f, projectile.Center + projectile.velocity))
-                        {
-                            node.Velocity = projectile.velocity.Y;
-                            projectile.Kill();
-                        }
-
-                        if (LineRect(nodePosition, end, projectile.getRect()))
-                        {
-                            node.Velocity = projectile.velocity.Y;
-                            projectile.Kill();
-                        }
-                    }
-
-                    continue;
-                }
-            }
-
-            nodes[i] = node;
-        }
-
-        sea.Nodes = nodes;
+        springs = UpdateSprings(sea.Springs, 0.05f, 0.025f);
+        springs = PropagateWaves(sea.Springs, 0.25f);
+        springs = CollideSprings(sea.Springs, sea);
 
         firmamentSea = sea;
+    }
+
+    public HookeSpring[,] UpdateSprings(HookeSpring[,] springs, float dampening, float tension)
+    {
+        HookeSpring[,] newArray = springs;
+
+        for (int chunk = 0; chunk < springs.GetLength(0); chunk++)
+        {
+            for (int spring = 0; spring < springs.GetLength(1); spring++)
+            {
+                float acceleration = (-tension * springs[chunk, spring].Height) - (dampening * springs[chunk, spring].Velocity);
+
+                // euler integration
+                HookeSpring newSpring = springs[chunk, spring];
+                newSpring.Height += springs[chunk, spring].Velocity;
+                newSpring.Velocity += acceleration;
+
+                springs[chunk, spring] = newSpring;
+            }
+        }
+
+        return newArray;
+    }
+
+    public HookeSpring[,] PropagateWaves(HookeSpring[,] springs, float spread, int passes = 8)
+    {
+        HookeSpring[,] newArray = springs;
+
+        float clampedSpread = MathHelper.Clamp(spread, 0f, 0.5f);
+
+        float[,] leftDeltas = new float[springs.GetLength(0), springs.GetLength(1)];
+        float[,] rightDeltas = new float[springs.GetLength(0), springs.GetLength(1)];
+
+        // do some passes where springs pull on their neighbours
+        for (int j = 0; j < passes; j++)
+        {
+            for (int chunk = 0; chunk < springs.GetLength(0); chunk++)
+            {
+                for (int spring = 0; spring < springs.GetLength(1); spring++)
+                {
+                    int index = chunk * spring;
+
+                    if (spring > 0)
+                    {
+                        leftDeltas[chunk, spring] = clampedSpread * (springs[chunk, spring].Height - springs[chunk, spring - 1].Height);
+                        newArray[chunk, spring - 1].Velocity += leftDeltas[chunk, spring];
+                    }
+                    else if (chunk > 0)
+                    {
+                        leftDeltas[chunk, spring] = clampedSpread * (springs[chunk, spring].Height - springs[chunk - 1, springs.GetLength(1) - 1].Height);
+                        newArray[chunk - 1, springs.GetLength(1) - 1].Velocity += leftDeltas[chunk, spring];
+                    }
+
+                    if (spring < springs.GetLength(1) - 1)
+                    {
+                        rightDeltas[chunk, spring] = clampedSpread * (springs[chunk, spring].Height - springs[chunk, spring + 1].Height);
+                        newArray[chunk, spring + 1].Velocity += rightDeltas[chunk, spring];
+                    }
+                    else if (chunk < springs.GetLength(0) - 1)
+                    {
+                        rightDeltas[chunk, spring] = clampedSpread * (springs[chunk, spring].Height - springs[chunk + 1, 0].Height);
+                        newArray[chunk + 1, 0].Velocity += rightDeltas[chunk, spring];
+                    }
+                }
+            }
+
+            for (int chunk = 0; chunk < springs.GetLength(0); chunk++)
+            {
+                for (int spring = 0; spring < springs.GetLength(1); spring++)
+                {
+                    if (spring > 0)
+                        newArray[chunk, spring - 1].Height += leftDeltas[chunk, spring];
+                    else if (chunk > 0)
+                        newArray[chunk - 1, springs.GetLength(1) - 1].Height += leftDeltas[chunk, spring];
+
+                    if (spring < springs.GetLength(1) - 1)
+                        newArray[chunk, spring + 1].Height += rightDeltas[chunk, spring];
+                    else if (chunk < springs.GetLength(0) - 1)
+                        newArray[chunk + 1, 0].Height += rightDeltas[chunk, spring];
+                }
+            }
+        }
+
+        return newArray;
+    }
+
+    public HookeSpring[,] CollideSprings(HookeSpring[,] springs, FirmamentSea sea)
+    {
+        HookeSpring[,] newArray = springs;
+
+        // sea surface collisions
+        for (int chunk = 0; chunk < springs.GetLength(0); chunk++)
+        {
+            for (int spring = 0; spring < springs.GetLength(1); spring++)
+            {
+                var node = springs[chunk, spring];
+                var nodeLocation = chunk * sea.ChunkSize + spring;
+
+                var nodePosition = sea.Position + new Vector2(sea.NodeWidth * nodeLocation, node.Height);
+
+                foreach (var player in Main.ActivePlayers)
+                {
+                    if (player.getRect().Contains(new Point((int)nodePosition.X, (int)nodePosition.Y)))
+                    {
+                        node.Velocity = player.velocity.Y * 2f;
+                    }
+                }
+
+                HookeSpring? next = null;
+
+                if (spring < springs.GetLength(1) - 1)
+                    next = springs[chunk, spring + 1];
+                else if (chunk < springs.GetLength(0) - 1)
+                    next = springs[chunk + 1, 0];
+
+                if (next is not null)
+                {
+                    foreach (Projectile projectile in Main.ActiveProjectiles)
+                    {
+                        Vector2 end = sea.Position + new Vector2(sea.NodeWidth * (nodeLocation + 1), next.Value.Height);
+
+                        if (!(projectile.getRect().Left > end.X || projectile.getRect().Right < nodePosition.X))
+                        {
+                            if (LineLine(nodePosition, end, projectile.Center - projectile.velocity * 3f, projectile.Center + projectile.velocity))
+                            {
+                                node.Velocity = projectile.velocity.Y * 2f;
+                                projectile.Kill();
+                            }
+
+                            if (LineRect(nodePosition, end, projectile.getRect()))
+                            {
+                                node.Velocity = projectile.velocity.Y * 2f;
+                                projectile.Kill();
+                            }
+                        }
+                    }
+                }
+
+
+                newArray[chunk, spring] = node;
+            }
+        }
+
+        return newArray;
     }
 
     public bool LineRect(Vector2 lineStart, Vector2 lineEnd, Rectangle rectangle)
@@ -96,14 +194,5 @@ public partial class FirmamentSeaSystem : ModSystem
 
         //float intersectionX = line1Start.X + (uA * (line1End.X - line1Start.X));
         //float intersectionY = line1Start.Y + (uA * (line1End.Y - line1Start.Y));
-    }
-
-    public void DrawLine(SpriteBatch spriteBatch, Vector2 begin, Vector2 end, Color color, int width = 1)
-    {
-        var r = new Rectangle((int)begin.X, (int)begin.Y, (int)(end - begin).Length() + width, width);
-        var v = Vector2.Normalize(begin - end);
-        var angle = (float)Math.Acos(Vector2.Dot(v, -Vector2.UnitX));
-        if (begin.Y > end.Y) angle = MathHelper.TwoPi - angle;
-        spriteBatch.Draw(SpaceEventMod.WhitePixel, r, null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
     }
 }
