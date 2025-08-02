@@ -24,7 +24,7 @@ public class Debug : ModItem
     {
         //StarSystem.Stars.Add(new Core.GameObjects.Stars.Star(Main.MouseWorld));
 
-        FirmamentSeaSystem.firmamentSea = new FirmamentSea(Main.MouseWorld, 16, 64, 3);
+        FirmamentSeaSystem.Sea = new FirmamentSea(Main.MouseWorld, 16, 64, 5);
 
         return true;
     }

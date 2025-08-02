@@ -12,13 +12,23 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Core.GameObjects.FirmamentSea;
 
+public struct SeaPosition(int left, float height)
+{
+    public int Left = left;
+    public float Height = height;
+}
+
 public struct FirmamentSea
 {
     public FirmamentSea(Vector2 position, float nodeWidth, int chunkSize, int chunks)
     {
-        this.Position = position;
         this.NodeWidth = nodeWidth;
         this.ChunkSize = chunkSize;
+        this.Chunks = chunks;
+
+        int chunkWorldSize = (int)(nodeWidth * chunkSize);
+
+        this.SeaPos = new SeaPosition((int)(Main.LocalPlayer.Center.X / chunkWorldSize) - (chunks / 2), position.Y);
 
         var nodes = new HookeSpring[chunks, chunkSize];
 
@@ -52,9 +62,10 @@ public struct FirmamentSea
     }
 
     public bool Active;
-    public Vector2 Position;
+    public SeaPosition SeaPos;
     public float NodeWidth;
     public int ChunkSize;
+    public int Chunks;
 
     public HookeSpring[,] Springs;
 
@@ -63,14 +74,14 @@ public struct FirmamentSea
     public float[] SineStretches;
     public float[] OffsetStretches;
 
+    public Vector2 Position { get => new Vector2(SeaPos.Left * ChunkSize * NodeWidth, SeaPos.Height); }
+
     public float OverlapSines(float x)
     {
         float result = 0;
 
         for (var i = 0; i < 7; i++)
-        {
             result += SineOffsets[i] + SineAmplitudes[i] * MathF.Sin(x * SineStretches[i] + Main.GlobalTimeWrappedHourly * OffsetStretches[i]);
-        }
 
         return result;
     }

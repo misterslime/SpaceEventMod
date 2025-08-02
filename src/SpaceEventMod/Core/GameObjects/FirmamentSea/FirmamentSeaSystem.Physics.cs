@@ -13,23 +13,6 @@ namespace SpaceEventMod.Core.GameObjects.FirmamentSea;
 
 public partial class FirmamentSeaSystem : ModSystem
 {
-    public override void PostUpdatePlayers()
-    {
-        if (firmamentSea.Springs is null)
-            return;
-
-        var sea = firmamentSea;
-
-        // update springs
-        var springs = firmamentSea.Springs;
-
-        springs = UpdateSprings(sea.Springs, 0.05f, 0.025f);
-        springs = PropagateWaves(sea.Springs, 0.25f);
-        springs = CollideSprings(sea.Springs, sea);
-
-        firmamentSea = sea;
-    }
-
     public HookeSpring[,] UpdateSprings(HookeSpring[,] springs, float dampening, float tension)
     {
         HookeSpring[,] newArray = springs;

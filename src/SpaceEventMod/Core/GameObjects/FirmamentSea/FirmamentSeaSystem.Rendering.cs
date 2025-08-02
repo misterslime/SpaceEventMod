@@ -33,7 +33,7 @@ public partial class FirmamentSeaSystem : ModSystem
         Main.graphics.GraphicsDevice.SetRenderTarget(BackgroundRenderTarget);
         Main.graphics.GraphicsDevice.Clear(Color.Black);
 
-        if (firmamentSea.Springs is not null)
+        if (Sea.Springs is not null)
         {
             float GetNormalHeight(float height)
             {
@@ -49,36 +49,27 @@ public partial class FirmamentSeaSystem : ModSystem
 
             SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
 
-            for (int chunk = 0; chunk < firmamentSea.Springs.GetLength(0); chunk++)
+            for (int chunk = 0; chunk < Sea.Springs.GetLength(0); chunk++)
             {
-
-                for (int spring = 0; spring < firmamentSea.Springs.GetLength(1); spring++)
+                for (int spring = 0; spring < Sea.Springs.GetLength(1); spring++)
                 {
                     HookeSpring? next = null;
-                    var nodeLocation = chunk * firmamentSea.ChunkSize + spring;
+                    var nodeLocation = chunk * Sea.ChunkSize + spring;
 
-                    if (spring < firmamentSea.Springs.GetLength(1) - 1)
-                        next = firmamentSea.Springs[chunk, spring + 1];
-                    else if (chunk < firmamentSea.Springs.GetLength(0) - 1)
-                        next = firmamentSea.Springs[chunk + 1, 0];
+                    if (spring < Sea.Springs.GetLength(1) - 1)
+                        next = Sea.Springs[chunk, spring + 1];
+                    else if (chunk < Sea.Springs.GetLength(0) - 1)
+                        next = Sea.Springs[chunk + 1, 0];
 
                     if (next is not null)
                     {
-                        var difference = next.Value.Height - firmamentSea.Springs[chunk, spring].Height;
+                        var difference = next.Value.Height - Sea.Springs[chunk,spring].Height;
 
-                        var waveOffset = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * nodeLocation)) / GetNormalHeight(difference * MathF.PI);
-                        var waveOffset2 = firmamentSea.OverlapSines((float)(firmamentSea.NodeWidth * (nodeLocation + 1))) / GetNormalHeight(difference * MathF.PI);
+                        var waveOffset = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * nodeLocation));
+                        var waveOffset2 = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * (nodeLocation + 1)));
 
-                        var begin = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * nodeLocation, firmamentSea.Springs[chunk, spring].Height) - Main.screenPosition;
-                        var end = firmamentSea.Position + new Vector2(firmamentSea.NodeWidth * (nodeLocation + 1), next.Value.Height) - Main.screenPosition;
-
-                        begin *= 0.5f;
-                        begin = new Vector2(MathF.Floor(begin.X), MathF.Floor(begin.Y));
-                        begin *= 2f;
-
-                        end *= 0.5f;
-                        end = new Vector2(MathF.Floor(end.X), MathF.Floor(end.Y));
-                        end *= 2f;
+                        var begin = Sea.Position + new Vector2(Sea.NodeWidth * nodeLocation, Sea.Springs[chunk, spring].Height + waveOffset) - Main.screenPosition;
+                        var end = Sea.Position + new Vector2(Sea.NodeWidth * (nodeLocation + 1), next.Value.Height + waveOffset2) - Main.screenPosition;
 
                         var point1 = begin;
                         var point2 = new Vector2(begin.X, 0f);
@@ -108,21 +99,37 @@ public partial class FirmamentSeaSystem : ModSystem
 
     public void DrawSea(On_Main.orig_DrawDust orig, Main self)
     {
-        if (BackgroundRenderTarget == null || firmamentSea.Springs is null)
+        if (BackgroundRenderTarget == null || Sea.Springs is null)
             return;
 
-        var inkStencilShader = Assets.Assets.Shaders.FirmamentSea.Value;
+        var firmamentSeaShader = Assets.Assets.Shaders.FirmamentSea.Value;
 
-        inkStencilShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Extra.Noise.Foam.Value);
-        inkStencilShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Palettes.FirmamentSeaBackgroundPalette.Value);
-        inkStencilShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly);
-        inkStencilShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
-        inkStencilShader.Parameters["screenWorldPosition"].SetValue(Main.screenPosition * 0.5f); // this is being halved because its being pixelated
+        firmamentSeaShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Extra.Noise.Foam.Value);
+        firmamentSeaShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Palettes.FirmamentSeaBackgroundPalette.Value);
+        firmamentSeaShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly);
+        firmamentSeaShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
+        firmamentSeaShader.Parameters["screenWorldPosition"].SetValue(Main.screenPosition * 0.5f); // this is being halved because its being pixelated
 
-        PixelRenderer.Draw(inkStencilShader, (spriteBatch) =>
+        PixelRenderer.Draw(firmamentSeaShader, (spriteBatch) =>
         {
             spriteBatch.Draw(BackgroundRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         });
+
+        // debug chunk boundaries
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
+        for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
+        {
+            var seaScreenPosition = Sea.Position - Main.screenPosition;
+            var chunkBeginPosition = seaScreenPosition + new Vector2(Sea.NodeWidth * chunk * Sea.ChunkSize, 0f);
+            var chunkEndPosition = seaScreenPosition + new Vector2(Sea.NodeWidth * (chunk + 1) * Sea.ChunkSize, 0f);
+
+            DrawLine(Main.spriteBatch, chunkBeginPosition, chunkEndPosition, Color.Yellow, 2);
+            DrawLine(Main.spriteBatch, chunkBeginPosition, new Vector2(chunkBeginPosition.X, 0f), Color.Yellow, 2);
+            DrawLine(Main.spriteBatch, chunkEndPosition, new Vector2(chunkEndPosition.X, 0f), Color.Yellow, 2);
+        }
+
+        Main.spriteBatch.End();
 
         orig(self);
     }
