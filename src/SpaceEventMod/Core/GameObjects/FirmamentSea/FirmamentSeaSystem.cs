@@ -59,7 +59,7 @@ public partial class FirmamentSeaSystem : ModSystem
 
         // update springs
         sea = CollideSprings(sea);
-        //sea = PropagateWaves(sea, 0.025f);
+        sea = PropagateWaves(sea, 0.025f);
         sea = UpdateSprings(sea, 0.05f, 0.01f);
 
         Sea = sea;
@@ -77,26 +77,10 @@ public partial class FirmamentSeaSystem : ModSystem
 
         FirmamentSea newSea = sea;
 
-        Main.NewText(seaPositionDelta);
-
-        if (seaPositionDelta > 0)
-        {
-            var newChunk = new Spring[sea.ChunkSize];
-            newSea.Springs[0] = newChunk;
-            newSea.Springs[1] = sea.Springs[0];
-            newSea.Springs[2] = sea.Springs[1];
-            newSea.Springs[3] = sea.Springs[2];
-            newSea.Springs[4] = sea.Springs[3];
-        }
-        else if (seaPositionDelta < 0)
-        {
-            var newChunk = new Spring[sea.ChunkSize];
-            newSea.Springs[4] = newChunk;
-            newSea.Springs[3] = sea.Springs[4];
-            newSea.Springs[2] = sea.Springs[3];
-            newSea.Springs[1] = sea.Springs[2];
-            newSea.Springs[0] = sea.Springs[1];
-        }
+        if (seaPositionDelta < 0)
+            newSea.Springs = [new Spring[sea.ChunkSize], sea.Springs[0], sea.Springs[1], sea.Springs[2], sea.Springs[3]];
+        else if (seaPositionDelta > 0)
+            newSea.Springs = [sea.Springs[1], sea.Springs[2], sea.Springs[3], sea.Springs[4], new Spring[sea.ChunkSize]];
 
         newSea.SeaPos.Left = targetPosition;
 
