@@ -104,8 +104,8 @@ public partial class FirmamentSeaSystem : ModSystem
 
         PixelRenderer.Draw(null, PrimitiveType.TriangleList, (PrimitiveBatch primitiveBatch) =>
         {
-            Color midnightBlue = new Color(13, 0, 177, 205);
-            Color lightBlue = new Color(68, 87, 240, 60) * 0.25f;
+            Color midnightBlue = new Color(13, 0, 177, 30) * 0.2f;
+            Color lightBlue = new Color(68, 87, 240, 215);
 
             for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
             {
@@ -126,16 +126,16 @@ public partial class FirmamentSeaSystem : ModSystem
                         var waveOffset = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * nodeLocation));
                         var waveOffset2 = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * (nodeLocation + 1)));
 
-                        var begin = Sea.Position + new Vector2(Sea.NodeWidth * nodeLocation, Sea.Springs[chunk][spring].Position + waveOffset) - Main.screenPosition;
-                        var end = Sea.Position + new Vector2(Sea.NodeWidth * (nodeLocation + 1), next.Value.Position + waveOffset2) - Main.screenPosition;
+                        var begin = Sea.Position + new Vector2(Sea.NodeWidth * nodeLocation, Sea.Springs[chunk][spring].Position) - Main.screenPosition;
+                        var end = Sea.Position + new Vector2(Sea.NodeWidth * (nodeLocation + 1), next.Value.Position) - Main.screenPosition;
 
                         var point1 = begin;
                         var point2 = new Vector2(begin.X, 0f);
                         var point3 = new Vector2(end.X, 0f);
                         var point4 = end;
 
-                        var point5 = new Vector2(begin.X, begin.Y + 56f);
-                        var point6 = new Vector2(end.X, end.Y + 56f);
+                        var point5 = new Vector2(begin.X, begin.Y + 48f);
+                        var point6 = new Vector2(end.X, end.Y + 48f);
 
                         // red is used to show how high up in the sea the pixel is
                         // blue to tell if the pixel is in the sea at all
@@ -147,12 +147,12 @@ public partial class FirmamentSeaSystem : ModSystem
                             .AddVertex(point1, lightBlue)
                             .AddVertex(point3, midnightBlue)
 
-                            .AddVertex(point5, Color.Transparent)
+                            /*.AddVertex(point5, Color.Transparent)
                             .AddVertex(point1, lightBlue)
                             .AddVertex(point4, lightBlue)
                             .AddVertex(point6, Color.Transparent)
                             .AddVertex(point5, Color.Transparent)
-                            .AddVertex(point4, lightBlue);
+                            .AddVertex(point4, lightBlue)*/;
                     }
                 }
             }
