@@ -49,27 +49,27 @@ public partial class FirmamentSeaSystem : ModSystem
 
             SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
 
-            for (int chunk = 0; chunk < Sea.Springs.GetLength(0); chunk++)
+            for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
             {
-                for (int spring = 0; spring < Sea.Springs.GetLength(1); spring++)
+                for (int spring = 0; spring < Sea.Springs[chunk].Length; spring++)
                 {
-                    HookeSpring? next = null;
+                    Spring? next = null;
                     var nodeLocation = chunk * Sea.ChunkSize + spring;
 
-                    if (spring < Sea.Springs.GetLength(1) - 1)
-                        next = Sea.Springs[chunk, spring + 1];
-                    else if (chunk < Sea.Springs.GetLength(0) - 1)
-                        next = Sea.Springs[chunk + 1, 0];
+                    if (spring < Sea.Springs[chunk].Length - 1)
+                        next = Sea.Springs[chunk][spring + 1];
+                    else if (chunk < Sea.Springs.Length - 1)
+                        next = Sea.Springs[chunk + 1][0];
 
                     if (next is not null)
                     {
-                        var difference = next.Value.Height - Sea.Springs[chunk,spring].Height;
+                        var difference = next.Value.Position - Sea.Springs[chunk][spring].Position;
 
                         var waveOffset = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * nodeLocation));
                         var waveOffset2 = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * (nodeLocation + 1)));
 
-                        var begin = Sea.Position + new Vector2(Sea.NodeWidth * nodeLocation, Sea.Springs[chunk, spring].Height + waveOffset) - Main.screenPosition;
-                        var end = Sea.Position + new Vector2(Sea.NodeWidth * (nodeLocation + 1), next.Value.Height + waveOffset2) - Main.screenPosition;
+                        var begin = Sea.Position + new Vector2(Sea.NodeWidth * nodeLocation, Sea.Springs[chunk][spring].Position + waveOffset) - Main.screenPosition;
+                        var end = Sea.Position + new Vector2(Sea.NodeWidth * (nodeLocation + 1), next.Value.Position + waveOffset2) - Main.screenPosition;
 
                         var point1 = begin;
                         var point2 = new Vector2(begin.X, 0f);

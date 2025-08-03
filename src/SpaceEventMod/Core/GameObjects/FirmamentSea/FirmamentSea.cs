@@ -30,15 +30,12 @@ public struct FirmamentSea
 
         this.SeaPos = new SeaPosition((int)(Main.LocalPlayer.Center.X / chunkWorldSize) - (chunks / 2), position.Y);
 
-        var nodes = new HookeSpring[chunks, chunkSize];
+        var springs = new Spring[chunks][];
 
-        for (int outer = 0; outer < nodes.GetLength(0); outer++)
-        {
-            for (int inner = 0; inner < nodes.GetLength(1); inner++)
-                nodes[outer, inner] = new HookeSpring();
-        }
+        for (int i = 0; i < springs.Length; i++)
+            springs[i] = new Spring[chunkSize];
 
-        this.Springs = nodes;
+        this.Springs = springs;
 
         var sineOffsets = new List<float>();
         var sineAmplitudes = new List<float>();
@@ -67,7 +64,7 @@ public struct FirmamentSea
     public int ChunkSize;
     public int Chunks;
 
-    public HookeSpring[,] Springs;
+    public Spring[][] Springs;
 
     public float[] SineOffsets;
     public float[] SineAmplitudes;

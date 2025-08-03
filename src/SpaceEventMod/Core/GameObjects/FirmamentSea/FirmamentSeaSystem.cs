@@ -58,9 +58,9 @@ public partial class FirmamentSeaSystem : ModSystem
         var sea = UpdateChunks(Sea);
 
         // update springs
-        sea.Springs = UpdateSprings(sea.Springs, 0.05f, 0.01f);
-        sea.Springs = PropagateWaves(sea.Springs, 0.025f);
-        sea.Springs = CollideSprings(sea.Springs, sea);
+        sea = CollideSprings(sea);
+        //sea = PropagateWaves(sea, 0.025f);
+        sea = UpdateSprings(sea, 0.05f, 0.01f);
 
         Sea = sea;
     }
@@ -68,32 +68,34 @@ public partial class FirmamentSeaSystem : ModSystem
     public FirmamentSea UpdateChunks(FirmamentSea sea)
     {
         int chunkWorldSize = (int)(sea.NodeWidth * sea.ChunkSize);
-        int targetPosition = (int)Math.Floor(Main.LocalPlayer.Center.X / chunkWorldSize) - (sea.Springs.GetLength(0) / 2);
+        int targetPosition = (int)Math.Floor(Main.LocalPlayer.Center.X / chunkWorldSize) - (sea.Springs.Length / 2);
 
         if (targetPosition == sea.SeaPos.Left)
             return sea;
 
         int seaPositionDelta = targetPosition - sea.SeaPos.Left;
 
-        int chunkSize = sea.Springs.GetLength(0);
-        int springCount = sea.Springs.GetLength(0) * sea.Springs.GetLength(1);
-
         FirmamentSea newSea = sea;
+
+        Main.NewText(seaPositionDelta);
 
         if (seaPositionDelta > 0)
         {
-            // zero out first row
-            Array.Copy(new HookeSpring[chunkSize + 1, 1], 0, newSea.Springs, 0, chunkSize + 1);
-
-            // move rows right
-            Array.Copy(sea.Springs, 0, newSea.Springs, chunkSize + 1, springCount - chunkSize - 1);
+            var newChunk = new Spring[sea.ChunkSize];
+            newSea.Springs[0] = newChunk;
+            newSea.Springs[1] = sea.Springs[0];
+            newSea.Springs[2] = sea.Springs[1];
+            newSea.Springs[3] = sea.Springs[2];
+            newSea.Springs[4] = sea.Springs[3];
         }
         else if (seaPositionDelta < 0)
         {
-            // zero out last row
-            Array.Copy(new HookeSpring[sea.Springs.GetLength(0), sea.Springs.GetLength(1)], 0, newSea.Springs, springCount - chunkSize - 1, chunkSize + 1);
-
-            Array.Copy(sea.Springs, chunkSize + 1, newSea.Springs, 0, springCount - chunkSize - 1);
+            var newChunk = new Spring[sea.ChunkSize];
+            newSea.Springs[4] = newChunk;
+            newSea.Springs[3] = sea.Springs[4];
+            newSea.Springs[2] = sea.Springs[3];
+            newSea.Springs[1] = sea.Springs[2];
+            newSea.Springs[0] = sea.Springs[1];
         }
 
         newSea.SeaPos.Left = targetPosition;
