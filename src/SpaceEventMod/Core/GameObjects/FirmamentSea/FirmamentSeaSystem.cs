@@ -103,9 +103,9 @@ public partial class FirmamentSeaSystem : ModSystem
         FirmamentSea newSea = sea;
 
         if (seaPositionDelta < 0)
-            newSea.Springs = [new Spring[sea.ChunkSize], sea.Springs[0], sea.Springs[1], sea.Springs[2], sea.Springs[3]];
+            newSea.Springs = [new Spring[sea.ChunkSize], sea.Springs[0], sea.Springs[1]];
         else if (seaPositionDelta > 0)
-            newSea.Springs = [sea.Springs[1], sea.Springs[2], sea.Springs[3], sea.Springs[4], new Spring[sea.ChunkSize]];
+            newSea.Springs = [sea.Springs[1], sea.Springs[2], new Spring[sea.ChunkSize]];
 
         newSea.SeaPos.Left = targetPosition;
 
