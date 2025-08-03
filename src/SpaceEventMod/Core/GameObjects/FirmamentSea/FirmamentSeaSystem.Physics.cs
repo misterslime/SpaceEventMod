@@ -115,7 +115,7 @@ public partial class FirmamentSeaSystem : ModSystem
                 {
                     if (player.getRect().Contains(new Point((int)nodePosition.X, (int)nodePosition.Y)))
                     {
-                        node.Velocity = player.velocity.Y;
+                        node.Velocity = player.velocity.Y * 1.7f;
                     }
                 }
 

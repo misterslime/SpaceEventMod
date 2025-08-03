@@ -24,7 +24,14 @@ public class Debug : ModItem
     {
         //StarSystem.Stars.Add(new Core.GameObjects.Stars.Star(Main.MouseWorld));
 
-        FirmamentSeaSystem.Sea = new FirmamentSea(Main.MouseWorld, 16, 64, 5);
+        if (!FirmamentSeaSystem.Sea.Active)
+            FirmamentSeaSystem.Sea = new FirmamentSea(16, 64, 5);
+        else
+        {
+            FirmamentSea sea = FirmamentSeaSystem.Sea;
+            sea.Despawning = sea.Despawning ? false : true;
+            FirmamentSeaSystem.Sea = sea;
+        }
 
         return true;
     }

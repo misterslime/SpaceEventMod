@@ -35,19 +35,67 @@ public partial class FirmamentSeaSystem : ModSystem
 
         if (Sea.Springs is not null)
         {
-            float GetNormalHeight(float height)
-            {
-                if (height > 0 && height < 1)
-                    return 1;
-                else if (height <= 0 && height > -1)
-                    return 1;
-
-                return MathF.Abs(height);
-            }
-
             var darkestGray = new Color(10, 10, 10);
 
             SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
+
+            for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
+            {
+                for (int spring = 0; spring < Sea.Springs[chunk].Length; spring++)
+                {
+                    Spring? next = null;
+                    var nodeLocation = chunk * Sea.ChunkSize + spring;
+
+                    if (spring < Sea.Springs[chunk].Length - 1)
+                        next = Sea.Springs[chunk][spring + 1];
+                    else if (chunk < Sea.Springs.Length - 1)
+                        next = Sea.Springs[chunk + 1][0];
+
+                    if (next is not null)
+                    {
+                        var difference = next.Value.Position - Sea.Springs[chunk][spring].Position;
+
+                        var waveOffset = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * nodeLocation));
+                        var waveOffset2 = Sea.OverlapSines((float)(Sea.Position.X + Sea.NodeWidth * (nodeLocation + 1)));
+
+                        var begin = Sea.Position + new Vector2(Sea.NodeWidth * nodeLocation, Sea.Springs[chunk][spring].Position + waveOffset) - Main.screenPosition;
+                        var end = Sea.Position + new Vector2(Sea.NodeWidth * (nodeLocation + 1), next.Value.Position + waveOffset2) - Main.screenPosition;
+
+                        var point1 = begin;
+                        var point2 = new Vector2(begin.X, begin.Y - 240f);
+                        var point3 = new Vector2(end.X, end.Y - 240f);
+                        var point4 = end;
+
+                        // red is used to show how high up in the sea the pixel is
+                        // blue to tell if the pixel is in the sea at all
+                        SpaceEventMod.PrimitiveBatch
+                            .AddVertex(point1, Color.Magenta)
+                            .AddVertex(point2, Color.Blue)
+                            .AddVertex(point3, Color.Blue)
+                            .AddVertex(point4, Color.Magenta)
+                            .AddVertex(point1, Color.Magenta)
+                            .AddVertex(point3, Color.Blue);
+                    }
+                }
+            }
+
+            SpaceEventMod.PrimitiveBatch.End();
+        }
+
+        Main.instance.GraphicsDevice.SetRenderTarget(null);
+
+        orig();
+    }
+
+    public void DrawSea(On_Main.orig_DrawDust orig, Main self)
+    {
+        if (BackgroundRenderTarget == null || Sea.Springs is null)
+            return;
+
+        PixelRenderer.Draw(null, PrimitiveType.TriangleList, (PrimitiveBatch primitiveBatch) =>
+        {
+            Color midnightBlue = new Color(13, 0, 177, 205);
+            Color lightBlue = new Color(68, 87, 240) * 0.15f;
 
             for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
             {
@@ -78,58 +126,30 @@ public partial class FirmamentSeaSystem : ModSystem
 
                         // red is used to show how high up in the sea the pixel is
                         // blue to tell if the pixel is in the sea at all
-                        SpaceEventMod.PrimitiveBatch
-                            .AddVertex(point1, Color.Magenta)
-                            .AddVertex(point2, Color.Blue)
-                            .AddVertex(point3, Color.Blue)
-                            .AddVertex(point4, Color.Magenta)
-                            .AddVertex(point1, Color.Magenta)
-                            .AddVertex(point3, Color.Blue);
+                        primitiveBatch
+                            .AddVertex(point1, lightBlue)
+                            .AddVertex(point2, midnightBlue)
+                            .AddVertex(point3, midnightBlue)
+                            .AddVertex(point4, lightBlue)
+                            .AddVertex(point1, lightBlue)
+                            .AddVertex(point3, midnightBlue);
                     }
                 }
             }
-
-            SpaceEventMod.PrimitiveBatch.End();
-        }
-
-        Main.instance.GraphicsDevice.SetRenderTarget(null);
-
-        orig();
-    }
-
-    public void DrawSea(On_Main.orig_DrawDust orig, Main self)
-    {
-        if (BackgroundRenderTarget == null || Sea.Springs is null)
-            return;
+        });
 
         var firmamentSeaShader = Assets.Assets.Shaders.FirmamentSea.Value;
 
         firmamentSeaShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Extra.Noise.Foam.Value);
-        firmamentSeaShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Palettes.FirmamentSeaBackgroundPalette.Value);
         firmamentSeaShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly);
         firmamentSeaShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
-        firmamentSeaShader.Parameters["screenWorldPosition"].SetValue(Main.screenPosition * 0.5f); // this is being halved because its being pixelated
+        firmamentSeaShader.Parameters["screenWorldPosition"].SetValue(WorldToSeaCoordinates(Main.screenPosition) * 0.5f); // this is being halved because its being pixelated
 
-        PixelRenderer.Draw(firmamentSeaShader, (spriteBatch) =>
+        PixelRenderer.Draw(firmamentSeaShader, (SpriteBatch spriteBatch) =>
         {
-            spriteBatch.Draw(BackgroundRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+            Color foamColor = new Color(189, 196, 255, 195);
+            spriteBatch.Draw(BackgroundRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), foamColor, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         });
-
-        // debug chunk boundaries
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
-
-        for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
-        {
-            var seaScreenPosition = Sea.Position - Main.screenPosition;
-            var chunkBeginPosition = seaScreenPosition + new Vector2(Sea.NodeWidth * chunk * Sea.ChunkSize, 0f);
-            var chunkEndPosition = seaScreenPosition + new Vector2(Sea.NodeWidth * (chunk + 1) * Sea.ChunkSize, 0f);
-
-            DrawLine(Main.spriteBatch, chunkBeginPosition, chunkEndPosition, Color.Yellow, 2);
-            DrawLine(Main.spriteBatch, chunkBeginPosition, new Vector2(chunkBeginPosition.X, 0f), Color.Yellow, 2);
-            DrawLine(Main.spriteBatch, chunkEndPosition, new Vector2(chunkEndPosition.X, 0f), Color.Yellow, 2);
-        }
-
-        Main.spriteBatch.End();
 
         orig(self);
     }

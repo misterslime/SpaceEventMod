@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.GameObjects.FirmamentSea;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ public class AsteroidSystem : ModSystem
 
             asteroid.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + asteroid.RandomTimeDisplacement) / 60f) * 4 * Vector2.UnitY;
 
-            asteroid.Transform = AsteroidMovement.Update(1, asteroid.Transform, asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 48f : asteroid.RestPosition);
+            asteroid.Transform = AsteroidMovement.Update(1, asteroid.Transform, asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 24f : asteroid.RestPosition);
             asteroid.BeingStoodOn = false;
 
             if (asteroid.ShakeTime > 0)
@@ -150,7 +151,7 @@ public class AsteroidSystem : ModSystem
     {
         var result = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
 
-        if (!fall)
+        if (!fall && !FirmamentSeaSystem.Sea.Despawning)
             result = CheckCollision(position, velocity, width, height, gravity);
 
         return orig(result.XY(), result.ZW(), width, height, gravity, fall);

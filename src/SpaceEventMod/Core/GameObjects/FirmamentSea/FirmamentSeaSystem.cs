@@ -25,6 +25,13 @@ public partial class FirmamentSeaSystem : ModSystem
 {
     public static FirmamentSea Sea;
 
+    public static readonly FloatDynamics SeaSpawnMovement = new FloatDynamics(1f / 180f, 0.7f, 0.2f);
+    public static readonly FloatDynamics SeaDespawnMovement = new FloatDynamics(1f / 360f, 1f, -0.5f);
+
+    public static Vector2 SeaToWorldCoordinates(Vector2 position) => new Vector2(position.X, position.Y + Sea.SeaPos.Height.Position);
+
+    public static Vector2 WorldToSeaCoordinates(Vector2 position) => new Vector2(position.X, position.Y - Sea.SeaPos.Height.Position);
+
     public override void Load()
     {
         Sea = new FirmamentSea();
@@ -57,12 +64,30 @@ public partial class FirmamentSeaSystem : ModSystem
 
         var sea = UpdateChunks(Sea);
 
+        // sea spawn/despawn animation
+        sea = UpdateSeaHeight(sea);
+
         // update springs
         sea = CollideSprings(sea);
-        sea = PropagateWaves(sea, 0.025f);
-        sea = UpdateSprings(sea, 0.05f, 0.01f);
+        sea = PropagateWaves(sea, 0.04f);
+        sea = UpdateSprings(sea, 0.1f, 0.005f);
 
         Sea = sea;
+    }
+
+    public FirmamentSea UpdateSeaHeight(FirmamentSea sea)
+    {
+        FirmamentSea newSea = sea;
+
+        FloatDynamics despawn = new FloatDynamics(1f / 500f, 0.5f, -0.5f);
+        FloatDynamics spawn = new FloatDynamics(1f / 200f, 1f, 0.6f);
+
+        if (sea.Despawning)
+            newSea.SeaPos.Height = despawn.Update(1f, sea.SeaPos.Height, 0f);
+        else
+            newSea.SeaPos.Height = spawn.Update(1f, sea.SeaPos.Height, (float)(Main.worldSurface * 0.35f * 16f));
+
+        return newSea;
     }
 
     public FirmamentSea UpdateChunks(FirmamentSea sea)

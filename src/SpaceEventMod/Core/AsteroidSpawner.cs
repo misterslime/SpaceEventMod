@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.GameObjects.Asteroids;
+using SpaceEventMod.Core.GameObjects.FirmamentSea;
 using SpaceEventMod.Core.GameObjects.Stars;
 using SpaceEventMod.Core.Physics;
 using System;
@@ -27,9 +28,17 @@ public class AsteroidSpawner : ModSystem
 
     public override void PostUpdateNPCs()
     {
-        var playerPosition = Main.player[Main.myPlayer].Center;
-        var randomPosition = playerPosition + Main.rand.NextVector2Circular(30 * 16, 30 * 16);
+        if (!FirmamentSeaSystem.Sea.CanSpawnThings)
+            return;
+
+        var playerCenter = Main.player[Main.myPlayer].Center;
+        var playerPositionSeaCoords = new Vector2(playerCenter.X, playerCenter.Y - (float)(Main.worldSurface * 0.35 * 16));
+        var randomPosition = playerPositionSeaCoords + Main.rand.NextVector2Circular(30 * 16, 30 * 16);
         // 0.05f
+
+        // only spawn 20 tiles above the sea surface
+        if (randomPosition.Y > -320)
+            return;
 
         var noiseSample = (float)(1 + noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
 
@@ -41,7 +50,7 @@ public class AsteroidSpawner : ModSystem
         {
             foreach (var asteroid in asteroids)
             {
-                if ((asteroid.GetCenter() - randomPosition).LengthSquared() <= Math.Pow(separationDistance * density, 2))
+                if ((asteroid.RestPosition - randomPosition).LengthSquared() <= Math.Pow(separationDistance * density, 2))
                     return;
             }
         }
@@ -75,12 +84,6 @@ public class AsteroidSpawner : ModSystem
 
         var dimensions = GetDimensions(asteroidType);
 
-        NewAsteroid(randomPosition, dimensions.X, dimensions.Y, asteroidType);
-    }
-
-    public void NewAsteroid(Vector2 spawnPosition, int width, int height, int variant)
-    {
-        var asteroidPosition = new Kinematics<Vector2>(spawnPosition);
-        AsteroidSystem.Asteroids.Add(new Asteroid(asteroidPosition, variant, width, height));
+        AsteroidSystem.Asteroids.Add(new Asteroid(randomPosition, playerPositionSeaCoords.Y - 60 * 16, asteroidType, dimensions.X, dimensions.Y));
     }
 }

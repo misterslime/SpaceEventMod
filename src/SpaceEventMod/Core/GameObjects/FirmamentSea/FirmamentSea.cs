@@ -12,15 +12,15 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Core.GameObjects.FirmamentSea;
 
-public struct SeaPosition(int left, float height)
+public struct SeaPosition(int left)
 {
     public int Left = left;
-    public float Height = height;
+    public Kinematics<float> Height = new Kinematics<float>(0);
 }
 
 public struct FirmamentSea
 {
-    public FirmamentSea(Vector2 position, float nodeWidth, int chunkSize, int chunks)
+    public FirmamentSea(float nodeWidth, int chunkSize, int chunks)
     {
         this.NodeWidth = nodeWidth;
         this.ChunkSize = chunkSize;
@@ -28,7 +28,7 @@ public struct FirmamentSea
 
         int chunkWorldSize = (int)(nodeWidth * chunkSize);
 
-        this.SeaPos = new SeaPosition((int)(Main.LocalPlayer.Center.X / chunkWorldSize) - (chunks / 2), position.Y);
+        this.SeaPos = new SeaPosition((int)(Main.LocalPlayer.Center.X / chunkWorldSize) - (chunks / 2));
 
         var springs = new Spring[chunks][];
 
@@ -56,9 +56,11 @@ public struct FirmamentSea
         this.OffsetStretches = offsetStretches.ToArray();
 
         this.Active = true;
+        this.Despawning = false;
     }
 
-    public bool Active;
+    public bool Despawning = true;
+    public bool Active = false;
     public SeaPosition SeaPos;
     public float NodeWidth;
     public int ChunkSize;
@@ -71,7 +73,9 @@ public struct FirmamentSea
     public float[] SineStretches;
     public float[] OffsetStretches;
 
-    public Vector2 Position { get => new Vector2(SeaPos.Left * ChunkSize * NodeWidth, SeaPos.Height); }
+    public bool CanSpawnThings { get => !this.Despawning && Math.Abs(this.SeaPos.Height.Velocity) < 1; }
+
+    public Vector2 Position { get => new Vector2(SeaPos.Left * ChunkSize * NodeWidth, SeaPos.Height.Position); }
 
     public float OverlapSines(float x)
     {
