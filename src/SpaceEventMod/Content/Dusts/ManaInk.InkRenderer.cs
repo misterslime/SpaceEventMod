@@ -103,7 +103,7 @@ public class InkRenderer : ModSystem
             spriteBatch.Draw(InkRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         });
 
-        var inkStencilShader = Assets.Assets.Shaders.InkStarStencil.Value;
+        var inkStencilShader = Assets.Assets.Shaders.Dusts.InkStarStencil.Value;
 
         inkStencilShader.Parameters["ink"].SetValue(InkRenderTarget);
         inkStencilShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth / 2, Main.screenHeight / 2));

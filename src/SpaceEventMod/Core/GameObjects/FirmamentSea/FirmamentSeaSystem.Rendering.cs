@@ -58,7 +58,7 @@ public partial class FirmamentSeaSystem : ModSystem
     {
         if (BackgroundRenderTarget is not null && Sea.Springs is not null)
         {
-            var firmamentSeaBackgroundShader = Assets.Assets.Shaders.FirmamentSeaBackgroundTransparency.Value;
+            var firmamentSeaBackgroundShader = Assets.Assets.Shaders.Events.FirmamentSeaBackgroundTransparency.Value;
 
             firmamentSeaBackgroundShader.Parameters["sea"].SetValue(SeaRenderTarget);
             firmamentSeaBackgroundShader.Parameters["minimumAlpha"].SetValue(0.65f);
@@ -89,7 +89,7 @@ public partial class FirmamentSeaSystem : ModSystem
         screenPosition.Y = MathF.Floor(screenPosition.Y * 0.5f);
         screenPosition.Y *= 2f;
 
-        var firmamentSeaForegroundShader = Assets.Assets.Shaders.FirmamentSeaFoam.Value;
+        var firmamentSeaForegroundShader = Assets.Assets.Shaders.Events.FirmamentSeaFoam.Value;
 
         firmamentSeaForegroundShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Noise.Foam.Value);
         firmamentSeaForegroundShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Palettes.FirmamentSea.NightForeground.Value);
@@ -250,7 +250,7 @@ public partial class FirmamentSeaSystem : ModSystem
 
     private Effect GetBackgroundBubbleShader(Texture2D palette, Vector3[] sampleOffsetsAndScales, float speed, float gradientLength, float gradientStart, float cutoff, float parallax)
     {
-        var firmamentSeaBackgroundShader = Assets.Assets.Shaders.FirmamentSeaBubbles.Value;
+        var firmamentSeaBackgroundShader = Assets.Assets.Shaders.Events.FirmamentSeaBubbles.Value;
 
         firmamentSeaBackgroundShader.Parameters["bubbles"].SetValue(Assets.Assets.Textures.Noise.Bubble.Value);
         firmamentSeaBackgroundShader.Parameters["distortion"].SetValue(Assets.Assets.Textures.Noise.Perlin.Value);
