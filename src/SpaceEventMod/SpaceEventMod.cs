@@ -13,10 +13,6 @@ public class SpaceEventMod : Mod
 {
     internal static SpaceEventMod Instance { get; private set; }
 
-    internal static Texture2D WhitePixel;
-
-    internal static Texture2D TransparentPixel;
-
     internal static PrimitiveBatch PrimitiveBatch;
 
     public override void Load()
@@ -30,11 +26,6 @@ public class SpaceEventMod : Mod
                 return;
 
             PrimitiveBatch = new PrimitiveBatch(Main.graphics.GraphicsDevice);
-
-            WhitePixel = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
-            TransparentPixel = new Texture2D(Main.graphics.GraphicsDevice, 1, 1);
-            WhitePixel.SetData<Color>([Color.White]);
-            TransparentPixel.SetData<Color>([Color.Transparent]);
         });
     }
 
@@ -47,9 +38,8 @@ public class SpaceEventMod : Mod
             if (Main.netMode == NetmodeID.Server)
                 return;
 
-            WhitePixel.Dispose();
-            TransparentPixel.Dispose();
-            WhitePixel = TransparentPixel = null;
+            PrimitiveBatch.Dispose();
+            PrimitiveBatch = null;
         });
     }
 

@@ -39,9 +39,12 @@ public partial class FirmamentSeaSystem : ModSystem
         Main.QueueMainThreadAction(() =>
         {
             On_Main.CheckMonoliths += DrawToTarget;
-            On_Main.DrawDust += DrawSea;
+            On_Main.DoDraw_WallsTilesNPCs += DrawSeaBackground;
+            On_Main.DrawInfernoRings += DrawSeaForeground;
 
-            BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+            SeaRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+
+            BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
         });
     }
 
@@ -50,7 +53,11 @@ public partial class FirmamentSeaSystem : ModSystem
         Main.QueueMainThreadAction(() =>
         {
             On_Main.CheckMonoliths -= DrawToTarget;
-            On_Main.DrawDust -= DrawSea;
+            On_Main.DoDraw_WallsTilesNPCs -= DrawSeaBackground;
+            On_Main.DrawInfernoRings -= DrawSeaForeground;
+
+            SeaRenderTarget?.Dispose();
+            SeaRenderTarget = null;
 
             BackgroundRenderTarget?.Dispose();
             BackgroundRenderTarget = null;

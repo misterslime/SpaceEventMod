@@ -10,7 +10,7 @@ public class ManaCloud : ModProjectile
 {
     public ref float Timer => ref Projectile.ai[0];
 
-    public override string Texture => "SpaceEventMod/Assets/Textures/Extra/EmptyPixel";
+    public override string Texture => "SpaceEventMod/Assets/Textures/EmptyPixel";
 
     public override void SetDefaults()
     {

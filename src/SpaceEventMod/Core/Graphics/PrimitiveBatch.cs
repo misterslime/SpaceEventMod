@@ -15,6 +15,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
+using Terraria;
 #endregion
 
 namespace SpaceEventMod.Core.Graphics;
@@ -112,7 +113,7 @@ public class PrimitiveBatch : IDisposable
 
     // Begin is called to tell the PrimitiveBatch what kind of primitives will be
     // drawn, and to prepare the graphics card to render those primitives.
-    public void Begin(PrimitiveType primitiveType, Matrix? projection = null)
+    public void Begin(PrimitiveType primitiveType, BlendState blendState = null)
     {
         if (hasBegun)
         {
@@ -131,6 +132,9 @@ public class PrimitiveBatch : IDisposable
         }
 
         this.primitiveType = primitiveType;
+
+        // set blend state
+        device.BlendState = blendState ?? BlendState.AlphaBlend;
 
         // how many verts will each of these primitives require?
         numVertsPerPrimitive = NumVertsPerPrimitive(primitiveType);

@@ -52,43 +52,40 @@ public class PixelRenderer : ModSystem
 
     private void DrawToTarget(On_Main.orig_CheckMonoliths orig)
     {
-        if (Main.gameMenu)
+        if (!Main.gameMenu)
         {
-            orig();
-            return;
-        }
+            var pixelationMatrix = GetPixelationMatrix();
 
-        var pixelationMatrix = GetPixelationMatrix();
-
-        if (PixelRenderTarget == null || PixelRenderTarget.Width != Main.screenWidth || PixelRenderTarget.Height != Main.screenHeight)
-        {
-            PixelRenderTarget?.Dispose();
-            PixelRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
-        }
-
-        if (DrawActions.Count > 0)
-        {
-            Main.graphics.GraphicsDevice.SetRenderTarget(PixelRenderTarget);
-            Main.graphics.GraphicsDevice.Clear(Color.Transparent);
-            
-            foreach (var drawAction in DrawActions)
+            if (PixelRenderTarget == null || PixelRenderTarget.Width != Main.screenWidth || PixelRenderTarget.Height != Main.screenHeight)
             {
-                if (drawAction is SpriteDrawAction spriteDrawAction)
-                {
-                    Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, spriteDrawAction.effect, pixelationMatrix);
-                    spriteDrawAction.action.Invoke(Main.spriteBatch);
-                    Main.spriteBatch.End();
-                }
-                else if (drawAction is PrimitiveDrawAction primitiveDrawAction)
-                {
-                    SpaceEventMod.PrimitiveBatch.Begin(primitiveDrawAction.primitiveType);
-                    primitiveDrawAction.action.Invoke(SpaceEventMod.PrimitiveBatch);
-                    SpaceEventMod.PrimitiveBatch.End();
-                }
+                PixelRenderTarget?.Dispose();
+                PixelRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
             }
 
-            Main.instance.GraphicsDevice.SetRenderTarget(null);
-            DrawActions.Clear();
+            if (DrawActions.Count > 0)
+            {
+                Main.graphics.GraphicsDevice.SetRenderTarget(PixelRenderTarget);
+                Main.graphics.GraphicsDevice.Clear(Color.Transparent);
+
+                foreach (var drawAction in DrawActions)
+                {
+                    if (drawAction is SpriteDrawAction spriteDrawAction)
+                    {
+                        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, spriteDrawAction.effect, pixelationMatrix);
+                        spriteDrawAction.action.Invoke(Main.spriteBatch);
+                        Main.spriteBatch.End();
+                    }
+                    else if (drawAction is PrimitiveDrawAction primitiveDrawAction)
+                    {
+                        SpaceEventMod.PrimitiveBatch.Begin(primitiveDrawAction.primitiveType);
+                        primitiveDrawAction.action.Invoke(SpaceEventMod.PrimitiveBatch);
+                        SpaceEventMod.PrimitiveBatch.End();
+                    }
+                }
+
+                Main.graphics.GraphicsDevice.SetRenderTarget(null);
+                DrawActions.Clear();
+            }
         }
 
         orig();

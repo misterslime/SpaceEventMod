@@ -110,7 +110,7 @@ public class InkRenderer : ModSystem
 
         PixelRenderer.Draw(inkStencilShader, (SpriteBatch spriteBatch) =>
         {
-            var whitePixel = SpaceEventMod.WhitePixel;
+            var whitePixel = Assets.Assets.Textures.WhitePixel.Value;
 
             foreach (var dust in Main.dust.Where(d => d.type == ModContent.DustType<InkStar>() && d.active))
             {
@@ -119,7 +119,7 @@ public class InkRenderer : ModSystem
 
                 var opacity = (float)Math.Sin((dust.fadeIn / 20) * MathHelper.Pi);
 
-                spriteBatch.Draw(SpaceEventMod.WhitePixel, dust.position - Main.screenPosition, SpaceEventMod.WhitePixel.Bounds, manaInkData.PixelColor * opacity, 0f, SpaceEventMod.WhitePixel.Size() * 0.5f, 2f, SpriteEffects.None, 0f);
+                spriteBatch.Draw(whitePixel, dust.position - Main.screenPosition, whitePixel.Bounds, manaInkData.PixelColor * opacity, 0f, whitePixel.Size() * 0.5f, 2f, SpriteEffects.None, 0f);
             }
         });
 
