@@ -1,3 +1,6 @@
+#include "../EdgeDetection.fxh"
+#include "../Pixelate.fxh"
+
 sampler seaTarget : register(s0);
 
 texture noise;
@@ -20,35 +23,24 @@ float2 screenWorldPosition;
 float globalTime;
 float parallax;
 
-float2 Pixelate(float2 coord, float2 pixelSize) 
-{
-    return floor(coord / pixelSize) * pixelSize;
-}
-
 float4 PixelShaderFunction(float2 coords : TEXCOORD0, float2 screenPosition : SV_POSITION, float4 sampleColor : COLOR0) : COLOR0
 {
     float2 pixelSize = 2. / screenSize;
 
     //pixelate
-    float2 screenWorldCoords = Pixelate((screenPosition + screenWorldPosition * parallax) / screenSize, pixelSize);
-    float2 noiseCoords = Pixelate(screenWorldCoords + float2(globalTime * 0.01, globalTime * 0.005), pixelSize);
+    float2 screenWorldCoords = pixelate((screenPosition + screenWorldPosition * parallax) / screenSize, pixelSize);
+    float2 noiseCoords = screenWorldCoords + float2(globalTime * 0.01, globalTime * 0.005);
 
-    coords = Pixelate(coords, pixelSize);
+    coords = pixelate(coords, pixelSize);
 
     // noise sampling
     float sample = (tex2D(noiseSampler, noiseCoords).g + tex2D(seaTarget, coords).g) * 0.5;
     float4 paletteColor = step(0.5, sample) * tex2D(paletteSampler, float2(sample, 0.));
 
     // edge detection
-    float edge = 0.;
-    edge += tex2D(seaTarget, Pixelate(coords + float2(0., 1.) / screenSize, pixelSize)).b;
-    edge += tex2D(seaTarget, Pixelate(coords + float2(1., 0.) / screenSize, pixelSize)).b;
-    edge += tex2D(seaTarget, Pixelate(coords + float2(0., -1.) / screenSize, pixelSize)).b;
-    edge += tex2D(seaTarget, Pixelate(coords + float2(-1., 0.) / screenSize, pixelSize)).b;
-    edge = clamp(edge, 0., 1.) - tex2D(seaTarget, coords).b;
+    float edge = edgeDetection(seaTarget, coords, pixelSize) / 15.;
 
-    // the outline color is the thing u feed into spriteBatch
-    return sampleColor * edge + paletteColor;
+    return (edge > 0.) ? sampleColor : paletteColor;
 }
 
 technique Technique0
