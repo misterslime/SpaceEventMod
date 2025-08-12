@@ -12,15 +12,9 @@ namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
 
 public class AsteroidMining : ILoadable
 {
-    public void Load(Mod mod)
-    {
-        On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool += MineAsteroid;
-    }
+    public void Load(Mod mod) => On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool += MineAsteroid;
 
-    public void Unload()
-    {
-        On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool -= MineAsteroid;
-    }
+    public void Unload() => On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool -= MineAsteroid;
 
     private void MineAsteroid(On_Player.orig_ItemCheck_UseMiningTools_ActuallyUseMiningTool orig, Player self, Item sItem, out bool canHitWalls, int x, int y)
     {

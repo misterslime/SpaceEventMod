@@ -41,33 +41,6 @@ public partial class FirmamentSeaSystem : ModSystem
     public override void Load()
     {
         Sea = new FirmamentSea();
-
-        Main.QueueMainThreadAction(() =>
-        {
-            On_Main.CheckMonoliths += DrawToTarget;
-            On_Main.DoDraw_WallsTilesNPCs += DrawSeaBackground;
-            On_Main.DrawInfernoRings += DrawSeaForeground;
-
-            SeaRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
-
-            BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
-        });
-    }
-
-    public override void Unload()
-    {
-        Main.QueueMainThreadAction(() =>
-        {
-            On_Main.CheckMonoliths -= DrawToTarget;
-            On_Main.DoDraw_WallsTilesNPCs -= DrawSeaBackground;
-            On_Main.DrawInfernoRings -= DrawSeaForeground;
-
-            SeaRenderTarget?.Dispose();
-            SeaRenderTarget = null;
-
-            BackgroundRenderTarget?.Dispose();
-            BackgroundRenderTarget = null;
-        });
     }
 
     public override void PostUpdatePlayers()

@@ -11,15 +11,9 @@ namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
 
 public class StarGrappling : ILoadable
 {
-    public void Load(Mod mod)
-    {
-        On_Projectile.AI_007_GrapplingHooks += GrappleStars;
-    }
+    public void Load(Mod mod) => On_Projectile.AI_007_GrapplingHooks += GrappleStars;
 
-    public void Unload()
-    {
-        On_Projectile.AI_007_GrapplingHooks -= GrappleStars;
-    }
+    public void Unload() => On_Projectile.AI_007_GrapplingHooks -= GrappleStars;
 
     private void GrappleStars(On_Projectile.orig_AI_007_GrapplingHooks orig, Projectile self)
     {

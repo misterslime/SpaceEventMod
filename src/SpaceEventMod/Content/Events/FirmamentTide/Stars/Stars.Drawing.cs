@@ -11,17 +11,12 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
 
+[Autoload(Side = ModSide.Client)]
 public class StarDrawing : ILoadable
 {
-    public void Load(Mod mod)
-    {
-        On_Main.DrawDust += DrawStars;
-    }
+    public void Load(Mod mod) => On_Main.DrawDust += DrawStars;
 
-    public void Unload()
-    {
-        On_Main.DrawDust -= DrawStars;
-    }
+    public void Unload() => On_Main.DrawDust -= DrawStars;
 
     private void DrawStars(On_Main.orig_DrawDust orig, Main self)
     {

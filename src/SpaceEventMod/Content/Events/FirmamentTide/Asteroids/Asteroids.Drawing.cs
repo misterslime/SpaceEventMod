@@ -11,17 +11,12 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
 
+[Autoload(Side = ModSide.Client)]
 public class AsteroidDrawing : ILoadable
 {
-    public void Load(Mod mod)
-    {
-        On_Main.DrawDust += DrawAsteroids;
-    }
+    public void Load(Mod mod) => On_Main.DrawDust += DrawAsteroids;
 
-    public void Unload()
-    {
-        On_Main.DrawDust -= DrawAsteroids;
-    }
+    public void Unload() => On_Main.DrawDust -= DrawAsteroids;
 
     private void DrawAsteroids(On_Main.orig_DrawDust orig, Main self)
     {

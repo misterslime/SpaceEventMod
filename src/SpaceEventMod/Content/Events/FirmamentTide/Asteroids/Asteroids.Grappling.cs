@@ -11,15 +11,9 @@ namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
 
 public class AsteroidGrappling : ILoadable
 {
-    public void Load(Mod mod)
-    {
-        On_Projectile.AI_007_GrapplingHooks += GrappleAsteroids;
-    }
+    public void Load(Mod mod) => On_Projectile.AI_007_GrapplingHooks += GrappleAsteroids;
 
-    public void Unload()
-    {
-        On_Projectile.AI_007_GrapplingHooks -= GrappleAsteroids;
-    }
+    public void Unload() => On_Projectile.AI_007_GrapplingHooks -= GrappleAsteroids;
 
     private void GrappleAsteroids(On_Projectile.orig_AI_007_GrapplingHooks orig, Projectile self)
     {

@@ -13,15 +13,9 @@ namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
 
 public class StarMining : ILoadable
 {
-    public void Load(Mod mod)
-    {
-        On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool += MineStars;
-    }
+    public void Load(Mod mod) => On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool += MineStars;
 
-    public void Unload()
-    {
-        On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool -= MineStars;
-    }
+    public void Unload() => On_Player.ItemCheck_UseMiningTools_ActuallyUseMiningTool -= MineStars;
 
     private void MineStars(On_Player.orig_ItemCheck_UseMiningTools_ActuallyUseMiningTool orig, Player self, Item sItem, out bool canHitWalls, int x, int y)
     {

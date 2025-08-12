@@ -12,15 +12,9 @@ namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
 
 public class AsteroidCollision : ILoadable
 {
-    public void Load(Mod mod)
-    {
-        On_Collision.SlopeCollision += CheckSlopeCollision;
-    }
+    public void Load(Mod mod) => On_Collision.SlopeCollision += CheckSlopeCollision;
 
-    public void Unload()
-    {
-        On_Collision.SlopeCollision -= CheckSlopeCollision;
-    }
+    public void Unload() => On_Collision.SlopeCollision -= CheckSlopeCollision;
 
     private Vector4 CheckSlopeCollision(On_Collision.orig_SlopeCollision orig, Vector2 position, Vector2 velocity, int width, int height, float gravity, bool fall)
     {
