@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.GameObjects.FirmamentSea;
+using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
+using SpaceEventMod.Core;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
@@ -9,8 +10,16 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Core.GameObjects.Asteroids;
+namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
 
+// to-do:
+// - cracks to indicate low health
+// - netcoding
+// - make auto item hotkey select a pickaxe when hovering over an asteroid or star
+// - make smart cursor select asteroids and stars
+// - fix the bug where grapple hooks dont move with the asteroid or star
+// - make sure stars and asteroids dont spawn inside tiles
+// - make asteroids appear on the map
 public class AsteroidSystem : ModSystem
 {
     public static List<Asteroid> Asteroids = new List<Asteroid>();

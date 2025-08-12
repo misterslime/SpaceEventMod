@@ -16,11 +16,17 @@ using Terraria;
 using Terraria.ModLoader;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace SpaceEventMod.Core.GameObjects.FirmamentSea;
+namespace SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 
 // https://code.tutsplus.com/make-a-splash-with-dynamic-2d-water-effects--gamedev-236t
 // made with this thingy
-// to-do: make it generate infinitely with chunks
+// to-do:
+// - antialiasing on the foam
+// - add godrays
+// - add small star pixel particles that dont appear in godrays
+// - add bubble particles when you move
+// - maybe stuff behind the foam could be shaded in the foam? or it could be transparent.
+// - make the sea appear on the map
 public partial class FirmamentSeaSystem : ModSystem
 {
     public static FirmamentSea Sea;

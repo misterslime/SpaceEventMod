@@ -2,8 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Actions.NPCs;
+using SpaceEventMod.Content.Events.FirmamentTide.Stars;
 using SpaceEventMod.Core.Behavior.Automata;
-using SpaceEventMod.Core.GameObjects.Stars;
 using SpaceEventMod.Core.Physics;
 using System;
 using Terraria;
@@ -11,7 +11,7 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Star = SpaceEventMod.Core.GameObjects.Stars.Star;
+using Star = SpaceEventMod.Content.Events.FirmamentTide.Stars.Star;
 
 namespace SpaceEventMod.Content.NPCs;
 

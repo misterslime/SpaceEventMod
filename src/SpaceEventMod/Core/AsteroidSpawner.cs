@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.GameObjects.Asteroids;
-using SpaceEventMod.Core.GameObjects.FirmamentSea;
-using SpaceEventMod.Core.GameObjects.Stars;
+using SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
+using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
+using SpaceEventMod.Content.Events.FirmamentTide.Stars;
 using SpaceEventMod.Core.Physics;
 using System;
 using Terraria;

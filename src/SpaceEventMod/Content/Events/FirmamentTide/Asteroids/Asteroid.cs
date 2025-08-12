@@ -1,10 +1,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.GameObjects.FirmamentSea;
+using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 using SpaceEventMod.Core.Physics;
 using Terraria;
 
-namespace SpaceEventMod.Core.GameObjects.Asteroids;
+namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
 
 public struct Asteroid(Vector2 initialPosition, float spawnHeight, int variant, int width, int height)
 {
@@ -28,18 +28,18 @@ public struct Asteroid(Vector2 initialPosition, float spawnHeight, int variant, 
 
     public Rectangle GetBoundingBox()
     {
-        Vector2 worldCoords = FirmamentSeaSystem.SeaToWorldCoordinates(this.Transform.Position);
+        var worldCoords = FirmamentSeaSystem.SeaToWorldCoordinates(Transform.Position);
 
-        return new Rectangle((int)worldCoords.X + (int)this.SpriteDisplacement.Y, (int)worldCoords.Y + (int)this.SpriteDisplacement.Y, this.Width, this.Height);
+        return new Rectangle((int)worldCoords.X + (int)SpriteDisplacement.Y, (int)worldCoords.Y + (int)SpriteDisplacement.Y, Width, Height);
     }
 
     public Vector2 GetCenter()
     {
-        return FirmamentSeaSystem.SeaToWorldCoordinates(this.GetTrueCenter());
+        return FirmamentSeaSystem.SeaToWorldCoordinates(GetTrueCenter());
     }
 
     public Vector2 GetTrueCenter()
     {
-        return this.Transform.Position + new Vector2(this.Width, this.Height) * 0.5f;
+        return Transform.Position + new Vector2(Width, Height) * 0.5f;
     }
 }

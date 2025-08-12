@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -7,8 +8,12 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Core.GameObjects.Stars;
+namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
 
+// to-do:
+// - add starsap lmao
+// - make stars appear on the map upon being found
+// - star spawning
 public class StarSystem : ModSystem
 {
     public static List<Star> Stars = new List<Star>();

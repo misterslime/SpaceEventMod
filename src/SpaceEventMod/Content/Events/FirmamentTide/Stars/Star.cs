@@ -7,7 +7,7 @@ using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Core.GameObjects.Stars;
+namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
 
 public struct Star(Vector2 spawnPosition)
 {
@@ -31,12 +31,12 @@ public struct Star(Vector2 spawnPosition)
 
     public readonly Rectangle GetBoundingBox()
     {
-        return new Rectangle((int)this.Position.X, (int)this.Position.Y, this.Width, this.Height);
+        return new Rectangle((int)Position.X, (int)Position.Y, Width, Height);
     }
 
     public readonly Vector2 GetCenter()
     {
-        return this.Position + new Vector2(this.Width, this.Height) * 0.5f;
+        return Position + new Vector2(Width, Height) * 0.5f;
     }
 
     public void SubscribeNPC(int npcID)
@@ -75,7 +75,7 @@ public struct Star(Vector2 spawnPosition)
 
     public void InformSubscribedNPCs(Action<NPC> action)
     {
-        foreach (int npcIndex in SubscribedNPCs.ToList())
+        foreach (var npcIndex in SubscribedNPCs.ToList())
         {
             if (Main.npc[npcIndex].active)
                 action.Invoke(Main.npc[npcIndex]);

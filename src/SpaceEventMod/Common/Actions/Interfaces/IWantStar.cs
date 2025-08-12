@@ -1,5 +1,5 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.GameObjects.Stars;
+using SpaceEventMod.Content.Events.FirmamentTide.Stars;
 
 namespace SpaceEventMod.Common.Actions.Interfaces;
 

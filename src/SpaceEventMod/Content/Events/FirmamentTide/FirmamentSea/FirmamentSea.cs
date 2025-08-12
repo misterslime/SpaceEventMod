@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Terraria;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace SpaceEventMod.Core.GameObjects.FirmamentSea;
+namespace SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 
 public struct SeaPosition(int left)
 {
@@ -22,20 +22,20 @@ public struct FirmamentSea
 {
     public FirmamentSea(float nodeWidth, int chunkSize, int chunks)
     {
-        this.NodeWidth = nodeWidth;
-        this.ChunkSize = chunkSize;
-        this.Chunks = chunks;
+        NodeWidth = nodeWidth;
+        ChunkSize = chunkSize;
+        Chunks = chunks;
 
-        int chunkWorldSize = (int)(nodeWidth * chunkSize);
+        var chunkWorldSize = (int)(nodeWidth * chunkSize);
 
-        this.SeaPos = new SeaPosition((int)(Main.LocalPlayer.Center.X / chunkWorldSize) - (chunks / 2));
+        SeaPos = new SeaPosition((int)(Main.LocalPlayer.Center.X / chunkWorldSize) - chunks / 2);
 
         var springs = new Spring[chunks][];
 
-        for (int i = 0; i < springs.Length; i++)
+        for (var i = 0; i < springs.Length; i++)
             springs[i] = new Spring[chunkSize];
 
-        this.Springs = springs;
+        Springs = springs;
 
         var sineOffsets = new List<float>();
         var sineAmplitudes = new List<float>();
@@ -50,13 +50,13 @@ public struct FirmamentSea
             offsetStretches.Add(10f * Main.rand.NextFloat());
         }
 
-        this.SineOffsets = sineOffsets.ToArray();
-        this.SineAmplitudes = sineAmplitudes.ToArray();
-        this.SineStretches = sineStretches.ToArray();
-        this.OffsetStretches = offsetStretches.ToArray();
+        SineOffsets = sineOffsets.ToArray();
+        SineAmplitudes = sineAmplitudes.ToArray();
+        SineStretches = sineStretches.ToArray();
+        OffsetStretches = offsetStretches.ToArray();
 
-        this.Active = true;
-        this.Despawning = false;
+        Active = true;
+        Despawning = false;
     }
 
     public bool Despawning = true;
@@ -73,7 +73,7 @@ public struct FirmamentSea
     public float[] SineStretches;
     public float[] OffsetStretches;
 
-    public bool CanSpawnThings { get => !this.Despawning && Math.Abs(this.SeaPos.Height.Velocity) < 1; }
+    public bool CanSpawnThings { get => !Despawning && Math.Abs(SeaPos.Height.Velocity) < 1; }
 
     public Vector2 Position { get => new Vector2(SeaPos.Left * ChunkSize * NodeWidth, SeaPos.Height.Position); }
 

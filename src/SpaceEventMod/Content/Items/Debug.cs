@@ -1,5 +1,4 @@
-using SpaceEventMod.Core.GameObjects.FirmamentSea;
-using SpaceEventMod.Core.GameObjects.Stars;
+using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;

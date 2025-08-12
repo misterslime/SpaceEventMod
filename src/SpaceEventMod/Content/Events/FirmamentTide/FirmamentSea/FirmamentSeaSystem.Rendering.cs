@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Core.GameObjects.FirmamentSea;
+namespace SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 
 public partial class FirmamentSeaSystem : ModSystem
 {
