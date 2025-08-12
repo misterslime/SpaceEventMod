@@ -18,7 +18,7 @@ public struct DrinkStar : IState<ModNPC>
         if (modNPC is not IWantStar wantStar || modNPC is not ITimer timer)
             throw new Exception("Tried to run DrinkStar state code on a non-valid npc type.");
 
-        if (modNPC.NPC.HasValidTarget || StarSystem.Stars.Count <= 0 || !StarSystem.Stars.Contains(wantStar.ObservedStar))
+        if (modNPC.NPC.HasValidTarget || Stars.List.Count <= 0 || !Stars.List.Contains(wantStar.ObservedStar))
             return;
 
         wantStar.RelativePosition = modNPC.NPC.Center - wantStar.ObservedStar.GetCenter() - wantStar.ObservedStar.SpriteDisplacement;
@@ -31,12 +31,12 @@ public struct DrinkStar : IState<ModNPC>
         if (modNPC is not IWantStar wantStar || modNPC is not ITimer timer)
             throw new Exception("Tried to run DrinkStar state code on a non-valid npc type.");
 
-        if (StarSystem.Stars.Count <= 0 || !StarSystem.Stars.Contains(wantStar.ObservedStar) || !modNPC.NPC.getRect().Intersects(wantStar.ObservedStar.GetBoundingBox()))
+        if (Stars.List.Count <= 0 || !Stars.List.Contains(wantStar.ObservedStar) || !modNPC.NPC.getRect().Intersects(wantStar.ObservedStar.GetBoundingBox()))
             return true;
 
         if (wantStar.DrinkAnimation() && timer.Time >= 40)
         {
-            int starIndex = StarSystem.Stars.IndexOf(wantStar.ObservedStar);
+            int starIndex = Stars.List.IndexOf(wantStar.ObservedStar);
             Star star = wantStar.ObservedStar;
 
             star.Durability -= 10;
@@ -50,8 +50,8 @@ public struct DrinkStar : IState<ModNPC>
 
             SoundEngine.PlaySound(SoundID.Tink, modNPC.NPC.Center);
 
-            StarSystem.Stars[starIndex] = star;
-            StarSystem.Stars[starIndex].UpdateSubscribedNPCs();
+            Stars.List[starIndex] = star;
+            Stars.List[starIndex].UpdateSubscribedNPCs();
             timer.Time = 0;
         }
 

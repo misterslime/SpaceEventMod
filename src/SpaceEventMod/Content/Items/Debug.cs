@@ -1,4 +1,5 @@
 using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
+using SpaceEventMod.Content.Events.FirmamentTide.Stars;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -21,7 +22,7 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        //StarSystem.Stars.Add(new Core.GameObjects.Stars.Star(Main.MouseWorld));
+        Stars.List.Add(new Events.FirmamentTide.Stars.Star(Main.MouseWorld));
 
         if (!FirmamentSeaSystem.Sea.Active)
             FirmamentSeaSystem.Sea = new FirmamentSea(16, 64, 3);

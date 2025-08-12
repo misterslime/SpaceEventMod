@@ -117,7 +117,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
         bool NearStar(ModNPC modNPC)
         {
-            if (StarSystem.Stars.Count <= 0)
+            if (Stars.List.Count <= 0)
                 return false;
 
             var npc = modNPC.NPC;
@@ -125,7 +125,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
             Star closestStar;
             var distanceToStar = float.MaxValue;
 
-            foreach (var star in StarSystem.Stars)
+            foreach (var star in Stars.List)
             {
                 if (Vector2.DistanceSquared(star.GetCenter(), npc.Center) < distanceToStar)
                 {
@@ -142,7 +142,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
             if (modNPC is not IWantStar wantStar)
                 throw new Exception("ModNPC is not IWantStar.");
 
-            if (StarSystem.Stars.Count <= 0 || !StarSystem.Stars.Contains(wantStar.ObservedStar))
+            if (Stars.List.Count <= 0 || !Stars.List.Contains(wantStar.ObservedStar))
                 return false;
 
             return modNPC.NPC.getRect().Intersects(wantStar.ObservedStar.GetBoundingBox());
@@ -238,7 +238,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
         if (NPC.HasValidTarget)
             cooldown = 100;
-        else if (StarSystem.Stars.Contains(ObservedStar))
+        else if (Stars.List.Contains(ObservedStar))
             cooldown = 120;
 
         Time--;

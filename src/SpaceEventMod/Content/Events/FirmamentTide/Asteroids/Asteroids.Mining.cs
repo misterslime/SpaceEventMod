@@ -43,6 +43,7 @@ public class AsteroidMining : ILoadable
                 {
                     SoundEngine.PlaySound(SoundID.Item70, Asteroids.List[i].GetCenter());
                     Asteroids.List.RemoveAt(i);
+                    i--;
                 }
 
                 if (hitAsteroid || destroyAsteroid)

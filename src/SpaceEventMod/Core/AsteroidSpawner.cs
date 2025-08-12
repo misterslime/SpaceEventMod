@@ -55,7 +55,7 @@ public class AsteroidSpawner : ModSystem
             }
         }
 
-        var stars = StarSystem.Stars;
+        var stars = Stars.List;
 
         if (stars.Count > 0)
         {
