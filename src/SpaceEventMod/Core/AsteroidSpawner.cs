@@ -44,7 +44,7 @@ public class AsteroidSpawner : ModSystem
 
         var density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.CircEaseIn(noiseSample));
 
-        var asteroids = AsteroidSystem.Asteroids;
+        var asteroids = Asteroids.List;
 
         if (asteroids.Count > 0)
         {
@@ -84,6 +84,6 @@ public class AsteroidSpawner : ModSystem
 
         var dimensions = GetDimensions(asteroidType);
 
-        AsteroidSystem.Asteroids.Add(new Asteroid(randomPosition, playerPositionSeaCoords.Y - 60 * 16, asteroidType, dimensions.X, dimensions.Y));
+        Asteroids.List.Add(new Asteroid(randomPosition, playerPositionSeaCoords.Y - 60 * 16, asteroidType, dimensions.X, dimensions.Y));
     }
 }
