@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.NPCs;
+namespace SpaceEventMod.Content.NPCs.Manaphages;
 
 public class InkSpit : ModProjectile
 {

@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Content.Dusts;
-using SpaceEventMod.Content.NPCs;
+using SpaceEventMod.Content.NPCs.Manaphages;
 using SpaceEventMod.Core;
 using SpaceEventMod.Core.Behavior.Automata;
 using System;

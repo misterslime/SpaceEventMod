@@ -13,7 +13,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Star = SpaceEventMod.Content.Events.FirmamentTide.Stars.Star;
 
-namespace SpaceEventMod.Content.NPCs;
+namespace SpaceEventMod.Content.NPCs.Manaphages;
 
 public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 {

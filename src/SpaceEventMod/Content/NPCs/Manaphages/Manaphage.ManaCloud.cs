@@ -4,7 +4,7 @@ using System;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.NPCs;
+namespace SpaceEventMod.Content.NPCs.Manaphages;
 
 public class ManaCloud : ModProjectile
 {
