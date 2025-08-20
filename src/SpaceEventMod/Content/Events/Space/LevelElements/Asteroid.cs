@@ -10,9 +10,9 @@ using Terraria;
 
 namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
-public struct Asteroid(Vector2 initialPosition, float spawnHeight, int variant, int width, int height)
+public struct Asteroid(Vector2 initialPosition, int variant, int width, int height)
 {
-    public Kinematics<Vector2> Transform = new Kinematics<Vector2>(new Vector2(initialPosition.X, spawnHeight));
+    public Kinematics<Vector2> Transform = new Kinematics<Vector2>(initialPosition);
     public int Variant = variant;
     public int Width = width;
     public int Height = height;

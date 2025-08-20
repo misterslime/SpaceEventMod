@@ -47,7 +47,7 @@ public class Asteroids : ModSystem
     {
         var newAsteroid = asteroid;
 
-        shouldDespawn = (asteroid.GetCenter() - Main.LocalPlayer.Center).LengthSquared() > 60f * 16f * 60f * 16f;
+        shouldDespawn = (asteroid.GetCenter() - Main.LocalPlayer.Center).LengthSquared() > 100f * 16f * 100f * 16f;
 
         newAsteroid.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + asteroid.RandomTimeDisplacement) / 60f) * 4 * Vector2.UnitY;
 

@@ -65,12 +65,12 @@ public class SpaceEvent : ModSystem
 
     private void SpawnAsteroids()
     {
-        if (!Sea.CanSpawnThings)
+        if (!Sea.CanSpawnThings && !Main.gameMenu && !Main.gameInactive)
             return;
 
         var playerCenter = Main.player[Main.myPlayer].Center;
         var playerPositionSeaCoords = new Vector2(playerCenter.X, playerCenter.Y - (float)(Main.worldSurface * 0.35 * 16));
-        var randomPosition = playerPositionSeaCoords + Main.rand.NextVector2Circular(30 * 16, 30 * 16);
+        var randomPosition = playerPositionSeaCoords + Main.rand.NextVector2CircularEdge(75 * 16, 75 * 16);
         // 0.05f
 
         // only spawn 20 tiles above the sea surface
@@ -121,6 +121,6 @@ public class SpaceEvent : ModSystem
 
         var dimensions = GetDimensions(asteroidType);
 
-        Asteroids.List.Add(new Asteroid(randomPosition, playerPositionSeaCoords.Y - 60 * 16, asteroidType, dimensions.X, dimensions.Y));
+        Asteroids.List.Add(new Asteroid(randomPosition, asteroidType, dimensions.X, dimensions.Y));
     }
 }
