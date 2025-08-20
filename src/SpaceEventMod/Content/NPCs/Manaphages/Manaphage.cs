@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Actions.NPCs;
-using SpaceEventMod.Content.Events.FirmamentTide.Stars;
+using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Behavior.Automata;
 using SpaceEventMod.Core.Physics;
 using System;
@@ -11,7 +11,7 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Star = SpaceEventMod.Content.Events.FirmamentTide.Stars.Star;
+using Star = SpaceEventMod.Content.Events.Space.LevelElements.Star;
 
 namespace SpaceEventMod.Content.NPCs.Manaphages;
 

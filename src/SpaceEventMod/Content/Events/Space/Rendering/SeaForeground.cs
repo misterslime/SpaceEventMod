@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.Events.Space.LevelElements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +9,12 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea.Rendering;
+namespace SpaceEventMod.Content.Events.Space.Rendering;
 
 [Autoload(Side = ModSide.Client)]
 public class SeaForeground : ILoadable
 {
-    private FirmamentSea Sea { get => FirmamentSeaSystem.Sea; }
+    private FirmamentSea Sea { get => SpaceEvent.Sea; }
 
     public void Load(Mod mod) => On_Main.DrawInfernoRings += DrawSeaForeground;
 
@@ -23,11 +24,11 @@ public class SeaForeground : ILoadable
     {
         orig(self);
 
-        if (SeaTargets.SeaRenderTarget == null || Sea.Springs is null)
+        if (SeaTargets.SeaRenderTarget == null || Sea.Springs is null || !Sea.Active)
             return;
 
         // round position to prevent artifacts
-        Vector2 screenPosition = FirmamentSeaSystem.WorldToSeaCoordinates(Main.screenPosition);
+        var screenPosition = SpaceEvent.WorldToSeaCoordinates(Main.screenPosition);
 
         screenPosition.X = MathF.Floor(screenPosition.X * 0.5f);
         screenPosition.X *= 2f;

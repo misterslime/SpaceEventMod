@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 [Autoload(Side = ModSide.Client)]
 public class StarDrawing : ILoadable

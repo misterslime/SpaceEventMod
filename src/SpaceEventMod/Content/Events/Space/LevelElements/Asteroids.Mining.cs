@@ -8,7 +8,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 public class AsteroidMining : ILoadable
 {
@@ -22,8 +22,8 @@ public class AsteroidMining : ILoadable
         {
             for (var i = 0; i < Asteroids.List.Count; i++)
             {
-                bool hitAsteroid = false;
-                bool destroyAsteroid = false;
+                var hitAsteroid = false;
+                var destroyAsteroid = false;
 
                 Asteroids.List[i] = MineAsteroid(Asteroids.List[i], self, sItem, x, y, out hitAsteroid, out destroyAsteroid);
 
@@ -56,7 +56,7 @@ public class AsteroidMining : ILoadable
         hitAsteroid = false;
         destroyAsteroid = false;
 
-        Asteroid newAsteroid = asteroid;
+        var newAsteroid = asteroid;
 
         if (asteroid.GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
         {

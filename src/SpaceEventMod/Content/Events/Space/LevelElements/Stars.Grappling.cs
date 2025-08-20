@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 public class StarGrappling : ILoadable
 {

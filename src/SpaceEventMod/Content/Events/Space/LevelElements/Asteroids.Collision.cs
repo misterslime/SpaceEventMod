@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 public class AsteroidCollision : ILoadable
 {
@@ -20,7 +19,7 @@ public class AsteroidCollision : ILoadable
     {
         var result = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
 
-        if (!fall && !FirmamentSeaSystem.Sea.Despawning)
+        if (!fall && !SpaceEvent.Sea.Despawning)
             result = CheckCollision(position, velocity, width, height, gravity);
 
         return orig(result.XY(), result.ZW(), width, height, gravity, fall);

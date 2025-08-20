@@ -1,13 +1,12 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 // to-do:
 // - cracks to indicate low health

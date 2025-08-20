@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Graphics;
 using System;
 using System.Collections.Generic;
@@ -9,12 +10,12 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea.Rendering;
+namespace SpaceEventMod.Content.Events.Space.Rendering;
 
 [Autoload(Side = ModSide.Client)]
 public class SeaBackground : ILoadable
 {
-    private FirmamentSea Sea { get => FirmamentSeaSystem.Sea; }
+    private FirmamentSea Sea { get => SpaceEvent.Sea; }
 
     public void Load(Mod mod) => On_Main.DoDraw_WallsTilesNPCs += DrawSeaBackground;
 
@@ -22,7 +23,7 @@ public class SeaBackground : ILoadable
 
     private void DrawSeaBackground(On_Main.orig_DoDraw_WallsTilesNPCs orig, Main self)
     {
-        if (SeaTargets.BackgroundRenderTarget is not null && Sea.Springs is not null)
+        if (SeaTargets.BackgroundRenderTarget is not null && Sea.Springs is not null && Sea.Active)
         {
             var firmamentSeaBackgroundShader = Assets.Assets.Shaders.Events.FirmamentSeaBackgroundTransparency.Value;
 
@@ -41,15 +42,15 @@ public class SeaBackground : ILoadable
 
     public static void DrawBackground(Action<Color, Color> drawBackgroundPrimitives)
     {
-        Rectangle rectangle = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
+        var rectangle = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
 
         drawBackgroundPrimitives.Invoke(new Color(10, 0, 100), new Color(10, 0, 100));
 
         // sea bubbles
         var palette = Assets.Assets.Textures.Palettes.FirmamentSea.NightBackground2.Value;
         Vector3[] sampleOffsetsAndScales = [new Vector3(0.02f, 0.03f, 0.7f), new Vector3(0.05f, 0.05f, 1), new Vector3(-0.03f, 0.02f, 0.85f)];
-        Effect bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.15f, 1f, 0.5f, 0.35f, 0.45f);
-        Color color = Color.White;
+        var bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.15f, 1f, 0.5f, 0.35f, 0.45f);
+        var color = Color.White;
         color.A = 40;
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, PixelRenderer.GetPixelationMatrix());
@@ -84,7 +85,7 @@ public class SeaBackground : ILoadable
         firmamentSeaBackgroundShader.Parameters["palette"].SetValue(palette);
         firmamentSeaBackgroundShader.Parameters["sampleOffsetsAndScales"].SetValue(sampleOffsetsAndScales);
         firmamentSeaBackgroundShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
-        firmamentSeaBackgroundShader.Parameters["screenWorldPosition"].SetValue(FirmamentSeaSystem.WorldToSeaCoordinates(Main.screenPosition) * 0.5f); // this is being halved because its being pixelated
+        firmamentSeaBackgroundShader.Parameters["screenWorldPosition"].SetValue(SpaceEvent.WorldToSeaCoordinates(Main.screenPosition) * 0.5f); // this is being halved because its being pixelated
         firmamentSeaBackgroundShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly * speed);
         firmamentSeaBackgroundShader.Parameters["gradientLength"].SetValue(gradientLength);
         firmamentSeaBackgroundShader.Parameters["gradientStart"].SetValue(gradientStart);

@@ -8,7 +8,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 // to-do:
 // - add starsap lmao

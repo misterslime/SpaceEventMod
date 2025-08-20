@@ -1,34 +1,71 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
-using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
-using SpaceEventMod.Content.Events.FirmamentTide.Stars;
+using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
+using SpaceEventMod.Content.Dusts;
+using SpaceEventMod.Content.Events.Space.LevelElements;
+using SpaceEventMod.Core;
+using SpaceEventMod.Core.Geometry;
+using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using System;
+using System.Collections.Generic;
+using System.IO.Pipelines;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace SpaceEventMod.Core;
+namespace SpaceEventMod.Content.Events.Space;
 
-public class AsteroidSpawner : ModSystem
+// https://code.tutsplus.com/make-a-splash-with-dynamic-2d-water-effects--gamedev-236t
+// made with this thingy
+// to-do:
+// - antialiasing on the foam
+// - add godrays
+// - add small star pixel particles that dont appear in godrays
+// - add bubble particles when you move
+// - maybe stuff behind the foam could be shaded in the foam? or it could be transparent.
+// - make the sea appear on the map
+public class SpaceEvent : ModSystem
 {
-    public FastNoiseLite noise;
-    public float minimumToSpawnAsteroid = 0.7f;
-    public float separationDistance = 10 * 16;
+    public static FirmamentSea Sea;
 
-    public override void Load()
+    public static Vector2 SeaToWorldCoordinates(Vector2 position) => new Vector2(position.X, position.Y + Sea.SeaPos.Height.Position);
+
+    public static Vector2 WorldToSeaCoordinates(Vector2 position) => new Vector2(position.X, position.Y - Sea.SeaPos.Height.Position);
+
+    private FastNoiseLite noise;
+    private float minimumToSpawnAsteroid = 0.7f;
+    private float separationDistance = 10 * 16;
+
+    public override void ClearWorld()
     {
-        noise = new FastNoiseLite();
+        Sea = new FirmamentSea();
+
+        noise = new FastNoiseLite(Main.ActiveWorldFileData.Seed);
         noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
     }
 
-    public override void Unload()
+    public override void PostUpdatePlayers()
     {
-        noise = null;
+        if (Sea.Springs is null)
+            return;
+
+        Sea = Sea.UpdateChunks()
+            .UpdateSeaHeight()
+            .CollideSprings()
+            .PropagateWaves(0.04f)
+            .UpdateSprings(0.1f, 0.005f);
+
+        SpawnAsteroids();
     }
 
-    public override void PostUpdateNPCs()
+    private void SpawnAsteroids()
     {
-        if (!FirmamentSeaSystem.Sea.CanSpawnThings)
+        if (!Sea.CanSpawnThings)
             return;
 
         var playerCenter = Main.player[Main.myPlayer].Center;

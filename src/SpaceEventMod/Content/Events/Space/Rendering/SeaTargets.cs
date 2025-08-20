@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea.Rendering;
+namespace SpaceEventMod.Content.Events.Space.Rendering;
 
 [Autoload(Side = ModSide.Client)]
 public class SeaTargets : ILoadable
@@ -18,7 +19,7 @@ public class SeaTargets : ILoadable
 
     public static RenderTarget2D BackgroundRenderTarget;
 
-    private FirmamentSea Sea { get => FirmamentSeaSystem.Sea; }
+    private FirmamentSea Sea { get => SpaceEvent.Sea; }
 
     public void Load(Mod mod)
     {
@@ -82,14 +83,14 @@ public class SeaTargets : ILoadable
 
     public void DrawBackgroundPrimitives(Color top, Color bottom)
     {
-        if (Sea.Springs is null)
+        if (Sea.Springs is null || !Sea.Active)
             return;
 
         SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
 
-        for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
+        for (var chunk = 0; chunk < Sea.Springs.Length; chunk++)
         {
-            for (int spring = 0; spring < Sea.Springs[chunk].Length; spring++)
+            for (var spring = 0; spring < Sea.Springs[chunk].Length; spring++)
             {
                 Spring? next = null;
                 var nodeLocation = chunk * Sea.ChunkSize + spring;
@@ -135,14 +136,14 @@ public class SeaTargets : ILoadable
 
     private void DrawForegroundPrimitives()
     {
-        if (Sea.Springs is null)
+        if (Sea.Springs is null || !Sea.Active)
             return;
 
         SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
 
-        for (int chunk = 0; chunk < Sea.Springs.Length; chunk++)
+        for (var chunk = 0; chunk < Sea.Springs.Length; chunk++)
         {
-            for (int spring = 0; spring < Sea.Springs[chunk].Length; spring++)
+            for (var spring = 0; spring < Sea.Springs[chunk].Length; spring++)
             {
                 Spring? next = null;
                 var nodeLocation = chunk * Sea.ChunkSize + spring;

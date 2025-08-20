@@ -1,4 +1,3 @@
-using SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 public class StarMining : ILoadable
 {
@@ -26,8 +25,8 @@ public class StarMining : ILoadable
 
         for (var i = 0; i < Stars.List.Count; i++)
         {
-            bool hitStar = false; 
-            bool destroyStar = false;
+            var hitStar = false; 
+            var destroyStar = false;
 
             Stars.List[i] = MineStar(Stars.List[i], self, sItem, x, y, out hitStar, out destroyStar);
             Stars.List[i].UpdateSubscribedNPCs();
@@ -65,7 +64,7 @@ public class StarMining : ILoadable
         hitStar = false;
         destroyStar = false;
 
-        Star newStar = star;
+        var newStar = star;
 
         if (star.GetBoundingBox().Contains((int)Main.MouseWorld.X, (int)Main.MouseWorld.Y))
         {

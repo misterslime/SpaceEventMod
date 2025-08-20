@@ -1,5 +1,5 @@
-using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
-using SpaceEventMod.Content.Events.FirmamentTide.Stars;
+using SpaceEventMod.Content.Events.Space;
+using SpaceEventMod.Content.Events.Space.LevelElements;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -22,15 +22,15 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        Stars.List.Add(new Events.FirmamentTide.Stars.Star(Main.MouseWorld));
+        Stars.List.Add(new Events.Space.LevelElements.Star(Main.MouseWorld));
 
-        if (!FirmamentSeaSystem.Sea.Active)
-            FirmamentSeaSystem.Sea = new FirmamentSea(16, 64, 3);
+        if (!SpaceEvent.Sea.Active)
+            SpaceEvent.Sea = new FirmamentSea(16, 64, 3);
         else
         {
-            FirmamentSea sea = FirmamentSeaSystem.Sea;
+            FirmamentSea sea = SpaceEvent.Sea;
             sea.Despawning = sea.Despawning ? false : true;
-            FirmamentSeaSystem.Sea = sea;
+            SpaceEvent.Sea = sea;
         }
 
         return true;

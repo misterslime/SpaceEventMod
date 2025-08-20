@@ -7,7 +7,7 @@ using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Stars;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 public struct Star(Vector2 spawnPosition)
 {

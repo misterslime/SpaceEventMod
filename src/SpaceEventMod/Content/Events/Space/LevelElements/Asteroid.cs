@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.Events.FirmamentTide.FirmamentSea;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Content.Events.FirmamentTide.Asteroids;
+namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 public struct Asteroid(Vector2 initialPosition, float spawnHeight, int variant, int width, int height)
 {
@@ -33,14 +32,14 @@ public struct Asteroid(Vector2 initialPosition, float spawnHeight, int variant, 
 
     public Rectangle GetBoundingBox()
     {
-        var worldCoords = FirmamentSeaSystem.SeaToWorldCoordinates(Transform.Position);
+        var worldCoords = SpaceEvent.SeaToWorldCoordinates(Transform.Position);
 
         return new Rectangle((int)worldCoords.X + (int)SpriteDisplacement.Y, (int)worldCoords.Y + (int)SpriteDisplacement.Y, Width, Height);
     }
 
     public Vector2 GetCenter()
     {
-        return FirmamentSeaSystem.SeaToWorldCoordinates(GetTrueCenter());
+        return SpaceEvent.SeaToWorldCoordinates(GetTrueCenter());
     }
 
     public Vector2 GetTrueCenter()
