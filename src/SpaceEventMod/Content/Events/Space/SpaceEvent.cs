@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Content.Events.Space.LevelElements;
+using SpaceEventMod.Content.NPCs.Manaphages;
 using SpaceEventMod.Core;
 using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Graphics;
@@ -15,6 +16,8 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -40,6 +43,7 @@ public class SpaceEvent : ModSystem
     private FastNoiseLite noise;
     private float minimumToSpawnAsteroid = 0.7f;
     private float separationDistance = 10 * 16;
+    private float starSeparationDistance = 120 * 16;
 
     public override void ClearWorld()
     {
@@ -61,11 +65,81 @@ public class SpaceEvent : ModSystem
             .UpdateSprings(0.1f, 0.005f);
 
         SpawnAsteroids();
+        SpawnStars();
+        SpawnAmbientEnemies();
+    }
+
+    private void SpawnAmbientEnemies()
+    {
+        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
+            return;
+
+        var playerCenter = Main.player[Main.myPlayer].Center;
+        var randomPosition = playerCenter + Main.rand.NextVector2CircularEdge(75 * 16, 75 * 16);
+        // 0.05f
+
+        // only spawn 20 tiles above the sea surface
+        if (randomPosition.Y > (float)(Main.worldSurface * 0.35 * 16) - 320 || randomPosition.Y <= 5 * 16)
+            return;
+
+        if (Main.netMode != NetmodeID.MultiplayerClient && Main.rand.NextBool(1000))
+        {
+            var enemyPosition = randomPosition + Main.rand.NextVector2CircularEdge(20 * 16, 20 * 16);
+
+            int n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)randomPosition.X, (int)randomPosition.Y, ModContent.NPCType<Manaphage>());
+            if (Main.npc.IndexInRange(n))
+                NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
+        }
+    }
+
+    private void SpawnStars()
+    {
+        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
+            return;
+
+        var playerCenter = Main.player[Main.myPlayer].Center;
+        var randomPosition = playerCenter + Main.rand.NextVector2CircularEdge(75 * 16, 75 * 16);
+        // 0.05f
+
+        // only spawn 20 tiles above the sea surface
+        if (randomPosition.Y > (float)(Main.worldSurface * 0.35 * 16) - 320 || randomPosition.Y <= 5 * 16)
+            return;
+
+        var stars = Stars.List;
+
+        if (stars.Count > 0)
+        {
+            foreach (var star in stars)
+            {
+                if ((star.Position - randomPosition).LengthSquared() <= Math.Pow(starSeparationDistance, 2))
+                    return;
+
+                if ((star.Position - playerCenter).LengthSquared() <= Math.Pow(starSeparationDistance * 1.35, 2))
+                    return;
+            }
+        }
+
+        Stars.List.Add(new Events.Space.LevelElements.Star(randomPosition));
+
+        if (Main.netMode != NetmodeID.MultiplayerClient)
+        {
+            int enemies = Main.rand.Next(1, 5);
+
+            for (int i = 0; i < enemies; i++)
+            {
+                var enemyPosition = randomPosition + Main.rand.NextVector2CircularEdge(20 * 16, 20 * 16);
+
+                int n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)enemyPosition.X, (int)enemyPosition.Y, ModContent.NPCType<Manaphage>());
+                if (Main.npc.IndexInRange(n))
+                    NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
+            }
+        }
+
     }
 
     private void SpawnAsteroids()
     {
-        if (!Sea.CanSpawnThings && !Main.gameMenu && !Main.gameInactive)
+        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
             return;
 
         var playerCenter = Main.player[Main.myPlayer].Center;
@@ -92,17 +166,6 @@ public class SpaceEvent : ModSystem
             }
         }
 
-        var stars = Stars.List;
-
-        if (stars.Count > 0)
-        {
-            foreach (var star in stars)
-            {
-                if ((star.GetCenter() - randomPosition).LengthSquared() <= Math.Pow(separationDistance * density, 2))
-                    return;
-            }
-        }
-
         var asteroidType = Main.rand.Next(6);
 
         Point GetDimensions(int variant)
@@ -122,5 +185,14 @@ public class SpaceEvent : ModSystem
         var dimensions = GetDimensions(asteroidType);
 
         Asteroids.List.Add(new Asteroid(randomPosition, asteroidType, dimensions.X, dimensions.Y));
+    }
+
+    public void DrawLine(SpriteBatch spriteBatch, Vector2 begin, Vector2 end, Color color, int width = 1)
+    {
+        var r = new Rectangle((int)begin.X, (int)begin.Y, (int)(end - begin).Length() + width, width);
+        var v = Vector2.Normalize(begin - end);
+        var angle = (float)Math.Acos(Vector2.Dot(v, -Vector2.UnitX));
+        if (begin.Y > end.Y) angle = MathHelper.TwoPi - angle;
+        spriteBatch.Draw(Assets.Assets.Textures.WhitePixel.Value, r, null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
     }
 }

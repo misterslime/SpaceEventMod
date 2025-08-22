@@ -22,8 +22,6 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        Stars.List.Add(new Events.Space.LevelElements.Star(Main.MouseWorld));
-
         if (!SpaceEvent.Sea.Active)
             SpaceEvent.Sea = new FirmamentSea(16, 64, 3);
         else

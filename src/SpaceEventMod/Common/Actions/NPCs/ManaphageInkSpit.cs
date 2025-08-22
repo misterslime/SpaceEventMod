@@ -76,7 +76,7 @@ public struct ManaphageInkSpit : IState<ModNPC>
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     projectileVelocity *= speed;
-                    var finalInk = Projectile.NewProjectile(npc.GetSource_FromAI(), npc.Center.X, npc.Center.Y, projectileVelocity.X, projectileVelocity.Y, ModContent.ProjectileType<InkSpit>(), 80, 1f, Main.myPlayer, 0, gravity, 0);
+                    var finalInk = Projectile.NewProjectile(npc.GetSource_FromAI(), npc.Center.X, npc.Center.Y, projectileVelocity.X, projectileVelocity.Y, ModContent.ProjectileType<InkSpit>(), 20, 1f, Main.myPlayer, 0, gravity, 0);
 
                     if (Main.projectile.IndexInRange(finalInk))
                         Main.projectile[finalInk].netUpdate = true;
