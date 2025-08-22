@@ -105,7 +105,8 @@ public struct FirmamentSea
     public FirmamentSea UpdateChunks()
     {
         var chunkWorldSize = (int)(NodeWidth * ChunkSize);
-        var targetPosition = (int)Math.Floor(Main.LocalPlayer.Center.X / chunkWorldSize) - Springs.Length / 2;
+        var screenCentreX = Main.screenPosition.X + 0.5f * Main.screenWidth;
+        var targetPosition = (int)Math.Floor(screenCentreX / chunkWorldSize) - Springs.Length / 2;
 
         if (targetPosition == SeaPos.Left)
             return this;
