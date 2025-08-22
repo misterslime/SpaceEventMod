@@ -123,7 +123,7 @@ public class SpaceEvent : ModSystem
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
         {
-            int enemies = Main.rand.Next(1, 5);
+            int enemies = Main.rand.Next(1, 4);
 
             for (int i = 0; i < enemies; i++)
             {
