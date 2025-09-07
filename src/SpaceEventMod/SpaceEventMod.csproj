@@ -29,10 +29,6 @@
         <AdditionalFiles Include="Assets/**/*.mp3" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Content\NPCs\Droplings\" />
-    </ItemGroup>
-
     <Target Name="BuildEffects" BeforeTargets="BuildMod" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
         <Exec Command="@(ShaderFiles->'&quot;$(FXCPath)&quot; &quot;%(RecursiveDir)%(FileName)%(Extension)&quot; /T fx_2_0 /D FX=1 /nologo /Fo &quot;%(RecursiveDir)%(FileName).fxc&quot; &#xA;&#xD;')" IgnoreExitCode="true" />
     </Target>

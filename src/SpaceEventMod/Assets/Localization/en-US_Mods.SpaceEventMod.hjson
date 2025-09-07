@@ -8,6 +8,7 @@ Items: {
 NPCs: {
 	Cosmostone.DisplayName: Cosmostone
 	Manaphage.DisplayName: Manaphage
+	Dropling.DisplayName: Dropling
 }
 
 Projectiles: {

@@ -30,7 +30,6 @@ public class SpaceEventMapLayer : ModMapLayer
         if (Main.mapStyle == 2)
             return;
 
-        ModifiedMapDrawContext newContext = new ModifiedMapDrawContext(context);
         Texture2D whitePixel = Assets.Assets.Textures.WhitePixel.Value;
 
         // draw sea
@@ -43,7 +42,7 @@ public class SpaceEventMapLayer : ModMapLayer
                 new Vector2(3, 1),
                 new Vector2(3, 2),
                 new Vector2(3, 3),
-                new Vector2(4, 1),
+                new Vector2(4, 1.5f),
                 new Vector2(4, 2),
                 new Vector2(4, 3),
             ];
@@ -58,7 +57,7 @@ public class SpaceEventMapLayer : ModMapLayer
 
             Color color = new Color(40, 35, 47);
 
-            newContext.Draw(whitePixel, position, color, new SpriteFrame(1, 1, 0, 0), scale, scale, Alignment.TopLeft);
+            Draw(context, whitePixel, position, color, new SpriteFrame(1, 1, 0, 0), scale, scale, Alignment.TopLeft);
         }
 
         // draw stars
@@ -71,5 +70,27 @@ public class SpaceEventMapLayer : ModMapLayer
             if (context.Draw(itemTexture, tilePosition, Color.White, new SpriteFrame(1, 8, 0, 0), 1f, 1.2f, Alignment.Center).IsMouseOver)
                 text = "Star (" + (star.Durability / 10f) + "%)";
         }
+    }
+
+    public bool Draw(MapOverlayDrawContext context, Texture2D texture, Vector2 position, Color color, SpriteFrame frame, Vector2 scaleIfNotSelected, Vector2 scaleIfSelected, Alignment alignment, SpriteEffects spriteEffects = SpriteEffects.None)
+    {
+        position = (position - context.MapPosition) * context.MapScale + context.MapOffset;
+        if (context.ClippingRectangle.HasValue && !context.ClippingRectangle.Value.Contains(position.ToPoint()))
+            return false;
+
+        Rectangle sourceRectangle = frame.GetSourceRectangle(texture);
+        Vector2 vector = sourceRectangle.Size() * alignment.OffsetMultiplier;
+        Vector2 position2 = position;
+
+        Vector2 scale = context.DrawScale * scaleIfNotSelected;
+        Vector2 vector2 = position - vector * scale;
+
+        bool mouseSelected = new Rectangle((int)vector2.X, (int)vector2.Y, (int)((float)sourceRectangle.Width * scale.X), (int)((float)sourceRectangle.Height * scale.Y)).Contains(Main.MouseScreen.ToPoint());
+
+        if (mouseSelected)
+            scale = context.DrawScale * scaleIfSelected;
+
+        Main.spriteBatch.Draw(texture, position2, sourceRectangle, color, 0f, vector, scale, spriteEffects, 0f);
+        return mouseSelected;
     }
 }

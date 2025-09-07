@@ -119,6 +119,9 @@ public class SpaceEvent : ModSystem
             }
         }
 
+        if (!Main.rand.NextBool(300))
+            return;
+
         Stars.List.Add(new Events.Space.LevelElements.Star(randomPosition));
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
