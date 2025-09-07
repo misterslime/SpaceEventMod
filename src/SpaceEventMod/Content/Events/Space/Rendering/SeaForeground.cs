@@ -36,14 +36,19 @@ public class SeaForeground : ILoadable
         screenPosition.Y = MathF.Floor(screenPosition.Y * 0.5f);
         screenPosition.Y *= 2f;
 
+        Color color1 = new Color(118, 129, 247);
+        Color color2 = new Color(169, 201, 234);
+
         var firmamentSeaForegroundShader = Assets.Assets.Shaders.Events.FirmamentSeaFoam.Value;
 
         firmamentSeaForegroundShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Noise.Foam.Value);
         firmamentSeaForegroundShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Palettes.FirmamentSea.NightForeground.Value);
         firmamentSeaForegroundShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly);
-        firmamentSeaForegroundShader.Parameters["parallax"].SetValue(1f);
         firmamentSeaForegroundShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
         firmamentSeaForegroundShader.Parameters["screenWorldPosition"].SetValue(screenPosition);
+
+        firmamentSeaForegroundShader.Parameters["edgeColor1"].SetValue(color1.ToVector4());
+        firmamentSeaForegroundShader.Parameters["edgeColor2"].SetValue(color2.ToVector4());
 
         Main.spriteBatch.End();
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, firmamentSeaForegroundShader, Main.GameViewMatrix.TransformationMatrix);

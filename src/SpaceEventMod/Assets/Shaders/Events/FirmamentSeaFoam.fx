@@ -1,5 +1,6 @@
 #include "../EdgeDetection.fxh"
 #include "../Pixelate.fxh"
+#include "../Math.fxh"
 
 sampler seaTarget : register(s0);
 
@@ -21,14 +22,16 @@ sampler paletteSampler = sampler_state
 float2 screenSize;
 float2 screenWorldPosition;
 float globalTime;
-float parallax;
+
+float4 edgeColor1;
+float4 edgeColor2;
 
 float4 PixelShaderFunction(float2 coords : TEXCOORD0, float2 screenPosition : SV_POSITION, float4 sampleColor : COLOR0) : COLOR0
 {
     float2 pixelSize = 2. / screenSize;
 
     //pixelate
-    float2 screenWorldCoords = pixelate((screenPosition + screenWorldPosition * parallax) / screenSize, pixelSize);
+    float2 screenWorldCoords = pixelate((screenPosition + screenWorldPosition) / screenSize, pixelSize);
     float2 noiseCoords = screenWorldCoords + float2(globalTime * 0.01, globalTime * 0.005);
 
     coords = pixelate(coords, pixelSize);
@@ -40,7 +43,10 @@ float4 PixelShaderFunction(float2 coords : TEXCOORD0, float2 screenPosition : SV
     // edge detection
     float edge = edgeDetection(seaTarget, coords, pixelSize) / 15.;
 
-    return (edge > 0.) ? sampleColor : paletteColor;
+    // abomination
+    float4 edgeColor = lerp(edgeColor1, edgeColor2, pow(sin(noiseCoords.x * TAU * 2.5), 2));
+
+    return (edge > 0.) ? edgeColor : paletteColor;
 }
 
 technique Technique0
