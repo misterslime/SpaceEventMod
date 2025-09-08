@@ -51,7 +51,7 @@ public class SeaForeground : ILoadable
         firmamentSeaForegroundShader.Parameters["edgeColor2"].SetValue(color2.ToVector4());
 
         Main.spriteBatch.End();
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, firmamentSeaForegroundShader, Main.GameViewMatrix.TransformationMatrix);
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, firmamentSeaForegroundShader, Main.GameViewMatrix.TransformationMatrix);
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), new Color(118, 129, 247), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
         Main.spriteBatch.Begin();
