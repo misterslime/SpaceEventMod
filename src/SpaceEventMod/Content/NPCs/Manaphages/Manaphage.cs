@@ -19,9 +19,9 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 {
     public static StateMachine<ModNPC> StateMachine;
 
-    public static readonly Vector2Dynamics PositionSolver = new Vector2Dynamics(1f / 128f, 0.85f, 0.2f);
+    public static readonly SecondOrderDynamics PositionSolver = new SecondOrderDynamics(1f / 128f, 0.85f, 0.2f);
 
-    public static readonly Vector2Dynamics StretchSolver = new Vector2Dynamics(1f / 40f, 0.3f, -0.5f);
+    public static readonly SecondOrderDynamics StretchSolver = new SecondOrderDynamics(1f / 40f, 0.3f, -0.5f);
 
     #region Fields and properties
     public PushdownAutomaton<ModNPC> PushdownAutomaton;
@@ -52,7 +52,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public Kinematics<Vector2> PositionKinematics
     {
-        get => new Kinematics<Vector2>(NPC.Center, NPC.velocity).SetPreviousPosition(PreviousPosition);
+        get => new Kinematics<Vector2>(NPC.Center, PreviousPosition, NPC.velocity);
         set
         {
             NPC.Center = value.Position;

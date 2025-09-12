@@ -20,7 +20,7 @@ public class Asteroids : ModSystem
 {
     public static List<Asteroid> List = new List<Asteroid>();
 
-    public static readonly Vector2Dynamics AsteroidMovement = new Vector2Dynamics(1f / 64f, 0.5f, 0.2f);
+    public static readonly SecondOrderDynamics AsteroidMovement = new SecondOrderDynamics(1f / 64f, 0.5f, 0.2f);
 
     public override void OnWorldUnload()
     {

@@ -12,7 +12,7 @@ namespace SpaceEventMod.Common.Actions.NPCs;
 
 public struct ManaphageInkSpit : IState<ModNPC>
 {
-    public static readonly Vector2Dynamics SuddenJerk = new Vector2Dynamics(1f / 120f, 0.7f, 0.8f);
+    public static readonly SecondOrderDynamics SuddenJerk = new SecondOrderDynamics(1f / 120f, 0.7f, 0.8f);
 
     public void Enter(ModNPC context)
     {

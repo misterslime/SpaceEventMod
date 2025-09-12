@@ -91,8 +91,8 @@ public struct FirmamentSea
     {
         var newSea = this;
 
-        var despawn = new FloatDynamics(1f / 500f, 0.5f, -0.5f);
-        var spawn = new FloatDynamics(1f / 200f, 1f, 0.6f);
+        var despawn = new SecondOrderDynamics(1f / 500f, 0.5f, -0.5f);
+        var spawn = new SecondOrderDynamics(1f / 200f, 1f, 0.6f);
 
         if (Despawning)
             newSea.SeaPos.Height = despawn.Update(1f, SeaPos.Height, 0f);

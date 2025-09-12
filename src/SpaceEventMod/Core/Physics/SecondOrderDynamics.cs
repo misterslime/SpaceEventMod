@@ -3,21 +3,29 @@ using System;
 
 namespace SpaceEventMod.Core.Physics;
 
-public struct Kinematics<T>(T initialInput, T initialVelocity = default)
+public struct Kinematics<T>
 {
-    public T PreviousPosition = initialInput;
-    public T Position = initialInput;
-    public T Velocity = initialVelocity;
+    public T PreviousPosition;
+    public T Position;
+    public T Velocity;
 
-    public Kinematics<T> SetPreviousPosition(T input)
+    public Kinematics(T initialInput, T initialVelocity = default) 
     {
-        this.PreviousPosition = input;
-        return this;
+        PreviousPosition = initialInput;
+        Position = initialInput;
+        Velocity = initialVelocity;
+    }
+
+    public Kinematics(T initialInput, T previousPosition, T initialVelocity = default)
+    {
+        PreviousPosition = previousPosition;
+        Position = initialInput;
+        Velocity = initialVelocity;
     }
 }
 
 // based on https://www.youtube.com/watch?v=KPoeNZZ6H4s this video by t3ssel8r
-public abstract class SecondOrderDynamics<T>(float frequency, float dampening, float anticipation)
+public class SecondOrderDynamics(float frequency, float dampening, float anticipation)
 {
     private float k1 = dampening / (MathF.PI * frequency);
     private float k2 = 1 / (2 * MathF.PI * frequency * (2 * MathF.PI * frequency));
@@ -31,7 +39,7 @@ public abstract class SecondOrderDynamics<T>(float frequency, float dampening, f
     /// <param name="setVelocity">If you want to set the velocity to something set this to true.</param>
     /// <param name="velocity">Velocity to set current velocity to.</param>
     /// <returns>The output position after integration.</returns>
-    public virtual Kinematics<T> Update(float deltaTime, Kinematics<T> currentKinematics, T inputPosition, bool setVelocity = false, T velocity = default)
+    public Kinematics<T> Update<T>(float deltaTime, Kinematics<T> currentKinematics, T inputPosition, bool setVelocity = false, T velocity = default)
     {
         Kinematics<T> kinematics = currentKinematics;
 
@@ -55,25 +63,4 @@ public abstract class SecondOrderDynamics<T>(float frequency, float dampening, f
 
         return kinematics;
     }
-
-    /// <summary>
-    /// Changes how the system will respond to inputs
-    /// </summary>
-    /// <param name="frequency">The frequency value to change to.</param>
-    /// <param name="dampening">The dampening value to change to.</param>
-    /// <param name="anticipation">The anticipation value to change to.</param>
-    public virtual void ChangeAnimation(float frequency, float dampening, float anticipation)
-    {
-        k1 = dampening / (MathF.PI * frequency);
-        k2 = 1 / (2 * MathF.PI * frequency * (2 * MathF.PI * frequency));
-        k3 = anticipation * dampening / (2 * MathF.PI * frequency);
-    }
-}
-
-public class FloatDynamics(float frequency, float dampening, float anticipation) : SecondOrderDynamics<float>(frequency, dampening, anticipation)
-{
-}
-
-public class Vector2Dynamics(float frequency, float dampening, float anticipation) : SecondOrderDynamics<Vector2>(frequency, dampening, anticipation)
-{
 }
