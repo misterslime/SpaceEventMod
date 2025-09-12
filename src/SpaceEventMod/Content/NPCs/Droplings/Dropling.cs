@@ -23,14 +23,16 @@ public enum DroplingAppendage
 public enum DroplingState
 {
     Moving = 0,
-    Arrived = 1
+    Biting = 1
 }
 
 public class Dropling : ModNPC
 {
-    public static readonly Vector2Dynamics DroplingVelocity = new Vector2Dynamics(1f / 85f, 0.6f, 0.2f);
+    public static readonly SecondOrderDynamics DroplingVelocity = new SecondOrderDynamics(1f / 85f, 0.6f, 0.2f);
 
-    public static readonly Vector2Dynamics DroplingDeccelerate = new Vector2Dynamics(1f / 85f, 1f, 0f);
+    public static readonly SecondOrderDynamics DroplingDeccelerate = new SecondOrderDynamics(1f / 85f, 1f, 0f);
+    
+    public static readonly SecondOrderDynamics DroplingDash = new SecondOrderDynamics(1f / 85f, 1f, -1f);
 
     private ref float Timer => ref NPC.ai[1];
 
@@ -45,16 +47,18 @@ public class Dropling : ModNPC
         get => (DroplingAppendage)NPC.ai[2];
         set => NPC.ai[2] = (float)value;
     }
-
-    private ref float TargetRotation => ref NPC.ai[3];
-
+    
+    private Vector2 PreviousPosition { get; set; }
+    
+    private Vector2 TargetPosition { get; set; }
+    
     private Vector2 TargetVelocity { get; set; }
 
     private Vector2 Acceleration { get; set; }
 
     public Kinematics<Vector2> VelocityKinematics
     {
-        get => new Kinematics<Vector2>(NPC.velocity, Acceleration).SetPreviousPosition(NPC.oldVelocity);
+        get => new Kinematics<Vector2>(NPC.velocity, NPC.oldVelocity, Acceleration);
         set
         {
             NPC.velocity = value.Position;
@@ -62,12 +66,23 @@ public class Dropling : ModNPC
             NPC.oldVelocity = value.PreviousPosition;
         }
     }
+    
+    public Kinematics<Vector2> PositionKinematics
+    {
+        get => new Kinematics<Vector2>(NPC.Center, PreviousPosition, NPC.velocity);
+        set
+        {
+            NPC.Center = value.Position;
+            NPC.velocity = value.Velocity;
+            PreviousPosition = value.PreviousPosition;
+        }
+    }
 
     public override void SetDefaults()
     {
         NPC.width = 42;
         NPC.height = 46;
-        NPC.damage = 50;
+        NPC.damage = 0;
         NPC.defense = 16;
         NPC.lifeMax = 250;
         NPC.HitSound = SoundID.NPCHit1;
@@ -83,18 +98,49 @@ public class Dropling : ModNPC
     {
         Timer++;
 
+        State = State switch
+        {
+            DroplingState.Moving => Moving(),
+            DroplingState.Biting => Biting()
+        };
+    }
+
+    private DroplingState Biting()
+    {
+        PositionKinematics = DroplingDash.Update(1, PositionKinematics, TargetPosition);
+        NPC.rotation = NPC.rotation.AngleLerp((TargetPosition - NPC.Center).ToRotation(), 0.075f);
+
+        if (!(Timer > 70f))
+        {
+            return DroplingState.Biting;
+        }
+
+        Timer = 0f;
+        NPC.knockBackResist = 1f;
+        NPC.damage = 0;
+        return DroplingState.Moving;
+
+    }
+    
+    private DroplingState Moving()
+    {
         NPC.TargetClosest(false);
 
         if (!NPC.HasValidTarget)
-            return;
+            return DroplingState.Moving;
 
-        float cohesionWeight = 1f;
+        float cohesionWeight = 1.2f;
         float separationWeight = 1.5f;
-        float alignmentWeight = 1f;
-        float targetWeight = 1.5f;
-        float surroundWeight = 2f;
+        float alignmentWeight = 1.2f;
+        float targetWeight = 2f;
+        float surroundWeight = 1f;
+        
         float separationRadius = 48f;
-        float radius = 100f;
+        float radius = 20f * 16f;
+        float maxBitingDistance = 7.5f * 16f;
+        float minBitingDistance = 4f * 16f;
+        float distance = Vector2.Distance(Main.player[NPC.target].Center, NPC.Center);
+        
         float maxSpeed = 4.5f;
 
         NPC[] neighbors = Main.npc.Where(x => x.type == ModContent.NPCType<Dropling>() && x.active && Vector2.Distance(NPC.Center, x.Center) < radius).ToArray();
@@ -105,11 +151,16 @@ public class Dropling : ModNPC
         Vector2 alignment = Alignment(neighbors) * alignmentWeight;
         Vector2 surround = Surrounding(neighbors, separationRadius) * surroundWeight;
 
+        if (Timer <= 60f || distance < minBitingDistance)
+            target *= -2f;
+        
         Vector2 forces = cohesion + separation + alignment + target + surround;
 
         NPC.rotation = NPC.rotation.AngleLerp(forces.ToRotation(), 0.075f);
 
-        if (Vector2.Dot(forces.SafeNormalize(Vector2.Zero), NPC.rotation.ToRotationVector2()) >= 0.85 && State == DroplingState.Moving)
+        bool lineOfSight = Vector2.Dot(forces.SafeNormalize(Vector2.Zero), NPC.rotation.ToRotationVector2()) >= 0.9;
+
+        if (lineOfSight && State == DroplingState.Moving)
         {
             TargetVelocity += forces;
 
@@ -127,15 +178,74 @@ public class Dropling : ModNPC
             VelocityKinematics = DroplingDeccelerate.Update(1, VelocityKinematics, TargetVelocity);
         }
 
-        if (Main.player[NPC.target].getRect().Intersects(NPC.getRect()))
-        {
-            State = DroplingState.Arrived;
-            NPC.velocity = Vector2.Zero;
-        }
-        else
-            State = DroplingState.Moving;
-    }
 
+        bool canLunge = true;
+        foreach (var neighbor in neighbors)
+        {
+            if (neighbor.whoAmI != NPC.whoAmI && DistanceSegmentToPoint(NPC.Center, Main.player[NPC.target].Center, neighbor.Center) < separationRadius)
+            {
+                canLunge = false;
+            }
+        }
+
+        // check if the dropling should continue moving or if it should bite
+        bool inBiteRange = distance > minBitingDistance && distance <= maxBitingDistance;
+        if (!(Timer > 60f) || !canLunge || !lineOfSight || !inBiteRange)
+        {
+            return DroplingState.Moving;
+        }
+
+        NPC.knockBackResist = 0f;
+        Acceleration = Vector2.Zero;
+        PreviousPosition = NPC.Center - NPC.velocity;
+        TargetPosition = Main.player[NPC.target].Center + target * 16f * 1.5f;
+        Timer = 0;
+        NPC.damage = 10;
+        return DroplingState.Biting;
+
+    }
+    
+    /// <summary>
+    /// Cool method for figuring out if a circle is colliding with a line segment.
+    /// From this stackoverflow answer: https://stackoverflow.com/a/1079478
+    /// </summary>
+    /// <param name="A">Point A of the line segment.</param>
+    /// <param name="B">Point B of the line segment.</param>
+    /// <param name="C">Point C.</param>
+    /// <returns>Returns the distance from line segment AB to point C</returns>
+    public float DistanceSegmentToPoint(Vector2 A, Vector2 B, Vector2 C) 
+    {
+        float Hypot2(Vector2 a, Vector2 b) => Vector2.Dot(a - b, a - b);
+
+        // Compute vectors AC and AB
+        Vector2 AC = C - A;
+        Vector2 AB = B - A;
+        
+        // Get point D by taking the projection of AC onto AB then adding the offset of A
+        Vector2 D = Project(AC, AB) + A;
+
+        Vector2 AD = D - A;
+        
+        // D might not be on AB so calculate k of D down AB (aka solve AD = k * AB)
+        // We can use either component, but choose larger value to reduce the chance of dividing by zero
+        float k = MathF.Abs(AB.X) > MathF.Abs(AB.Y) ? AD.X / AB.X : AD.Y / AB.Y;
+        
+        // Check if D is off either end of the line segment
+        if (k <= 0.0)
+            return MathF.Sqrt(Hypot2(C, A));
+        else if (k >= 1.0)
+            return MathF.Sqrt(Hypot2(C, B));
+
+        return MathF.Sqrt(Hypot2(C, D));
+    }
+    
+    // Function for projecting some vector A onto B
+    Vector2 Project(Vector2 A, Vector2 B) 
+    {
+        float k = Vector2.Dot(A, B) / Vector2.Dot(B, B);
+        return new Vector2(k * B.X, k * B.Y);
+    }
+    
     #region Boids Algorithm
 
     private Vector2 Cohesion(NPC[] neighbors)
@@ -214,10 +324,11 @@ public class Dropling : ModNPC
 
         foreach (var neighbor in neighbors)
         {
-            if (neighbor.whoAmI != NPC.whoAmI && neighbor.ModNPC is Dropling dropling && dropling.State == DroplingState.Arrived && Vector2.DistanceSquared(neighbor.Center, NPC.Center + NPC.velocity) < distanceToNeighbor)
+            if (neighbor.whoAmI != NPC.whoAmI && Vector2.DistanceSquared(neighbor.Center, NPC.Center + NPC.velocity) < distanceToNeighbor)
             {
                 distanceToNeighbor = Vector2.DistanceSquared(neighbor.Center, NPC.Center + NPC.velocity);
-                direction = NPC.Center - neighbor.Center;
+                direction = NPC.Center - Main.player[NPC.target].Center;
+                //direction = NPC.Center - neighbor.Center;
             }
         }
 
@@ -259,37 +370,6 @@ public class Dropling : ModNPC
         var origin = new Vector2(NPC.width, NPC.height) * 0.5f;
 
         Main.EntitySpriteDraw(texture, drawPosition, NPC.frame, NPC.GetAlpha(drawColor), NPC.rotation + MathHelper.PiOver2, origin, scale, 0);
-
-        var indicator = Assets.Assets.Textures.Indicator.Value;
-
-        var endPosition = drawPosition + NPC.velocity * 15f;
-
-        DrawLine(spriteBatch, drawPosition, endPosition, Color.DarkGray);
-        Main.EntitySpriteDraw(indicator, endPosition, null, Color.DarkGray, 0f, indicator.Size() * 0.5f, scale, 0);
-
-        endPosition = drawPosition + TargetVelocity * 15f;
-
-        DrawLine(spriteBatch, drawPosition, endPosition, Color.White);
-        Main.EntitySpriteDraw(indicator, endPosition, null, Color.White, 0f, indicator.Size() * 0.5f, scale, 0);
-
-        if (!NPC.HasValidTarget)
-            return false;
-
-        endPosition = Main.player[NPC.target].Center - Main.screenPosition;
-
-        Color color = TargetVelocity.Length() == 0f ? Color.Red : Color.Green;
-
-        DrawLine(spriteBatch, drawPosition, endPosition, color);
-        Main.EntitySpriteDraw(indicator, endPosition, null, color, 0f, indicator.Size() * 0.5f, scale, 0);
         return false;
-    }
-
-    public void DrawLine(SpriteBatch spriteBatch, Vector2 begin, Vector2 end, Color color, int width = 1)
-    {
-        Rectangle r = new Rectangle((int)begin.X, (int)begin.Y, (int)(end - begin).Length() + width, width);
-        Vector2 v = Vector2.Normalize(begin - end);
-        float angle = (float)Math.Acos(Vector2.Dot(v, -Vector2.UnitX));
-        if (begin.Y > end.Y) angle = MathHelper.TwoPi - angle;
-        spriteBatch.Draw(Assets.Assets.Textures.WhitePixel.Value, r, null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
     }
 }

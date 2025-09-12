@@ -35,11 +35,12 @@ public class SecondOrderDynamics(float frequency, float dampening, float anticip
     /// Integrates the current position and velocity to target <paramref name="inputPosition"/>.
     /// </summary>
     /// <param name="deltaTime">Change in time.</param>
+    /// <param name="currentKinematics">Current kinematic data struct to work with.</param>
     /// <param name="inputPosition">Target position.</param>
     /// <param name="setVelocity">If you want to set the velocity to something set this to true.</param>
     /// <param name="velocity">Velocity to set current velocity to.</param>
     /// <returns>The output position after integration.</returns>
-    public Kinematics<T> Update<T>(float deltaTime, Kinematics<T> currentKinematics, T inputPosition, bool setVelocity = false, T velocity = default)
+    public Kinematics<T> Update<T>(float deltaTime, Kinematics<T> currentKinematics, dynamic inputPosition, bool setVelocity = false, dynamic velocity = default)
     {
         Kinematics<T> kinematics = currentKinematics;
 
