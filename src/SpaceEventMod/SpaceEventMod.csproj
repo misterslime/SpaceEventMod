@@ -5,7 +5,7 @@
 
     <!-- General -->
     <PropertyGroup>
-
+      <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <!-- analyzers -->
@@ -15,6 +15,7 @@
 
     <PropertyGroup>
         <FXCPath>Assets/Shaders/Compiler/fxc.exe</FXCPath>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -27,6 +28,17 @@
         <AdditionalFiles Include="Assets/**/*.wav" />
         <AdditionalFiles Include="Assets/**/*.ogg" />
         <AdditionalFiles Include="Assets/**/*.mp3" />
+    </ItemGroup>
+	
+    <!-- Publicizer -->
+    <ItemGroup>
+      <PackageReference Include="Krafs.Publicizer" PrivateAssets="true" Version="2.2.1" />
+
+      <!-- Publicize Terraria and tModLoader (Does not include the Relogic namespace) -->
+      <Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+        
+      <!-- Publicizes all FNA types -->
+      <Publicize Include="tModLoader;FNA" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
     </ItemGroup>
 
     <Target Name="BuildEffects" BeforeTargets="BuildMod" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
