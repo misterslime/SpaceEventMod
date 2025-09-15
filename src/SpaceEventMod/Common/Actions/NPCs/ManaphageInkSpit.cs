@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Content.NPCs.Manaphages;
 using SpaceEventMod.Core.Behavior.Automata;
 using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using Terraria;
 using Terraria.ID;
@@ -48,7 +49,7 @@ public struct ManaphageInkSpit : IState<ModNPC>
 
         var gravity = 0.1f;
 
-        var theta = GetArtilleryAngle(new Vector2(toTarget.X, -toTarget.Y), speed, -gravity);
+        var theta = new Vector2(toTarget.X, -toTarget.Y).GetArtilleryAngle(speed, -gravity);
 
         if (theta is null)
             return true;
@@ -91,34 +92,5 @@ public struct ManaphageInkSpit : IState<ModNPC>
         manaphage.Time--;
 
         return false;
-    }
-
-    /// <summary>
-    /// Function that gets the angle you'd need to hit a target given your projectile is affected by gravity.
-    /// 
-    /// Because this was math'd in desmos where down is negative,
-    /// you'll have to ensure that you flip the sign of the target vector's y component.
-    /// Math was done by @azaliesthyl on discord :D
-    /// </summary>
-    /// <param name="target">Vector from launch to target.</param>
-    /// <param name="throwingVelocity">Velocity the projectile is shot at.</param>
-    /// <param name="gravity">Acceleration due to gravity.</param>
-    /// <returns>The angle of the velocity, returns null if it cannot hit.</returns>
-    public float? GetArtilleryAngle(Vector2 target, float throwingVelocity, float gravity)
-    {
-        float theta = 0;
-        var A = (gravity * MathF.Pow(target.X, 2)) / (2 * MathF.Pow(throwingVelocity, 2));
-
-        if (-MathF.Sqrt(MathF.Pow(target.X, 2) + MathF.Pow(target.Y, 2)) <= (gravity / MathF.Pow(throwingVelocity, 2)) * MathF.Pow(target.X, 2) - target.Y)
-        {
-            if (0 <= target.X)
-                theta = MathF.Atan((-target.X + MathF.Sqrt(MathF.Pow(target.X, 2) - (4 * A * (A - target.Y)))) / (2 * A));
-            if (0 > target.X)
-                theta = MathF.PI + MathF.Atan((-target.X - MathF.Sqrt(MathF.Pow(target.X, 2) - (4 * A * (A - target.Y)))) / (2 * A));
-
-            return theta;
-        }
-
-        return null;
     }
 }

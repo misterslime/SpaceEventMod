@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.DataStructures;
+using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -110,7 +111,7 @@ public class Graphics : ModSystem
             );
             SpriteVertexBuffer.SetData([0f, 1f, 2f, 3f]);
 
-            SpriteEffect = Shaders.Trail.Quad.Value;
+            SpriteEffect = Assets.Assets.Shaders.Trail.Quad.Value;
             SpriteMatrix = SpriteEffect.Parameters["uMatrix"].values;
             SpriteColor = SpriteEffect.Parameters["uColor"].values;
             SpriteSource = SpriteEffect.Parameters["uSource"].values;

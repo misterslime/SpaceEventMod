@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Linq;
 using Terraria;
@@ -181,7 +182,7 @@ public class Dropling : ModNPC
         var canLunge = true;
         foreach (var neighbor in neighbors)
         {
-            if (neighbor.whoAmI != NPC.whoAmI && DistanceSegmentToPoint(NPC.Center, Main.player[NPC.target].Center, neighbor.Center) < separationRadius)
+            if (neighbor.whoAmI != NPC.whoAmI && neighbor.Center.DistanceSegmentToPoint(NPC.Center, Main.player[NPC.target].Center) < separationRadius)
             {
                 canLunge = false;
             }
@@ -202,47 +203,6 @@ public class Dropling : ModNPC
         NPC.damage = 10;
         return DroplingState.Biting;
 
-    }
-
-    /// <summary>
-    /// Cool method for figuring out if a circle is colliding with a line segment.
-    /// From this stackoverflow answer: https://stackoverflow.com/a/1079478
-    /// </summary>
-    /// <param name="A">Point A of the line segment.</param>
-    /// <param name="B">Point B of the line segment.</param>
-    /// <param name="C">Point C.</param>
-    /// <returns>Returns the distance from line segment AB to point C</returns>
-    public float DistanceSegmentToPoint(Vector2 A, Vector2 B, Vector2 C)
-    {
-        float Hypot2(Vector2 a, Vector2 b) => Vector2.Dot(a - b, a - b);
-
-        // Compute vectors AC and AB
-        var AC = C - A;
-        var AB = B - A;
-
-        // Get point D by taking the projection of AC onto AB then adding the offset of A
-        var D = Project(AC, AB) + A;
-
-        var AD = D - A;
-
-        // D might not be on AB so calculate k of D down AB (aka solve AD = k * AB)
-        // We can use either component, but choose larger value to reduce the chance of dividing by zero
-        var k = MathF.Abs(AB.X) > MathF.Abs(AB.Y) ? AD.X / AB.X : AD.Y / AB.Y;
-
-        // Check if D is off either end of the line segment
-        if (k <= 0.0)
-            return MathF.Sqrt(Hypot2(C, A));
-        else if (k >= 1.0)
-            return MathF.Sqrt(Hypot2(C, B));
-
-        return MathF.Sqrt(Hypot2(C, D));
-    }
-
-    // Function for projecting some vector A onto B
-    Vector2 Project(Vector2 A, Vector2 B)
-    {
-        var k = Vector2.Dot(A, B) / Vector2.Dot(B, B);
-        return new Vector2(k * B.X, k * B.Y);
     }
 
     #region Boids Algorithm

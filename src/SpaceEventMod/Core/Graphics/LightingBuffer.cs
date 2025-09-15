@@ -159,13 +159,13 @@ internal static class LightingBuffer
 
             var gd = Main.instance.GraphicsDevice;
 
-            var shader = Shaders.Fragment.LightMesh.Value;
+            var shader = Assets.Assets.Shaders.Fragment.LightMesh.Value;
 
             shader.Parameters["uWorldViewProjection"]?.SetValue(Graphics.WorldTransformMatrix);
             shader.Parameters["layer1Texture"]?.SetValue(texture);
             shader.Parameters["tintColor"]?.SetValue(_color.ToVector4());
 
-            foreach (EffectPass pass in shader.CurrentTechnique.Passes)
+            foreach (var pass in shader.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 gd.DrawUserIndexedPrimitives(
