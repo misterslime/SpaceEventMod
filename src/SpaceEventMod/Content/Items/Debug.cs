@@ -26,7 +26,7 @@ public class Debug : ModItem
             SpaceEvent.Sea = new FirmamentSea(16, 64, 3);
         else
         {
-            FirmamentSea sea = SpaceEvent.Sea;
+            var sea = SpaceEvent.Sea;
             sea.Despawning = sea.Despawning ? false : true;
             SpaceEvent.Sea = sea;
         }

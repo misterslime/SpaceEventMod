@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core;
 using SpaceEventMod.Core.Graphics;
+using SpaceEventMod.Core.Utilities;
 using System;
 using System.Linq;
 using Terraria;

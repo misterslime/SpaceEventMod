@@ -2,20 +2,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space;
 using SpaceEventMod.Content.Events.Space.LevelElements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.UI;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Common;
 
@@ -30,7 +23,7 @@ public class SpaceEventMapLayer : ModMapLayer
         if (Main.mapStyle == 2)
             return;
 
-        Texture2D whitePixel = Assets.Assets.Textures.WhitePixel.Value;
+        var whitePixel = Assets.Assets.Textures.WhitePixel.Value;
 
         // draw sea
         // help
@@ -50,22 +43,22 @@ public class SpaceEventMapLayer : ModMapLayer
             return dimensions[variant];
         }
 
-        foreach (Asteroid asteroid in Asteroids.List)
+        foreach (var asteroid in Asteroids.List)
         {
-            Vector2 scale = GetDimensions(asteroid.Variant) * context.MapScale;
-            Vector2 position = SpaceEvent.SeaToWorldCoordinates(asteroid.Transform.Position) / 16f;
+            var scale = GetDimensions(asteroid.Variant) * context.MapScale;
+            var position = SpaceEvent.SeaToWorldCoordinates(asteroid.Transform.Position) / 16f;
 
-            Color color = new Color(40, 35, 47);
+            var color = new Color(40, 35, 47);
 
             Draw(context, whitePixel, position, color, new SpriteFrame(1, 1, 0, 0), scale, scale, Alignment.TopLeft);
         }
 
         // draw stars
-        foreach (Content.Events.Space.LevelElements.Star star in Stars.List)
+        foreach (var star in Stars.List)
         {
-            Texture2D itemTexture = TextureAssets.Item[ItemID.FallenStar].Value;
+            var itemTexture = TextureAssets.Item[ItemID.FallenStar].Value;
 
-            Vector2 tilePosition = star.GetCenter() / 16f;
+            var tilePosition = star.GetCenter() / 16f;
 
             if (context.Draw(itemTexture, tilePosition, Color.White, new SpriteFrame(1, 8, 0, 0), 1f, 1.2f, Alignment.Center).IsMouseOver)
                 text = "Star (" + (star.Durability / 10f) + "%)";
@@ -78,14 +71,14 @@ public class SpaceEventMapLayer : ModMapLayer
         if (context.ClippingRectangle.HasValue && !context.ClippingRectangle.Value.Contains(position.ToPoint()))
             return false;
 
-        Rectangle sourceRectangle = frame.GetSourceRectangle(texture);
-        Vector2 vector = sourceRectangle.Size() * alignment.OffsetMultiplier;
-        Vector2 position2 = position;
+        var sourceRectangle = frame.GetSourceRectangle(texture);
+        var vector = sourceRectangle.Size() * alignment.OffsetMultiplier;
+        var position2 = position;
 
-        Vector2 scale = context.DrawScale * scaleIfNotSelected;
-        Vector2 vector2 = position - vector * scale;
+        var scale = context.DrawScale * scaleIfNotSelected;
+        var vector2 = position - vector * scale;
 
-        bool mouseSelected = new Rectangle((int)vector2.X, (int)vector2.Y, (int)((float)sourceRectangle.Width * scale.X), (int)((float)sourceRectangle.Height * scale.Y)).Contains(Main.MouseScreen.ToPoint());
+        var mouseSelected = new Rectangle((int)vector2.X, (int)vector2.Y, (int)((float)sourceRectangle.Width * scale.X), (int)((float)sourceRectangle.Height * scale.Y)).Contains(Main.MouseScreen.ToPoint());
 
         if (mouseSelected)
             scale = context.DrawScale * scaleIfSelected;

@@ -1,13 +1,10 @@
-using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Behavior.Automata;
 using System;
-using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Star = SpaceEventMod.Content.Events.Space.LevelElements.Star;
 
 namespace SpaceEventMod.Common.Actions.NPCs;
 
@@ -36,8 +33,8 @@ public struct DrinkStar : IState<ModNPC>
 
         if (wantStar.DrinkAnimation() && timer.Time >= 40)
         {
-            int starIndex = Stars.List.IndexOf(wantStar.ObservedStar);
-            Star star = wantStar.ObservedStar;
+            var starIndex = Stars.List.IndexOf(wantStar.ObservedStar);
+            var star = wantStar.ObservedStar;
 
             star.Durability -= 10;
 

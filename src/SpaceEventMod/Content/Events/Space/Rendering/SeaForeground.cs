@@ -2,10 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -36,8 +32,8 @@ public class SeaForeground : ILoadable
         screenPosition.Y = MathF.Floor(screenPosition.Y * 0.5f);
         screenPosition.Y *= 2f;
 
-        Color color1 = new Color(118, 129, 247);
-        Color color2 = new Color(169, 201, 234);
+        var color1 = new Color(118, 129, 247);
+        var color2 = new Color(169, 201, 234);
 
         var firmamentSeaForegroundShader = Assets.Assets.Shaders.Events.FirmamentSeaFoam.Value;
 

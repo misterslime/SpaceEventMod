@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Behavior;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Linq;
@@ -31,7 +30,7 @@ public class Dropling : ModNPC
     public static readonly SecondOrderDynamics DroplingVelocity = new SecondOrderDynamics(1f / 85f, 0.6f, 0.2f);
 
     public static readonly SecondOrderDynamics DroplingDeccelerate = new SecondOrderDynamics(1f / 85f, 1f, 0f);
-    
+
     public static readonly SecondOrderDynamics DroplingDash = new SecondOrderDynamics(1f / 85f, 1f, -1f);
 
     private ref float Timer => ref NPC.ai[1];
@@ -47,11 +46,11 @@ public class Dropling : ModNPC
         get => (DroplingAppendage)NPC.ai[2];
         set => NPC.ai[2] = (float)value;
     }
-    
+
     private Vector2 PreviousPosition { get; set; }
-    
+
     private Vector2 TargetPosition { get; set; }
-    
+
     private Vector2 TargetVelocity { get; set; }
 
     private Vector2 Acceleration { get; set; }
@@ -66,7 +65,7 @@ public class Dropling : ModNPC
             NPC.oldVelocity = value.PreviousPosition;
         }
     }
-    
+
     public Kinematics<Vector2> PositionKinematics
     {
         get => new Kinematics<Vector2>(NPC.Center, PreviousPosition, NPC.velocity);
@@ -121,7 +120,7 @@ public class Dropling : ModNPC
         return DroplingState.Moving;
 
     }
-    
+
     private DroplingState Moving()
     {
         NPC.TargetClosest(false);
@@ -129,36 +128,36 @@ public class Dropling : ModNPC
         if (!NPC.HasValidTarget)
             return DroplingState.Moving;
 
-        float cohesionWeight = 1.2f;
-        float separationWeight = 1.5f;
-        float alignmentWeight = 1.2f;
-        float targetWeight = 2f;
-        float surroundWeight = 1f;
-        
-        float separationRadius = 48f;
-        float radius = 20f * 16f;
-        float maxBitingDistance = 7.5f * 16f;
-        float minBitingDistance = 4f * 16f;
-        float distance = Vector2.Distance(Main.player[NPC.target].Center, NPC.Center);
-        
-        float maxSpeed = 4.5f;
+        var cohesionWeight = 1.2f;
+        var separationWeight = 1.5f;
+        var alignmentWeight = 1.2f;
+        var targetWeight = 2f;
+        var surroundWeight = 1f;
 
-        NPC[] neighbors = Main.npc.Where(x => x.type == ModContent.NPCType<Dropling>() && x.active && Vector2.Distance(NPC.Center, x.Center) < radius).ToArray();
+        var separationRadius = 48f;
+        var radius = 20f * 16f;
+        var maxBitingDistance = 7.5f * 16f;
+        var minBitingDistance = 4f * 16f;
+        var distance = Vector2.Distance(Main.player[NPC.target].Center, NPC.Center);
 
-        Vector2 target = (Main.player[NPC.target].Center - NPC.Center).SafeNormalize(Vector2.Zero) * targetWeight;
-        Vector2 cohesion = Cohesion(neighbors) * cohesionWeight;
-        Vector2 separation = Separation(neighbors, separationRadius) * separationWeight;
-        Vector2 alignment = Alignment(neighbors) * alignmentWeight;
-        Vector2 surround = Surrounding(neighbors, separationRadius) * surroundWeight;
+        var maxSpeed = 4.5f;
+
+        var neighbors = Main.npc.Where(x => x.type == ModContent.NPCType<Dropling>() && x.active && Vector2.Distance(NPC.Center, x.Center) < radius).ToArray();
+
+        var target = (Main.player[NPC.target].Center - NPC.Center).SafeNormalize(Vector2.Zero) * targetWeight;
+        var cohesion = Cohesion(neighbors) * cohesionWeight;
+        var separation = Separation(neighbors, separationRadius) * separationWeight;
+        var alignment = Alignment(neighbors) * alignmentWeight;
+        var surround = Surrounding(neighbors, separationRadius) * surroundWeight;
 
         if (Timer <= 60f || distance < minBitingDistance)
             target *= -2f;
-        
-        Vector2 forces = cohesion + separation + alignment + target + surround;
+
+        var forces = cohesion + separation + alignment + target + surround;
 
         NPC.rotation = NPC.rotation.AngleLerp(forces.ToRotation(), 0.075f);
 
-        bool lineOfSight = Vector2.Dot(forces.SafeNormalize(Vector2.Zero), NPC.rotation.ToRotationVector2()) >= 0.9;
+        var lineOfSight = Vector2.Dot(forces.SafeNormalize(Vector2.Zero), NPC.rotation.ToRotationVector2()) >= 0.9;
 
         if (lineOfSight && State == DroplingState.Moving)
         {
@@ -179,7 +178,7 @@ public class Dropling : ModNPC
         }
 
 
-        bool canLunge = true;
+        var canLunge = true;
         foreach (var neighbor in neighbors)
         {
             if (neighbor.whoAmI != NPC.whoAmI && DistanceSegmentToPoint(NPC.Center, Main.player[NPC.target].Center, neighbor.Center) < separationRadius)
@@ -189,7 +188,7 @@ public class Dropling : ModNPC
         }
 
         // check if the dropling should continue moving or if it should bite
-        bool inBiteRange = distance > minBitingDistance && distance <= maxBitingDistance;
+        var inBiteRange = distance > minBitingDistance && distance <= maxBitingDistance;
         if (!(Timer > 60f) || !canLunge || !lineOfSight || !inBiteRange)
         {
             return DroplingState.Moving;
@@ -204,7 +203,7 @@ public class Dropling : ModNPC
         return DroplingState.Biting;
 
     }
-    
+
     /// <summary>
     /// Cool method for figuring out if a circle is colliding with a line segment.
     /// From this stackoverflow answer: https://stackoverflow.com/a/1079478
@@ -213,23 +212,23 @@ public class Dropling : ModNPC
     /// <param name="B">Point B of the line segment.</param>
     /// <param name="C">Point C.</param>
     /// <returns>Returns the distance from line segment AB to point C</returns>
-    public float DistanceSegmentToPoint(Vector2 A, Vector2 B, Vector2 C) 
+    public float DistanceSegmentToPoint(Vector2 A, Vector2 B, Vector2 C)
     {
         float Hypot2(Vector2 a, Vector2 b) => Vector2.Dot(a - b, a - b);
 
         // Compute vectors AC and AB
-        Vector2 AC = C - A;
-        Vector2 AB = B - A;
-        
-        // Get point D by taking the projection of AC onto AB then adding the offset of A
-        Vector2 D = Project(AC, AB) + A;
+        var AC = C - A;
+        var AB = B - A;
 
-        Vector2 AD = D - A;
-        
+        // Get point D by taking the projection of AC onto AB then adding the offset of A
+        var D = Project(AC, AB) + A;
+
+        var AD = D - A;
+
         // D might not be on AB so calculate k of D down AB (aka solve AD = k * AB)
         // We can use either component, but choose larger value to reduce the chance of dividing by zero
-        float k = MathF.Abs(AB.X) > MathF.Abs(AB.Y) ? AD.X / AB.X : AD.Y / AB.Y;
-        
+        var k = MathF.Abs(AB.X) > MathF.Abs(AB.Y) ? AD.X / AB.X : AD.Y / AB.Y;
+
         // Check if D is off either end of the line segment
         if (k <= 0.0)
             return MathF.Sqrt(Hypot2(C, A));
@@ -238,20 +237,20 @@ public class Dropling : ModNPC
 
         return MathF.Sqrt(Hypot2(C, D));
     }
-    
+
     // Function for projecting some vector A onto B
-    Vector2 Project(Vector2 A, Vector2 B) 
+    Vector2 Project(Vector2 A, Vector2 B)
     {
-        float k = Vector2.Dot(A, B) / Vector2.Dot(B, B);
+        var k = Vector2.Dot(A, B) / Vector2.Dot(B, B);
         return new Vector2(k * B.X, k * B.Y);
     }
-    
+
     #region Boids Algorithm
 
     private Vector2 Cohesion(NPC[] neighbors)
     {
-        Vector2 centerOfMass = NPC.Center;
-        int count = 0;
+        var centerOfMass = NPC.Center;
+        var count = 0;
 
         foreach (var neighbor in neighbors)
         {
@@ -273,14 +272,14 @@ public class Dropling : ModNPC
 
     private Vector2 Separation(NPC[] neighbors, float separationRadius)
     {
-        Vector2 moveAway = Vector2.Zero;
-        int count = 0;
+        var moveAway = Vector2.Zero;
+        var count = 0;
 
         foreach (var neighbor in neighbors)
         {
             if (neighbor.whoAmI != NPC.whoAmI && Vector2.Distance(NPC.Center, neighbor.Center) < separationRadius && neighbor.ModNPC is Dropling dropling && dropling.State == DroplingState.Moving)
             {
-                Vector2 difference = NPC.Center - neighbor.Center;
+                var difference = NPC.Center - neighbor.Center;
                 moveAway += difference.SafeNormalize(Vector2.Zero) / difference.Length();
                 count++;
             }
@@ -296,8 +295,8 @@ public class Dropling : ModNPC
 
     private Vector2 Alignment(NPC[] neighbors)
     {
-        Vector2 averageVelocity = Vector2.Zero;
-        int count = 0;
+        var averageVelocity = Vector2.Zero;
+        var count = 0;
 
         foreach (var neighbor in neighbors)
         {
@@ -319,7 +318,7 @@ public class Dropling : ModNPC
 
     private Vector2 Surrounding(NPC[] neighbors, float separationRadius)
     {
-        Vector2 direction = Vector2.Zero;
+        var direction = Vector2.Zero;
         var distanceToNeighbor = float.MaxValue;
 
         foreach (var neighbor in neighbors)
@@ -339,7 +338,7 @@ public class Dropling : ModNPC
 
     public override void OnSpawn(IEntitySource source)
     {
-        Array values = Enum.GetValues(typeof(DroplingAppendage));
+        var values = Enum.GetValues(typeof(DroplingAppendage));
         Appendage = (DroplingAppendage)values.GetValue(Main.rand.Next(values.Length));
 
         TargetVelocity = Vector2.Zero;
@@ -352,8 +351,8 @@ public class Dropling : ModNPC
 
     public override void FindFrame(int frameHeight)
     {
-        int frameWidth = 44;
-        int frame = (int)Appendage - 1;
+        var frameWidth = 44;
+        var frame = (int)Appendage - 1;
 
         if (Appendage == DroplingAppendage.None)
             frame = 1;

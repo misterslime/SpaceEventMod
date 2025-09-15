@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -25,7 +20,7 @@ public class StarMining : ILoadable
 
         for (var i = 0; i < Stars.List.Count; i++)
         {
-            var hitStar = false; 
+            var hitStar = false;
             var destroyStar = false;
 
             Stars.List[i] = MineStar(Stars.List[i], self, sItem, x, y, out hitStar, out destroyStar);

@@ -1,25 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Newtonsoft.Json.Linq;
-using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Content.NPCs.Manaphages;
-using SpaceEventMod.Core;
-using SpaceEventMod.Core.Geometry;
-using SpaceEventMod.Core.Graphics;
-using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Utilities;
 using System;
-using System.Collections.Generic;
-using System.IO.Pipelines;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Content.Events.Space;
 
@@ -86,7 +74,7 @@ public class SpaceEvent : ModSystem
         {
             var enemyPosition = randomPosition + Main.rand.NextVector2CircularEdge(20 * 16, 20 * 16);
 
-            int n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)randomPosition.X, (int)randomPosition.Y, ModContent.NPCType<Manaphage>());
+            var n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)randomPosition.X, (int)randomPosition.Y, ModContent.NPCType<Manaphage>());
             if (Main.npc.IndexInRange(n))
                 NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
         }
@@ -126,13 +114,13 @@ public class SpaceEvent : ModSystem
 
         if (Main.netMode != NetmodeID.MultiplayerClient)
         {
-            int enemies = Main.rand.Next(1, 4);
+            var enemies = Main.rand.Next(1, 4);
 
-            for (int i = 0; i < enemies; i++)
+            for (var i = 0; i < enemies; i++)
             {
                 var enemyPosition = randomPosition + Main.rand.NextVector2CircularEdge(20 * 16, 20 * 16);
 
-                int n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)enemyPosition.X, (int)enemyPosition.Y, ModContent.NPCType<Manaphage>());
+                var n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)enemyPosition.X, (int)enemyPosition.Y, ModContent.NPCType<Manaphage>());
                 if (Main.npc.IndexInRange(n))
                     NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
             }

@@ -33,7 +33,7 @@ public class ManaCloud : ModProjectile
         var maxVelocity = Math.Clamp(Timer / 5, 0, 12);
         var lifetimeStarRadiusRatio = (float)Math.Clamp(maxVelocity / 12, 0, 1);
 
-        for (int i = 0; i < 3; i++)
+        for (var i = 0; i < 3; i++)
         {
             var mistPosition = Projectile.Center + Main.rand.NextVector2CircularEdge(1, 1) * Main.rand.NextFloat(10 * lifetimeStarRadiusRatio, 120 * lifetimeStarRadiusRatio);
             var rotate = MathHelper.ToRadians(Main.rand.NextFloat(-3, 0));

@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework;
 using System;
 
 namespace SpaceEventMod.Core.Physics;
@@ -9,7 +8,7 @@ public struct Kinematics<T>
     public T Position;
     public T Velocity;
 
-    public Kinematics(T initialInput, T initialVelocity = default) 
+    public Kinematics(T initialInput, T initialVelocity = default)
     {
         PreviousPosition = initialInput;
         Position = initialInput;
@@ -42,7 +41,7 @@ public class SecondOrderDynamics(float frequency, float dampening, float anticip
     /// <returns>The output position after integration.</returns>
     public Kinematics<T> Update<T>(float deltaTime, Kinematics<T> currentKinematics, dynamic inputPosition, bool setVelocity = false, dynamic velocity = default)
     {
-        Kinematics<T> kinematics = currentKinematics;
+        var kinematics = currentKinematics;
 
         dynamic currentInput = inputPosition;
         dynamic inputVelocity = velocity;

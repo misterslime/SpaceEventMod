@@ -1,14 +1,8 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Physics;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Content.Events.Space.LevelElements;
 

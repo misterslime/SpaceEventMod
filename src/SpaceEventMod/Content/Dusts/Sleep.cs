@@ -21,7 +21,7 @@ public class Sleep : ModDust
             return false;
         }
 
-        float scaleReduction = Math.Clamp(dust.fadeIn / 60, 0, 1);
+        var scaleReduction = Math.Clamp(dust.fadeIn / 60, 0, 1);
 
         dust.scale = scaleReduction * 0.7f + MathF.Pow(MathF.Sin((Main.GameUpdateCount + sleepData.RandomTimeDisplacement) / 15f), 2) * 0.3f;
         dust.rotation = MathF.Sin((Main.GameUpdateCount + sleepData.RandomTimeDisplacement) / 10f) * (MathF.PI / 180f) * 10;

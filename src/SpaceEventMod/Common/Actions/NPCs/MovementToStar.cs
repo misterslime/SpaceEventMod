@@ -3,9 +3,7 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Behavior.Automata;
 using System;
-using Terraria;
 using Terraria.ModLoader;
-using Star = SpaceEventMod.Content.Events.Space.LevelElements.Star;
 
 namespace SpaceEventMod.Common.Actions.NPCs;
 

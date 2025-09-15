@@ -7,7 +7,7 @@ using System.Linq;
 // Code written and provided by @steviegt6 at GitHub:
 // https://github.com/Path-of-Terraria/PathOfTerraria/blob/main/Core/Sources/SmartContentSource.cs
 // wtf ty math2 for letting me know this exists
-namespace SpaceEventMod.Core.Sources;
+namespace SpaceEventMod.Core.Utilities;
 
 internal sealed class RedirectContentSource(IContentSource source) : IContentSource
 {

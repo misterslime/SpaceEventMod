@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace SpaceEventMod.Core;
+namespace SpaceEventMod.Core.Utilities;
 
 public static class EasingFunctions
 {

@@ -1,10 +1,6 @@
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SpaceEventMod.Core.Behavior.Automata;
 

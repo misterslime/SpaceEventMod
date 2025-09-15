@@ -1,5 +1,3 @@
-using System;
-
 namespace SpaceEventMod.Core.Behavior.Automata;
 
 public interface IState<T>

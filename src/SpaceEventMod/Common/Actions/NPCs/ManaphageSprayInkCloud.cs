@@ -1,8 +1,6 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Content.NPCs.Manaphages;
-using SpaceEventMod.Core;
 using SpaceEventMod.Core.Behavior.Automata;
 using System;
 using Terraria;
@@ -54,7 +52,7 @@ public struct ManaphageSprayInkCloud : IState<ModNPC>
 
             var rotate = MathHelper.ToRadians(Main.rand.NextFloat(-3, 0));
 
-            for (int i = 0; i < 2; i++)
+            for (var i = 0; i < 2; i++)
             {
                 var mist = Dust.NewDustPerfect(npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * 29, ModContent.DustType<ManaInk>(), Main.rand.NextVector2Circular(1, 1));
                 mist.noGravity = true;

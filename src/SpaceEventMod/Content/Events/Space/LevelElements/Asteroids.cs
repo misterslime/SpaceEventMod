@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;

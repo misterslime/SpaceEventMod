@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.NPCs;
 using System;
 using Terraria;
 using Terraria.ModLoader;

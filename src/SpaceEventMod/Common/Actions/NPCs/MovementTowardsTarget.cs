@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Core.Behavior.Automata;
 using Terraria;
