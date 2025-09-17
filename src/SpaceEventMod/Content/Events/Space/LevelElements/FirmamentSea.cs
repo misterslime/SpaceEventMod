@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Physics;
 using System;
 using System.Collections.Generic;
@@ -238,15 +239,18 @@ public struct FirmamentSea
                     {
                         var end = Position + new Vector2(NodeWidth * (nodeLocation + 1), next.Value.Position);
 
+                        Line line = new Line(nodePosition, end);
+                        Line projectileLine = new Line(projectile.Center - projectile.velocity * 3f, projectile.Center + projectile.velocity);
+
                         if (!(projectile.getRect().Left > end.X || projectile.getRect().Right < nodePosition.X))
                         {
-                            if (LineLine(nodePosition, end, projectile.Center - projectile.velocity * 3f, projectile.Center + projectile.velocity))
+                            if (line.Intersects(projectileLine))
                             {
                                 node.Velocity = projectile.velocity.Y;
                                 projectile.Kill();
                             }
 
-                            if (LineRect(nodePosition, end, projectile.getRect()))
+                            if (line.Intersects(projectile.getRect()))
                             {
                                 node.Velocity = projectile.velocity.Y;
                                 projectile.Kill();
@@ -270,27 +274,5 @@ public struct FirmamentSea
         newSea.Active = Math.Abs(SeaPos.Height.Velocity) < 1 && Despawning;
 
         return newSea;
-    }
-
-    private bool LineRect(Vector2 lineStart, Vector2 lineEnd, Rectangle rectangle)
-    {
-        var left = LineLine(lineStart, lineEnd, rectangle.TopLeft(), rectangle.BottomLeft());
-        var right = LineLine(lineStart, lineEnd, rectangle.TopRight(), rectangle.BottomRight());
-        var top = LineLine(lineStart, lineEnd, rectangle.TopLeft(), rectangle.TopRight());
-        var bottom = LineLine(lineStart, lineEnd, rectangle.BottomLeft(), rectangle.BottomRight());
-
-        return left || right || top || bottom;
-    }
-
-    private bool LineLine(Vector2 line1Start, Vector2 line1End, Vector2 line2Start, Vector2 line2End)
-    {
-        var uA = ((line2End.X - line2Start.X) * (line1Start.Y - line2Start.Y) - (line2End.Y - line2Start.Y) * (line1Start.X - line2Start.X)) / ((line2End.Y - line2Start.Y) * (line1End.X - line1Start.X) - (line2End.X - line2Start.X) * (line1End.Y - line1Start.Y));
-
-        var uB = ((line1End.X - line1Start.X) * (line1Start.Y - line2Start.Y) - (line1End.Y - line1Start.Y) * (line1Start.X - line2Start.X)) / ((line2End.Y - line2Start.Y) * (line1End.X - line1Start.X) - (line2End.X - line2Start.X) * (line1End.Y - line1Start.Y));
-
-        return uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1;
-
-        //float intersectionX = line1Start.X + (uA * (line1End.X - line1Start.X));
-        //float intersectionY = line1Start.Y + (uA * (line1End.Y - line1Start.Y));
     }
 }

@@ -1,9 +1,11 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Linq;
+using SpaceEventMod.Core.Geometry;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
@@ -328,7 +330,23 @@ public class Dropling : ModNPC
         var scale = Vector2.One * NPC.scale;
         var origin = new Vector2(NPC.width, NPC.height) * 0.5f;
 
-        Main.EntitySpriteDraw(texture, drawPosition, NPC.frame, NPC.GetAlpha(drawColor), NPC.rotation + MathHelper.PiOver2, origin, scale, 0);
+        var drawBegin = drawPosition + NPC.rotation.ToRotationVector2() * NPC.height * 0.5f;
+        var drawEnd = drawPosition - NPC.rotation.ToRotationVector2() * NPC.height * 0.5f;
+
+        Line line = new Line(drawBegin, drawEnd);
+        
+        /*Graphics.BeginPipeline(0.5f)
+            .DrawTrail(
+                line.GetPoints(10),
+                _ => NPC.width,
+                _ => Color.White,
+                Assets.Assets.Shaders.Trail.BendyTexture.Value,
+                ("transformMatrix", Graphics.WorldTransformMatrix),
+                ("sampleTexture", texture)).Flush();*/
+        
+        Graphics.BeginPipeline(1f)
+            .DrawSprite(texture, drawPosition, Color.White, NPC.frame, NPC.rotation + MathHelper.PiOver2, origin, scale, 0f).Schedule(RenderLayer.AfterNPCs);
+
         return false;
     }
 }
