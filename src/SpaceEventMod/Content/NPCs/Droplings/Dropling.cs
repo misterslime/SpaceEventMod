@@ -2,10 +2,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Utilities;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using SpaceEventMod.Core.Geometry;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
@@ -80,10 +81,14 @@ public class Dropling : ModNPC
         }
     }
 
+    private float desiredRotation = 0;
+    private float tailRotation = 0;
+    private float wiggleTimer = 0;
+
     public override void SetDefaults()
     {
-        NPC.width = 42;
-        NPC.height = 46;
+        NPC.width = 50;
+        NPC.height = 42;
         NPC.damage = 0;
         NPC.defense = 16;
         NPC.lifeMax = 250;
@@ -110,7 +115,8 @@ public class Dropling : ModNPC
     private DroplingState Biting()
     {
         PositionKinematics = DroplingDash.Update(1, PositionKinematics, TargetPosition);
-        NPC.rotation = NPC.rotation.AngleLerp((TargetPosition - NPC.Center).ToRotation(), 0.075f);
+        desiredRotation = (TargetPosition - NPC.Center).ToRotation();
+        NPC.rotation = NPC.rotation.AngleLerp(desiredRotation, 0.075f);
 
         if (!(Timer > 70f))
         {
@@ -158,9 +164,10 @@ public class Dropling : ModNPC
 
         var forces = cohesion + separation + alignment + target + surround;
 
-        NPC.rotation = NPC.rotation.AngleLerp(forces.ToRotation(), 0.075f);
+        desiredRotation = forces.ToRotation();
+        NPC.rotation = NPC.rotation.AngleLerp(desiredRotation, 0.075f);
 
-        var lineOfSight = Vector2.Dot(forces.SafeNormalize(Vector2.Zero), NPC.rotation.ToRotationVector2()) >= 0.9;
+        var lineOfSight = Vector2.Dot(forces.SafeNormalize(Vector2.Zero), NPC.rotation.ToRotationVector2()) >= 0.96;
 
         if (lineOfSight && State == DroplingState.Moving)
         {
@@ -311,41 +318,86 @@ public class Dropling : ModNPC
         Main.NewText(Appendage.ToString());
     }
 
-    public override void FindFrame(int frameHeight)
+    private int AppendageFrame()
     {
-        var frameWidth = 44;
         var frame = (int)Appendage - 1;
 
         if (Appendage == DroplingAppendage.None)
             frame = 1;
 
-        NPC.frame.X = frame * frameWidth;
-        NPC.frame.Width = frameWidth - 2;
+        return frame;
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
+        tailRotation = tailRotation.AngleLerp(NPC.rotation, 0.05f);
+
         var texture = TextureAssets.Npc[Type].Value;
-        var drawPosition = NPC.Center - Main.screenPosition;
+        var drawPosition = NPC.Center;
         var scale = Vector2.One * NPC.scale;
         var origin = new Vector2(NPC.width, NPC.height) * 0.5f;
 
-        var drawBegin = drawPosition + NPC.rotation.ToRotationVector2() * NPC.height * 0.5f;
-        var drawEnd = drawPosition - NPC.rotation.ToRotationVector2() * NPC.height * 0.5f;
+        var headPosition = NPC.rotation.ToRotationVector2();
+        var tailPosition = tailRotation.ToRotationVector2();
 
-        Line line = new Line(drawBegin, drawEnd);
-        
-        /*Graphics.BeginPipeline(0.5f)
+        var segments = 20;
+        var trailPoints = new List<Vector2>(segments + 1);
+
+        var bendiness = Vector2.Dot(headPosition, tailPosition);
+        var midPoint = tailRotation.AngleLerp(NPC.rotation + MathF.PI, 0.5f).ToRotationVector2() * (1 - bendiness) * NPC.height * 0.5f;
+        drawPosition += midPoint;
+
+        headPosition *= NPC.width * 0.5f;
+        headPosition = drawPosition + headPosition;
+
+        tailPosition *= NPC.width * 0.5f;
+        tailPosition = drawPosition - tailPosition;
+
+        ReadOnlySpan<Vector2> controlPoints = new Vector2[] { headPosition, drawPosition, tailPosition };
+        using (var curve = new BezierCurve(controlPoints))
+            trailPoints = curve.GetPoints(segments + 1);
+
+        var newTrailPoints = trailPoints;
+
+        var wiggleStrength = Math.Clamp(NPC.velocity.Length() * 0.5f, 1, 4);
+        var sineLimit = (3.5f * MathF.PI) / 2;
+
+        wiggleTimer += 1 / 8f + wiggleStrength / 30f;
+
+        for (var i = 0; i < trailPoints.Count; i++)
+        {
+            if (i < trailPoints.Count - 1)
+            {
+                var point = trailPoints[i];
+                var nextPoint = trailPoints[i + 1];
+
+                var displacement = point - nextPoint;
+                displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
+
+                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + wiggleTimer);
+            }
+            else
+            {
+                var point = trailPoints[i];
+                var previousPoint = trailPoints[i - 1];
+
+                var displacement = previousPoint - point;
+                displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
+
+                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + wiggleTimer);
+            }
+        }
+
+        Graphics.BeginPipeline(0.5f)
             .DrawTrail(
-                line.GetPoints(10),
-                _ => NPC.width,
+                trailPoints.ToArray(),
+                _ => NPC.height,
                 _ => Color.White,
                 Assets.Assets.Shaders.Trail.BendyTexture.Value,
                 ("transformMatrix", Graphics.WorldTransformMatrix),
-                ("sampleTexture", texture)).Flush();*/
-        
-        Graphics.BeginPipeline(1f)
-            .DrawSprite(texture, drawPosition, Color.White, NPC.frame, NPC.rotation + MathHelper.PiOver2, origin, scale, 0f).Schedule(RenderLayer.AfterNPCs);
+                ("sampleTexture", texture),
+                ("frame", new Vector4(0, (float)AppendageFrame(), 1, 3)))
+            .Schedule(RenderLayer.AfterNPCs);
 
         return false;
     }

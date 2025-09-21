@@ -239,8 +239,8 @@ public struct FirmamentSea
                     {
                         var end = Position + new Vector2(NodeWidth * (nodeLocation + 1), next.Value.Position);
 
-                        Line line = new Line(nodePosition, end);
-                        Line projectileLine = new Line(projectile.Center - projectile.velocity * 3f, projectile.Center + projectile.velocity);
+                        var line = new Line(nodePosition, end);
+                        var projectileLine = new Line(projectile.Center - projectile.velocity * 3f, projectile.Center + projectile.velocity);
 
                         if (!(projectile.getRect().Left > end.X || projectile.getRect().Right < nodePosition.X))
                         {

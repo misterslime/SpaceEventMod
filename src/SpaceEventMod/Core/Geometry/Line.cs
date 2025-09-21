@@ -1,9 +1,4 @@
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 
 namespace SpaceEventMod.Core.Geometry;
@@ -19,21 +14,12 @@ public struct Line(Vector2 point1, Vector2 point2)
 
     public Vector2[] GetPoints(int quantity)
     {
+        var scale = 1f / quantity;
         var points = new Vector2[quantity];
-        float yDifference = point2.Y - point1.Y, xDifference = point2.X - point1.X;
-        float slope = yDifference / xDifference;
-        float x, y;
 
-        --quantity;
+        for (var i = 0; i < quantity; i++)
+            points[i] = Vector2.Lerp(point1, point2, scale * i);
 
-        for (float i = 0; i < quantity; i++)
-        {
-            y = slope == 0 ? 0 : yDifference * (i / quantity);
-            x = slope == 0 ? xDifference * (i / quantity) : y / slope;
-            points[(int)i] = new Vector2(MathF.Round(x) + point1.X, MathF.Round(y) + point1.Y);
-        }
-
-        points[quantity] = point2;
         return points;
     }
 
@@ -62,8 +48,8 @@ public struct Line(Vector2 point1, Vector2 point2)
 
         var uB = ((this.point2.X - this.point1.X) * (this.point1.Y - line.point1.Y) - (this.point2.Y - this.point1.Y) * (this.point1.X - line.point1.X)) / ((line.point2.Y - line.point1.Y) * (this.point2.X - this.point1.X) - (line.point2.X - line.point1.X) * (this.point2.Y - this.point1.Y));
 
-        float intersectionX = this.point1.X + (uA * (this.point2.X - this.point1.X));
-        float intersectionY = this.point1.Y + (uA * (this.point2.Y - this.point1.Y));
+        var intersectionX = this.point1.X + (uA * (this.point2.X - this.point1.X));
+        var intersectionY = this.point1.Y + (uA * (this.point2.Y - this.point1.Y));
 
         return new Vector2(intersectionX, intersectionY);
     }
