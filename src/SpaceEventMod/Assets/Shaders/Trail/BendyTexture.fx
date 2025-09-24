@@ -10,7 +10,7 @@ texture sampleTexture;
 sampler sampleTextureSampler = sampler_state
 {
     Texture = (sampleTexture);
-    Filter = MIN_MAG_MIP_POINT;
+    Filter = MIN_MAG_MIP_LINEAR;
     AddressU = clamp;
     AddressV = clamp;
 };
