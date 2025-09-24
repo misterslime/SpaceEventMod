@@ -1,4 +1,6 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.Graphics;
 using System;
 using Terraria;
 using Terraria.ModLoader;
@@ -37,5 +39,21 @@ public class Sleep : ModDust
         return false;
     }
 
-    public override bool PreDraw(Dust dust) => false;
+    public override bool PreDraw(Dust dust)
+    {
+        var sleepTexture = Assets.Assets.Textures.Dusts.Sleep.Value;
+
+        Graphics.BeginPipeline(0.5f)
+            .DrawSprite(
+                sleepTexture,
+                dust.position - Main.screenPosition,
+                dust.color,
+                sleepTexture.Frame(),
+                dust.rotation,
+                sleepTexture.Size() * 0.5f,
+                new Vector2(dust.scale))
+            .Schedule(RenderLayer.AfterNPCs);
+
+        return false;
+    }
 }

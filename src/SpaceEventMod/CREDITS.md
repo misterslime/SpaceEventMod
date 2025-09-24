@@ -15,6 +15,6 @@ https://github.com/Path-of-Terraria/PathOfTerraria/blob/main/Core/Sources/SmartC
 The space sea was made using this tutorial.
 https://code.tutsplus.com/make-a-splash-with-dynamic-2d-water-effects--gamedev-236t 
 
-The graphics pipeline in this mod was borrowed from the All Beginnings mod with permission.
+The graphics pipeline and bezier curves in this mod was borrowed from the All Beginnings mod with permission.
 https://github.com/mayli4/AllBeginningsMod/tree/main/src/AllBeginningsMod/Common/Graphics
 

@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content.Sources;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Utilities;
@@ -7,7 +8,7 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod;
 
-public class SpaceEventMod : Mod
+internal class SpaceEventMod : Mod
 {
     internal static SpaceEventMod Instance { get; private set; }
 
