@@ -43,13 +43,17 @@ public class SeaBackground : ILoadable
         drawBackgroundPrimitives.Invoke(new Color(10, 0, 100), new Color(10, 0, 100));
 
         // sea bubbles
+        Matrix pixelationMatrix = Main.GameViewMatrix.TransformationMatrix
+            * Matrix.CreateScale(0.5f / Main.GameViewMatrix.Zoom.X, 0.5f / Main.GameViewMatrix.Zoom.Y, 1f)
+            * Matrix.CreateTranslation(Main.GameViewMatrix.Translation.X * 0.5f, Main.GameViewMatrix.Translation.Y * 0.5f, 0f);
+
         var palette = Assets.Assets.Textures.Palettes.FirmamentSea.NightBackground2.Value;
         Vector3[] sampleOffsetsAndScales = [new Vector3(0.02f, 0.03f, 0.7f), new Vector3(0.05f, 0.05f, 1), new Vector3(-0.03f, 0.02f, 0.85f)];
         var bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.15f, 1f, 0.5f, 0.35f, 0.3f);
         var color = Color.White;
         color.A = 40;
 
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, PixelRenderer.GetPixelationMatrix());
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, pixelationMatrix);
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
 
@@ -58,7 +62,7 @@ public class SeaBackground : ILoadable
         bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.2f, 0.7f, 0.35f, 0.4f, 0.5f);
         color.A = 100;
 
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, PixelRenderer.GetPixelationMatrix());
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, pixelationMatrix);
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
 
@@ -67,7 +71,7 @@ public class SeaBackground : ILoadable
         bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.3f, 1f, 0f, 0.4f, 0.85f);
         color.A = 180;
 
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, PixelRenderer.GetPixelationMatrix());
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, pixelationMatrix);
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
     }
