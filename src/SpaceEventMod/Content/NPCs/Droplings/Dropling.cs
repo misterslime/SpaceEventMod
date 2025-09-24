@@ -12,17 +12,16 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static SpaceEventMod.Assets.Assets.Textures.NPCs;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Content.NPCs.Droplings;
 
+[Flags]
 public enum DroplingAppendage
 {
-    None = 0,
-    Flagellum = 1,
-    BigJaw = 2,
-    Wings = 3
+    None       = 0b_0000_0000,
+    Flagellum  = 0b_0000_0001,
+    BigJaw     = 0b_0000_0010,
+    Wings      = 0b_0000_0100
 }
 
 public enum DroplingState
@@ -89,9 +88,11 @@ public class Dropling : ModNPC
     private float tailRotation = 0;
     private float wiggleTimer = 0;
 
+    private bool HasAppendage(DroplingAppendage appendage) => (Appendage & appendage) == appendage;
+
     public override void SetDefaults()
     {
-        NPC.width = 50;
+        NPC.width = 46;
         NPC.height = 42;
         NPC.damage = 0;
         NPC.defense = 16;
@@ -107,8 +108,7 @@ public class Dropling : ModNPC
 
     public override void OnSpawn(IEntitySource source)
     {
-        var values = Enum.GetValues(typeof(DroplingAppendage));
-        Appendage = (DroplingAppendage)values.GetValue(Main.rand.Next(values.Length));
+        Appendage = (DroplingAppendage)Main.rand.Next(0, 8);
 
         TargetVelocity = Vector2.Zero;
         Acceleration = Vector2.Zero;
@@ -322,10 +322,16 @@ public class Dropling : ModNPC
 
     private int AppendageFrame()
     {
-        var frame = (int)Appendage - 1;
+        var frame = 1;
 
-        if (Appendage == DroplingAppendage.None)
-            frame = 1;
+        if (HasAppendage(DroplingAppendage.Wings))
+            frame = 2;
+
+        if (HasAppendage(DroplingAppendage.Flagellum))
+            frame = 0;
+
+        if (HasAppendage(DroplingAppendage.Wings) && HasAppendage(DroplingAppendage.Flagellum))
+            frame = 3;
 
         return frame;
     }
@@ -355,19 +361,23 @@ public class Dropling : ModNPC
         tailPosition *= NPC.width * 0.5f;
         tailPosition = drawPosition - tailPosition;
 
-        ReadOnlySpan<Vector2> controlPoints = stackalloc Vector2[] { headPosition, drawPosition, tailPosition };
+        ReadOnlySpan<Vector2> controlPoints = new Vector2[] { headPosition, drawPosition, tailPosition };
         using (var curve = new BezierCurve(controlPoints))
             trailPoints = curve.GetPoints(segments + 1);
 
         var wiggleStrength = Math.Clamp(NPC.velocity.Length() * 0.5f, 1, 4);
         var sineLimit = (3.5f * MathF.PI) / 2;
 
-        Vector2[] trailPointsArray = ApplyWiggleToPoints(trailPoints, wiggleStrength, sineLimit, bendiness);
+        Vector2[] trailPointsArray = ApplyWiggleToPoints(in trailPoints, wiggleStrength, sineLimit, bendiness);
 
-        if (Appendage == DroplingAppendage.Wings)
-            DrawWings(in trailPointsArray, trailPoints[7], screenPos, drawColor);
+        Pipeline pipeline = Graphics.BeginPipeline();
 
-        Graphics.BeginPipeline(0.5f)
+        if (HasAppendage(DroplingAppendage.Wings))
+        {
+            DrawWings(in pipeline, in trailPointsArray, trailPoints[7], screenPos, drawColor);
+        }
+
+        pipeline
             .DrawTrail(
                 trailPointsArray,
                 _ => NPC.height,
@@ -375,7 +385,16 @@ public class Dropling : ModNPC
                 Assets.Assets.Shaders.Trail.BendyTexture.Value,
                 ("transformMatrix", Graphics.WorldTransformMatrix),
                 ("sampleTexture", texture),
-                ("frame", new Vector4(0, (float)AppendageFrame(), 1, 3)))
+                ("frame", new Vector4(0, (float)AppendageFrame(), 1, 4)));
+
+        if (HasAppendage(DroplingAppendage.Wings))
+        {
+            DrawWings(in pipeline, in trailPointsArray, trailPoints[7], screenPos, drawColor, true);
+        }
+
+        pipeline
+            .ApplyOutline(new Color(23, 23, 130))
+            .ApplyOutline(new Color(23, 23, 130))
             .Schedule(RenderLayer.AfterNPCs);
 
         Texture2D starTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingStar.Value;
@@ -391,20 +410,20 @@ public class Dropling : ModNPC
         float heartbeat = 0;
 
         if (time <= 0.15)
-            heartbeat = EasingFunctions.CircEaseInOut(time / 0.15f);
+            heartbeat = EasingFunctions.QuintEaseInOut(time / 0.15f);
         else if (time <= 0.15 + 0.15)
-            heartbeat = 1 - EasingFunctions.SineEaseOut((time - 0.15f) / 0.15f);
+            heartbeat = 1 - EasingFunctions.CircEaseIn((time - 0.15f) / 0.15f);
         else if (time <= 0.15 + 0.15 + 0.1)
-            heartbeat = 0;
+            heartbeat = 0.20f;
         else if (time <= 0.15 + 0.15 + 0.1 + 0.15)
-            heartbeat = 0.75f * EasingFunctions.CircEaseInOut((time - 0.15f - 0.15f - 0.1f) / 0.15f);
+            heartbeat = 0.20f + 0.55f * EasingFunctions.SineEaseIn((time - 0.15f - 0.15f - 0.1f) / 0.15f);
         else if (time <= 0.15 + 0.15 + 0.1 + 0.15 + 0.15)
-            heartbeat = 0.75f - 0.75f * EasingFunctions.SineEaseOut((time - 0.15f - 0.15f - 0.1f - 0.15f) / 0.15f);
+            heartbeat = 0.75f - 0.75f * EasingFunctions.CircEaseIn((time - 0.15f - 0.15f - 0.1f - 0.15f) / 0.15f);
         else if (time <= 0.15 + 0.15 + 0.1 + 0.15 + 0.15 + 0.65)
             heartbeat = 0;
 
         float starScale = 0.75f + 0.75f * heartbeat;
-        float starRotation = (trailPoints[7] - trailPoints[8]).ToRotation() + MathHelper.PiOver4 * 0.5f * heartbeat;
+        float starRotation = (trailPoints[7] - trailPoints[8]).ToRotation();
 
         Color starColor = Color.Cyan;
         starColor.A = 0;
@@ -443,20 +462,15 @@ public class Dropling : ModNPC
         Vector2 jawPosition = trailPoints[0] - screenPos;
         float jawRotation = MathHelper.WrapAngle((trailPoints[1] - trailPoints[0]).ToRotation() - MathHelper.PiOver2);
 
-        switch (Appendage)
-        {
-            case DroplingAppendage.BigJaw:
-                spriteBatch.Draw(bigJawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["bigJaw"], NPC.scale, 0, 0);
-                break;
-            default:
-                spriteBatch.Draw(jawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["jaw"], NPC.scale, 0, 0);
-                break;
-        }
+        if (HasAppendage(DroplingAppendage.BigJaw))
+            spriteBatch.Draw(bigJawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["bigJaw"], NPC.scale, 0, 0);
+        else
+            spriteBatch.Draw(jawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["jaw"], NPC.scale, 0, 0);
 
         return false;
     }
 
-    private Vector2[] ApplyWiggleToPoints(List<Vector2> trailPoints, float wiggleStrength, float sineLimit, float bendiness)
+    private Vector2[] ApplyWiggleToPoints(in List<Vector2> trailPoints, float wiggleStrength, float sineLimit, float bendiness)
     {
         var newTrailPoints = trailPoints;
 
@@ -489,40 +503,64 @@ public class Dropling : ModNPC
         return newTrailPoints.ToArray();
     }
 
-    private void DrawWings(in Vector2[] trailPoints, Vector2 drawPosition, Vector2 screenPos, Color drawColor)
+    private void DrawWings(in Pipeline pipeline, in Vector2[] trailPoints, Vector2 drawPosition, Vector2 screenPos, Color drawColor, bool drawingGlow = false)
     {
         Texture2D wingTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingWing.Value;
+        Texture2D glowTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingWing_Glow.Value;
 
         Vector2 wingPosition = new Vector2(6, 26);
 
-        float wingRotation = MathHelper.WrapAngle((trailPoints[5] - trailPoints[4]).ToRotation()) - NPC.rotation;
+        float wingRotation = MathHelper.WrapAngle((trailPoints[5] - trailPoints[4]).ToRotation());
 
         desiredRotation = desiredRotation.AngleLerp(NPC.velocity.Length() * (State == DroplingState.Biting ? 0.30f : 0.08f), 0.1f);
 
-        float leftWingRotation = MathHelper.WrapAngle(NPC.rotation + wingRotation - desiredRotation);
-        float rightWingRotation = MathHelper.WrapAngle(NPC.rotation + wingRotation + desiredRotation);
+        float leftWingRotation = MathHelper.WrapAngle(wingRotation - desiredRotation);
+        float rightWingRotation = MathHelper.WrapAngle(wingRotation + desiredRotation);
 
         Vector2 leftDrawPosition = wingPosition.RotatedBy(leftWingRotation);
         Vector2 rightDrawPosition = (wingPosition * -Vector2.UnitY).RotatedBy(rightWingRotation);
 
-        Graphics.BeginPipeline()
-            .DrawSprite(
-                wingTexture,
-                leftDrawPosition + drawPosition - screenPos,
-                drawColor,
-                null,
-                leftWingRotation,
-                wingTexture.Size() * 0.5f,
-                new Vector2(NPC.scale))
-            .DrawSprite(
-                wingTexture,
-                rightDrawPosition + drawPosition - screenPos,
-                drawColor,
-                null,
-                rightWingRotation,
-                wingTexture.Size() * 0.5f,
-                new Vector2(NPC.scale),
-                SpriteEffects.FlipVertically)
-            .Schedule(RenderLayer.AfterNPCs);
+        if (drawingGlow)
+        {
+            pipeline
+                .DrawSprite(
+                    glowTexture,
+                    leftDrawPosition + drawPosition - screenPos,
+                    Color.White,
+                    null,
+                    leftWingRotation,
+                    wingTexture.Size() * 0.5f,
+                    new Vector2(NPC.scale))
+                .DrawSprite(
+                    glowTexture,
+                    rightDrawPosition + drawPosition - screenPos,
+                    Color.White,
+                    null,
+                    rightWingRotation,
+                    wingTexture.Size() * 0.5f,
+                    new Vector2(NPC.scale),
+                    SpriteEffects.FlipVertically);
+        }
+        else
+        {
+            pipeline
+                .DrawSprite(
+                    wingTexture,
+                    leftDrawPosition + drawPosition - screenPos,
+                    drawColor,
+                    null,
+                    leftWingRotation,
+                    wingTexture.Size() * 0.5f,
+                    new Vector2(NPC.scale))
+                .DrawSprite(
+                    wingTexture,
+                    rightDrawPosition + drawPosition - screenPos,
+                    drawColor,
+                    null,
+                    rightWingRotation,
+                    wingTexture.Size() * 0.5f,
+                    new Vector2(NPC.scale),
+                    SpriteEffects.FlipVertically);
+        }
     }
 }

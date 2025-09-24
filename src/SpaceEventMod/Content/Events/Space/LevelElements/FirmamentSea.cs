@@ -130,7 +130,7 @@ public struct FirmamentSea
             {
                 var acceleration = -tension * newSea.Springs[chunk][spring].Position - dampening * newSea.Springs[chunk][spring].Velocity;
 
-                // euler integration
+                // semi-implicit euler integration
                 var newSpring = newSea.Springs[chunk][spring];
                 newSpring.Velocity += acceleration;
                 newSpring.Position += newSpring.Velocity;

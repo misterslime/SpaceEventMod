@@ -87,8 +87,8 @@ public class SeaBackground : ILoadable
         firmamentSeaBackgroundShader.Parameters["distortion"].SetValue(Assets.Assets.Textures.Noise.Perlin.Value);
         firmamentSeaBackgroundShader.Parameters["palette"].SetValue(palette);
         firmamentSeaBackgroundShader.Parameters["sampleOffsetsAndScales"].SetValue(sampleOffsetsAndScales);
-        firmamentSeaBackgroundShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
-        firmamentSeaBackgroundShader.Parameters["screenWorldPosition"].SetValue(SpaceEvent.WorldToSeaCoordinates(Main.screenPosition)); // this is being halved because its being pixelated
+        firmamentSeaBackgroundShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight) * 1.75f);
+        firmamentSeaBackgroundShader.Parameters["screenWorldPosition"].SetValue(SpaceEvent.WorldToSeaCoordinates(Main.screenPosition));
         firmamentSeaBackgroundShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly * speed);
         firmamentSeaBackgroundShader.Parameters["gradientLength"].SetValue(gradientLength);
         firmamentSeaBackgroundShader.Parameters["gradientStart"].SetValue(gradientStart);
