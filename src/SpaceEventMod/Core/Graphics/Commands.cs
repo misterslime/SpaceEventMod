@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -34,6 +35,7 @@ public enum CommandType : byte
 {
     DrawTrail,
     DrawSprite,
+    DrawMesh,
 
     Begin,
     End,
@@ -48,6 +50,14 @@ public enum CommandType : byte
 
 public record struct SamplerStateData(int Index, SamplerState State);
 public record struct TextureData(int Index, Texture2D Texture);
+
+public record struct DrawMeshData(
+    int VerticesIndex,
+    int VertexCount,
+    PrimitiveType PrimitiveType,
+    int VerticesPerPrimitive,
+    int EffectDataIndex
+);
 
 public record struct DrawSpriteData(
     Texture2D Texture,

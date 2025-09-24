@@ -42,6 +42,8 @@ public class Graphics : ModSystem
     public readonly List<BeginData> BeginDatas = [];
     public readonly List<EffectData> EffectDatas = [];
     public readonly List<Vector2> PositionDatas = [];
+    public readonly List<VertexPositionColor> VertexDatas = [];
+    public readonly List<DrawMeshData> MeshDatas = [];
 
     public Commands Cache = new();
 
@@ -210,6 +212,8 @@ public class Graphics : ModSystem
         BeginDatas.Clear();
         EffectDatas.Clear();
         PositionDatas.Clear();
+        MeshDatas.Clear();
+        VertexDatas.Clear();
 
         BeforeTiles.Clear();
         AfterTiles.Clear();
@@ -257,6 +261,9 @@ public class Graphics : ModSystem
                     break;
                 case CommandType.DrawSprite:
                     r.RunDrawSprite(dataIndex);
+                    break;
+                case CommandType.DrawMesh:
+                    r.RunDrawMesh(dataIndex);
                     break;
                 case CommandType.Begin:
                     r.RunBegin(dataIndex);
@@ -316,6 +323,34 @@ public class Graphics : ModSystem
         {
             var samplerStateData = graphics.SamplerStateDatas[index];
             GraphicsDevice.SamplerStates[samplerStateData.Index] = samplerStateData.State;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void RunDrawMesh(int index)
+        {
+            var meshData = graphics.MeshDatas[index];
+            if (meshData.PrimitiveType == PrimitiveType.LineStrip || meshData.PrimitiveType == PrimitiveType.TriangleStrip)
+            {
+                throw new NotSupportedException("The specified primitiveType is not supported right now.");
+            }
+
+            var meshVertices = CollectionsMarshal
+                .AsSpan(graphics.VertexDatas)[meshData.VerticesIndex..(meshData.VerticesIndex + meshData.VertexCount)];
+
+            var primitiveCount = meshVertices.Length / meshData.VerticesPerPrimitive;
+
+            var effectData = graphics.EffectDatas[meshData.EffectDataIndex];
+            SetEffectParams(effectData);
+
+            foreach (var pass in effectData.Effect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                GraphicsDevice.DrawUserPrimitives(
+                    primitiveType: meshData.PrimitiveType, 
+                    vertexData: meshVertices.ToArray(), 
+                    vertexOffset: 0, 
+                    primitiveCount: primitiveCount);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content.Sources;
 using SpaceEventMod.Core.Graphics;
@@ -12,19 +13,27 @@ internal class SpaceEventMod : Mod
 {
     internal static SpaceEventMod Instance { get; private set; }
 
-    internal static PrimitiveBatch PrimitiveBatch;
+    internal static BasicEffect basicEffect;
 
     public override void Load()
     {
         Instance = this;
 
-        // code to generate white and empty pixels bc i can lmao :fire:
         Main.QueueMainThreadAction(() =>
         {
             if (Main.netMode == NetmodeID.Server)
                 return;
 
-            PrimitiveBatch = new PrimitiveBatch(Main.graphics.GraphicsDevice);
+            basicEffect = new BasicEffect(Main.graphics.graphicsDevice);
+            basicEffect.VertexColorEnabled = true;
+
+            basicEffect.Projection = Matrix.CreateOrthographicOffCenter
+                (0, Main.graphics.graphicsDevice.Viewport.Width,
+                Main.graphics.graphicsDevice.Viewport.Height, 0,
+                0, 1);
+            basicEffect.World = Matrix.Identity;
+            basicEffect.View = Matrix.CreateLookAt(Vector3.Zero, Vector3.Forward,
+                Vector3.Up);
         });
     }
 
@@ -37,8 +46,8 @@ internal class SpaceEventMod : Mod
             if (Main.netMode == NetmodeID.Server)
                 return;
 
-            PrimitiveBatch.Dispose();
-            PrimitiveBatch = null;
+            if (basicEffect != null)
+                basicEffect.Dispose();
         });
     }
 

@@ -21,26 +21,29 @@ public class SeaBackground : ILoadable
     {
         if (SeaTargets.BackgroundRenderTarget is not null && Sea.Springs is not null && Sea.Active)
         {
-            var firmamentSeaBackgroundShader = Assets.Assets.Shaders.Events.FirmamentSeaBackgroundTransparency.Value;
-
-            firmamentSeaBackgroundShader.Parameters["sea"].SetValue(SeaTargets.SeaRenderTarget);
-            firmamentSeaBackgroundShader.Parameters["minimumAlpha"].SetValue(0.65f);
-
-            Main.spriteBatch.End();
-            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, firmamentSeaBackgroundShader, Main.GameViewMatrix.TransformationMatrix);
-            Main.spriteBatch.Draw(SeaTargets.BackgroundRenderTarget, Vector2.Zero, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
-            Main.spriteBatch.End();
-            Main.spriteBatch.Begin();
+            Graphics.BeginPipeline(0.5f)
+                .DrawSprite(
+                    SeaTargets.BackgroundRenderTarget,
+                    Vector2.Zero,
+                    Color.White,
+                    SeaTargets.BackgroundRenderTarget.Bounds,
+                    0f,
+                    Vector2.Zero,
+                    Vector2.One,
+                    SpriteEffects.None)
+                .ApplyEffect(
+                    Assets.Assets.Shaders.Events.FirmamentSeaBackgroundTransparency.Value,
+                    ("sea", SeaTargets.SeaRenderTarget),
+                    ("minimumAlpha", 0.8f))
+                .Schedule(RenderLayer.BeforeTiles);
         }
 
         orig(self);
     }
 
-    public static void DrawBackground(Action<Color, Color> drawBackgroundPrimitives)
+    public static void DrawBackground()
     {
         var rectangle = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
-
-        drawBackgroundPrimitives.Invoke(new Color(10, 0, 100), new Color(10, 0, 100));
 
         // sea bubbles
         Matrix pixelationMatrix = Main.GameViewMatrix.TransformationMatrix
@@ -53,7 +56,7 @@ public class SeaBackground : ILoadable
         var color = Color.White;
         color.A = 40;
 
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, pixelationMatrix);
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, Main.GameViewMatrix.TransformationMatrix);
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
 
@@ -62,7 +65,7 @@ public class SeaBackground : ILoadable
         bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.2f, 0.7f, 0.35f, 0.4f, 0.5f);
         color.A = 100;
 
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, pixelationMatrix);
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, Main.GameViewMatrix.TransformationMatrix);
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
 
@@ -71,7 +74,7 @@ public class SeaBackground : ILoadable
         bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.3f, 1f, 0f, 0.4f, 0.85f);
         color.A = 180;
 
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, pixelationMatrix);
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, bubbleShader, Main.GameViewMatrix.TransformationMatrix);
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
     }
@@ -85,7 +88,7 @@ public class SeaBackground : ILoadable
         firmamentSeaBackgroundShader.Parameters["palette"].SetValue(palette);
         firmamentSeaBackgroundShader.Parameters["sampleOffsetsAndScales"].SetValue(sampleOffsetsAndScales);
         firmamentSeaBackgroundShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
-        firmamentSeaBackgroundShader.Parameters["screenWorldPosition"].SetValue(SpaceEvent.WorldToSeaCoordinates(Main.screenPosition) * 0.5f); // this is being halved because its being pixelated
+        firmamentSeaBackgroundShader.Parameters["screenWorldPosition"].SetValue(SpaceEvent.WorldToSeaCoordinates(Main.screenPosition)); // this is being halved because its being pixelated
         firmamentSeaBackgroundShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly * speed);
         firmamentSeaBackgroundShader.Parameters["gradientLength"].SetValue(gradientLength);
         firmamentSeaBackgroundShader.Parameters["gradientStart"].SetValue(gradientStart);

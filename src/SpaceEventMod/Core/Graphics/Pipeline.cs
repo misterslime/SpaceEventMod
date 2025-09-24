@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.DataStructures;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Terraria;
 
@@ -83,6 +85,31 @@ public struct Pipeline(Graphics graphics)
         ];
 
         return DrawTrail(positions, width, color, effect, parameters);
+    }
+
+    public readonly Pipeline DrawMesh(
+        Mesh mesh,
+        Effect effect,
+        params ReadOnlySpan<(string, ParameterValue)> parameters
+    )
+    {
+        var effectDataIndex = AddEffectData(effect, parameters);
+
+        var meshVerticesIndex = graphics.VertexDatas.Count;
+        graphics.VertexDatas.AddRange(mesh.Vertices);
+
+        var meshDataIndex = graphics.MeshDatas.Count;
+        graphics.MeshDatas.Add(new()
+        {
+            VerticesIndex = meshVerticesIndex,
+            VertexCount = mesh.Vertices.Length,
+            PrimitiveType = mesh.Type,
+            VerticesPerPrimitive = mesh.NumVertsPerPrimitive(),
+            EffectDataIndex = effectDataIndex,
+        });
+        graphics.Cache.Add(CommandType.DrawMesh, meshDataIndex);
+
+        return this;
     }
 
     public readonly Pipeline SetBlendState(BlendState blendState)

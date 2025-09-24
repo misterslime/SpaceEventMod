@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space.LevelElements;
+using SpaceEventMod.Core.DataStructures;
+using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using Terraria;
 using Terraria.ModLoader;
@@ -24,7 +26,7 @@ public class SeaTargets : ILoadable
 
             SeaRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
 
-            BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
+            BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
         });
     }
 
@@ -52,22 +54,32 @@ public class SeaTargets : ILoadable
                 SeaRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
             }
 
-            if (BackgroundRenderTarget == null || SeaRenderTarget.Width != Main.screenWidth / 2 || SeaRenderTarget.Height != Main.screenHeight / 2)
+            if (BackgroundRenderTarget == null || SeaRenderTarget.Width != Main.screenWidth || SeaRenderTarget.Height != Main.screenHeight)
             {
                 BackgroundRenderTarget?.Dispose();
-                BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
+                BackgroundRenderTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
             }
 
             Main.graphics.GraphicsDevice.SetRenderTarget(SeaRenderTarget);
             Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 
-            DrawBackgroundPrimitives(Color.Blue, Color.Magenta);
-            DrawForegroundPrimitives();
+            Pipeline pipeline = Graphics.BeginPipeline();
+
+            DrawBackgroundPrimitives(in pipeline, Color.Blue, Color.Magenta);
+            DrawForegroundPrimitives(in pipeline);
+
+            pipeline.Flush();
 
             Main.graphics.GraphicsDevice.SetRenderTarget(BackgroundRenderTarget);
             Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 
-            SeaBackground.DrawBackground(DrawBackgroundPrimitives);
+            pipeline = Graphics.BeginPipeline();
+
+            DrawBackgroundPrimitives(in pipeline, new Color(10, 0, 100), new Color(10, 0, 100));
+
+            pipeline.Flush();
+
+            SeaBackground.DrawBackground();
 
             Main.graphics.GraphicsDevice.SetRenderTarget(null);
 
@@ -76,15 +88,15 @@ public class SeaTargets : ILoadable
         orig();
     }
 
-    public void DrawBackgroundPrimitives(Color top, Color bottom)
+    public void DrawBackgroundPrimitives(in Pipeline pipeline, Color top, Color bottom)
     {
         if (Sea.Springs is null || !Sea.Active)
             return;
 
-        SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
-
         for (var chunk = 0; chunk < Sea.Springs.Length; chunk++)
         {
+            Mesh seaChunk = new Mesh(PrimitiveType.TriangleList);
+
             for (var spring = 0; spring < Sea.Springs[chunk].Length; spring++)
             {
                 Spring? next = null;
@@ -115,7 +127,7 @@ public class SeaTargets : ILoadable
 
                     // red is used to show how high up in the sea the pixel is
                     // blue to tell if the pixel is in the sea at all
-                    SpaceEventMod.PrimitiveBatch
+                    seaChunk
                         .AddVertex(point1, bottom)
                         .AddVertex(point2, top)
                         .AddVertex(point3, top)
@@ -124,20 +136,20 @@ public class SeaTargets : ILoadable
                         .AddVertex(point3, top);
                 }
             }
-        }
 
-        SpaceEventMod.PrimitiveBatch.End();
+            pipeline.DrawMesh(seaChunk, SpaceEventMod.basicEffect);
+        }
     }
 
-    private void DrawForegroundPrimitives()
+    private void DrawForegroundPrimitives(in Pipeline pipeline)
     {
         if (Sea.Springs is null || !Sea.Active)
             return;
 
-        SpaceEventMod.PrimitiveBatch.Begin(PrimitiveType.TriangleList);
-
         for (var chunk = 0; chunk < Sea.Springs.Length; chunk++)
         {
+            Mesh seaChunk = new Mesh(PrimitiveType.TriangleList);
+
             for (var spring = 0; spring < Sea.Springs[chunk].Length; spring++)
             {
                 Spring? next = null;
@@ -165,7 +177,7 @@ public class SeaTargets : ILoadable
 
                     // red is used to show how high up in the sea the pixel is
                     // blue to tell if the pixel is in the sea at all
-                    SpaceEventMod.PrimitiveBatch
+                    seaChunk
                         .AddVertex(point1, new Color(0, 255, 0, 0))
                         .AddVertex(point2, Color.Transparent)
                         .AddVertex(point3, Color.Transparent)
@@ -174,8 +186,8 @@ public class SeaTargets : ILoadable
                         .AddVertex(point3, Color.Transparent);
                 }
             }
-        }
 
-        SpaceEventMod.PrimitiveBatch.End();
+            pipeline.DrawMesh(seaChunk, SpaceEventMod.basicEffect);
+        }
     }
 }
