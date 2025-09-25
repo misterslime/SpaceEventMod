@@ -9,6 +9,8 @@ NPCs: {
 	Cosmostone.DisplayName: Cosmostone
 	Manaphage.DisplayName: Manaphage
 	Dropling.DisplayName: Dropling
+	TitanSpawn.DisplayName: Titan Spawn
+	PantsEnemy.DisplayName: Pants Enemy
 }
 
 Projectiles: {
