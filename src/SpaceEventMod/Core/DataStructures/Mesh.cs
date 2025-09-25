@@ -12,13 +12,13 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.DataStructures;
 
-public class Mesh
+public struct Mesh
 {
-    private VertexPositionColor[] _vertices;
+    private readonly VertexPositionColor[] _vertices;
 
     private int _positionInBuffer = 0;
 
-    private PrimitiveType _type;
+    private readonly PrimitiveType _type;
 
     public ReadOnlySpan<VertexPositionColor> Vertices { get { return _vertices.AsSpan()[0.._positionInBuffer]; } }
 
