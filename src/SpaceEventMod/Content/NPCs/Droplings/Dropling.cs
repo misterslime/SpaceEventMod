@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Physics.VerletIntegration;
 using SpaceEventMod.Core.Utilities;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
@@ -84,11 +85,13 @@ public class Dropling : ModNPC
         }
     }
 
-    private float desiredRotation = 0;
-    private float tailRotation = 0;
-    private float wiggleTimer = 0;
+    private float _desiredRotation = 0;
+    private float _tailRotation = 0;
+    private float _wiggleTimer = 0;
 
     private bool HasAppendage(DroplingAppendage appendage) => (Appendage & appendage) == appendage;
+
+    private VerletSolver _flagellum;
 
     public override void SetDefaults()
     {
@@ -116,6 +119,82 @@ public class Dropling : ModNPC
         State = DroplingState.Moving;
 
         Main.NewText(Appendage.ToString());
+
+        if (!HasAppendage(DroplingAppendage.Flagellum))
+            return;
+
+        _flagellum = new VerletSolver(VerletSolver.VerletIntegration);
+
+        float length = 22;
+        int segments = 6;
+
+        _flagellum.AddControlPoint("droplingTail", new(NPC.Center));
+        _flagellum.AddGlobalData("segmentsPerTail", segments);
+        _flagellum.AddGlobalData("gravity", new Vector2(0, 0.025f));
+
+        for (int i = 0; i < 3; i++)
+        {
+            Vector2 startVector = i switch
+            {
+                0 => Vector2.UnitY,
+                1 => Vector2.UnitX,
+                2 => -Vector2.UnitX
+            };
+
+            for (int j = 0; j < segments; j++)
+            {
+                _flagellum.AddPoints(new VerletPoint(NPC.Center + startVector * length * (j + 1)));
+            }
+
+            _flagellum.AddLink("droplingTail", i * segments, length);
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            int count = _flagellum.Count / 3;
+
+            for (int j = 1; j < count; j++)
+            {
+                _flagellum.AddLink(count * i + j - 1, count * i + j, length);
+            }
+        }
+
+        _flagellum.AddPhysicsPass("pushedByNPC", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        {
+            point.Acceleration -= NPC.velocity / 2048;
+
+            return point;
+        });
+
+        _flagellum.AddPhysicsPass("tailEndRepulsion", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        {
+            for (int i = 0; i < simulation.Count; i++)
+            {
+                if (index != i)
+                {
+                    Vector2 vector = (point.Position - simulation.GetPoint(i).Position);
+
+                    if (vector.Length() < 32f)
+                        point.Acceleration += (vector.SafeNormalize(Vector2.Zero) * 0.015f) / vector.Length();
+                }
+            }
+
+            return point;
+        });
+
+        _flagellum.AddPhysicsPass("gravity", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        {
+            point.Acceleration += context.Globals["gravity"].Vector2 / 32;
+
+            return point;
+        });
+
+        _flagellum.AddPhysicsPass("dampenVelocity", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        {
+            point.Acceleration -= (point.Position - point.PreviousPosition) * 0.1f * 0.125f;
+
+            return point;
+        });
     }
 
     public override void AI()
@@ -127,6 +206,15 @@ public class Dropling : ModNPC
             DroplingState.Moving => Moving(),
             DroplingState.Biting => Biting()
         };
+
+        if (_flagellum is not null)
+        {
+            _flagellum.SetPoint("droplingTail", new ControlPoint(NPC.Center));
+
+            for (int i = 0; i < 8; i++)
+                _flagellum.RunSimulation();
+
+        }
     }
 
     private DroplingState Biting()
@@ -338,7 +426,7 @@ public class Dropling : ModNPC
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        tailRotation = tailRotation.AngleLerp(NPC.rotation, 0.075f);
+        _tailRotation = _tailRotation.AngleLerp(NPC.rotation, 0.075f);
 
         var texture = TextureAssets.Npc[Type].Value;
         var drawPosition = NPC.Center;
@@ -346,13 +434,13 @@ public class Dropling : ModNPC
         var origin = new Vector2(NPC.width, NPC.height) * 0.5f;
 
         var headPosition = NPC.rotation.ToRotationVector2();
-        var tailPosition = tailRotation.ToRotationVector2();
+        var tailPosition = _tailRotation.ToRotationVector2();
 
         var segments = 20;
         var trailPoints = new List<Vector2>(segments + 1);
 
         var bendiness = Vector2.Dot(headPosition, tailPosition);
-        var midPoint = tailRotation.AngleLerp(NPC.rotation + MathF.PI, 0.5f).ToRotationVector2() * (1 - bendiness) * NPC.height * 0.5f;
+        var midPoint = _tailRotation.AngleLerp(NPC.rotation + MathF.PI, 0.5f).ToRotationVector2() * (1 - bendiness) * NPC.height * 0.5f;
         drawPosition += midPoint;
 
         headPosition *= NPC.width * 0.5f;
@@ -391,11 +479,6 @@ public class Dropling : ModNPC
         {
             DrawWings(in pipeline, in trailPointsArray, trailPoints[7], screenPos, drawColor, true);
         }
-
-        pipeline
-            .ApplyOutline(new Color(23, 23, 130))
-            .ApplyOutline(new Color(23, 23, 130))
-            .Schedule(RenderLayer.AfterNPCs);
 
         Texture2D starTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingStar.Value;
         Texture2D starGlowTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingStar_Glow.Value;
@@ -467,6 +550,13 @@ public class Dropling : ModNPC
         else
             spriteBatch.Draw(jawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["jaw"], NPC.scale, 0, 0);
 
+        DrawTail(in pipeline, in spriteBatch, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+
+        pipeline
+            .ApplyOutline(new Color(23, 23, 130))
+            .ApplyOutline(new Color(23, 23, 130))
+            .Schedule(RenderLayer.AfterNPCs);
+
         return false;
     }
 
@@ -474,7 +564,7 @@ public class Dropling : ModNPC
     {
         var newTrailPoints = trailPoints;
 
-        wiggleTimer += 1 / 8f + wiggleStrength / 30f;
+        _wiggleTimer += 1 / 8f + wiggleStrength / 30f;
 
         for (var i = 0; i < trailPoints.Count; i++)
         {
@@ -486,7 +576,7 @@ public class Dropling : ModNPC
                 var displacement = point - nextPoint;
                 displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
 
-                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + wiggleTimer);
+                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + _wiggleTimer);
             }
             else
             {
@@ -496,11 +586,30 @@ public class Dropling : ModNPC
                 var displacement = previousPoint - point;
                 displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
 
-                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + wiggleTimer);
+                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + _wiggleTimer);
             }
         }
 
         return newTrailPoints.ToArray();
+    }
+
+    private void DrawTail(in Pipeline pipeline, in SpriteBatch spriteBatch, Texture2D texture, Vector2 screenPos, Color drawColor)
+    {
+        if (_flagellum is null)
+            return;
+
+        for (int i = 0; i < _flagellum.Count; i++)
+        {
+            IPoint point = _flagellum.GetPoint(i);
+            float rotation = (NPC.Center - point.Position).ToRotation();
+
+            if (i % 8 != 0)
+                rotation = (_flagellum.GetPoint(i - 1).Position - point.Position).ToRotation();
+
+            //spriteBatch.Draw(texture, point.Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
+
+            pipeline.DrawSprite(texture, point.Position - screenPos, drawColor, null, rotation + MathHelper.PiOver2, new Vector2(5, 22), new Vector2(NPC.scale), 0);
+        }
     }
 
     private void DrawWings(in Pipeline pipeline, in Vector2[] trailPoints, Vector2 drawPosition, Vector2 screenPos, Color drawColor, bool drawingGlow = false)
@@ -512,10 +621,10 @@ public class Dropling : ModNPC
 
         float wingRotation = MathHelper.WrapAngle((trailPoints[5] - trailPoints[4]).ToRotation());
 
-        desiredRotation = desiredRotation.AngleLerp(NPC.velocity.Length() * (State == DroplingState.Biting ? 0.30f : 0.08f), 0.1f);
+        _desiredRotation = _desiredRotation.AngleLerp(NPC.velocity.Length() * (State == DroplingState.Biting ? 0.30f : 0.08f), 0.1f);
 
-        float leftWingRotation = MathHelper.WrapAngle(wingRotation - desiredRotation);
-        float rightWingRotation = MathHelper.WrapAngle(wingRotation + desiredRotation);
+        float leftWingRotation = MathHelper.WrapAngle(wingRotation - _desiredRotation);
+        float rightWingRotation = MathHelper.WrapAngle(wingRotation + _desiredRotation);
 
         Vector2 leftDrawPosition = wingPosition.RotatedBy(leftWingRotation);
         Vector2 rightDrawPosition = (wingPosition * -Vector2.UnitY).RotatedBy(rightWingRotation);
