@@ -39,7 +39,7 @@ internal class TitanSpawn : ModNPC
         NPC.TargetClosest(false);
 
         float speed = 0.5f + MathF.Pow(MathF.Sin(Timer / 30f), 2) * 0.5f;
-        speed *= 3f;
+        speed *= 3f + (1f - NPC.scale) * 2f;
 
         Vector2 vector = Main.player[NPC.target].Center - NPC.Center;
 
