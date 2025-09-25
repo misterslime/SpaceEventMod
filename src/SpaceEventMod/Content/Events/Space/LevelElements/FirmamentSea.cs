@@ -7,6 +7,11 @@ using Terraria;
 
 namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
+public struct Spring()
+{
+    public float Position, Velocity = 0;
+}
+
 public struct SeaPosition(int left)
 {
     public int Left = left;

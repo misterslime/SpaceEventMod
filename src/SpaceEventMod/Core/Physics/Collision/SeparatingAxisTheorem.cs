@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Geometry;
 using System;
 
-namespace SpaceEventMod.Core.Physics;
+namespace SpaceEventMod.Core.Physics.Collision;
 
 public class SeparatingAxisTheorem
 {
@@ -18,16 +18,16 @@ public class SeparatingAxisTheorem
 
     public SeparatingAxisTheorem SetFirstPolygon(Polygon polygon, Vector2 position)
     {
-        this.polygon1 = polygon;
-        this.polygon1Position = position;
+        polygon1 = polygon;
+        polygon1Position = position;
 
         return this;
     }
 
     public SeparatingAxisTheorem SetSecondPolygon(Polygon polygon, Vector2 position)
     {
-        this.polygon2 = polygon;
-        this.polygon2Position = position;
+        polygon2 = polygon;
+        polygon2Position = position;
 
         return this;
     }
@@ -46,7 +46,7 @@ public class SeparatingAxisTheorem
         if (testAB is null || testBA is null)
             return null;
 
-        var result = (Math.Abs(testAB.Item2) < Math.Abs(testBA.Item2)) ? testAB.Item1 : testBA.Item1;
+        var result = Math.Abs(testAB.Item2) < Math.Abs(testBA.Item2) ? testAB.Item1 : testBA.Item1;
 
         return result;
     }
@@ -84,7 +84,7 @@ public class SeparatingAxisTheorem
             polygon2Range.Y += scalerOffset;
 
             // Now check for a gap betwen the relative min's and max's
-            if ((polygon1Range.X - polygon2Range.Y > 0) || (polygon2Range.X - polygon1Range.Y > 0))
+            if (polygon1Range.X - polygon2Range.Y > 0 || polygon2Range.X - polygon1Range.Y > 0)
                 return null;
 
             var distanceMinimum = (polygon2Range.Y - polygon1Range.X) * -1;
