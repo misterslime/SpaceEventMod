@@ -5,7 +5,7 @@ using Terraria;
 
 namespace SpaceEventMod.Content.NPCs;
 
-public class PantsEnemy : ModNPC
+internal class PantsEnemy : ModNPC
 {
     public override void SetStaticDefaults()
     {
