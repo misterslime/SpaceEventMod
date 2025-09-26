@@ -15,125 +15,120 @@ namespace SpaceEventMod.Core.Physics;
 internal record struct PhysicsPassData(
     string Name,
     int Steps,
-    Func<PhysicsPoint, int, SimulationContext, PhysicsPoint> Action
+    Func<PhysicsPoint, SimulationContext, PhysicsPoint> Action
 );
 
 internal record struct SimulationContext(
-    ReadOnlyDictionary<string, ParameterValue> Globals,
-    ReadOnlyCollection<PhysicsPoint> Points,
-    ReadOnlyCollection<ILink> Links
+    int Index,
+    ReadOnlyDictionary<string, ParameterValue> GlobalData,
+    PhysicsData LocalData
 );
 
-internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator, PhysicsPointType expectedType)
+internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator, int timesConstrained = 8)
 {
-    private readonly Dictionary<string, ParameterValue> _globalData = new Dictionary<string, ParameterValue>();
-    private readonly List<PhysicsPoint> _points = new List<PhysicsPoint>();
-    private readonly List<ILink> _links = new List<ILink>();
-    private readonly List<PhysicsPassData> _physicsPasses = new List<PhysicsPassData>();
+    private readonly Dictionary<string, ParameterValue> _globalData = new Dictionary<string, ParameterValue>{ ["timesConstrained"] = timesConstrained };
+    private readonly List<PhysicsPassData> _preIntegrationPhysicsPasses = new List<PhysicsPassData>();
+    private readonly List<PhysicsPassData> _postIntegrationPhysicsPasses = new List<PhysicsPassData>();
     private readonly Func<PhysicsPoint, PhysicsPoint> _integrator = integrator;
-    private readonly PhysicsPointType _expectedType = expectedType;
-
-    public PhysicsPoint GetPoint(string key) => _globalData[key].Vector2;
-    public PhysicsPoint GetPoint(int index) => _points[index];
-
-    public void SetPoint(string key, in Vector2 point) => _globalData[key] = point;
-    public void SetPoint(int index, in PhysicsPoint point) => _points[index] = point;
-
-    public int Count { get => _points.Count; }
 
     public PhysicsSolver AddGlobalData(string key, ParameterValue value)
     {
         _globalData.Add(key, value);
-
         return this;
     }
 
-    public PhysicsSolver AddGlobalData(params ReadOnlySpan<(string, ParameterValue)> values)
+    public PhysicsSolver AddGlobalData(params ReadOnlySpan<(string name, ParameterValue value)> values)
     {
         foreach (var value in values)
-            _globalData.Add(value.Item1, value.Item2);
+            _globalData.Add(value.name, value.value);
 
         return this;
     }
-    
-    public PhysicsSolver AddPoint(PhysicsPoint point)
+
+    public PhysicsSolver AddPhysicsPass(string name, bool preIntegration, Func<PhysicsPoint, SimulationContext, PhysicsPoint> action, int steps = 1)
     {
-        if (point.Type != _expectedType)
-            throw new InvalidOperationException("Tried to add a point of the wrong type to the simulation.");
+        if (preIntegration)
+            _preIntegrationPhysicsPasses.Add(new PhysicsPassData(name, steps, action));
+        else 
+            _postIntegrationPhysicsPasses.Add(new PhysicsPassData(name, steps, action));
 
-        _points.Add(point);
         return this;
     }
 
-    public PhysicsSolver AddLink<T, U>(T point1, U point2, float length)
+    public PhysicsSolver AddPhysicsPass(params ReadOnlySpan<(string Name, bool PreIntegration, int Steps, Func<PhysicsPoint, SimulationContext, PhysicsPoint> Action)> values)
     {
-        _links.Add(new PhysicsLink<T, U>(point1, point2, length));
+        foreach (var value in values)
+            AddPhysicsPass(value.Name, value.PreIntegration, value.Action, value.Steps);
 
         return this;
     }
 
-    public PhysicsSolver AddPhysicsPass(string name, Func<PhysicsPoint, int, SimulationContext, PhysicsPoint> action, int steps = 1)
-    {
-        _physicsPasses.Add(new PhysicsPassData(name, steps, action));
-
-        return this;
-    }
-
-    public void RunSimulation()
+    public void RunSimulation(in PhysicsData physicsData)
     {
         SimulationContext context = new SimulationContext()
         {
-            Globals = _globalData.AsReadOnly(),
-            Points = _points.AsReadOnly()
+            GlobalData = _globalData.AsReadOnly(),
+            LocalData = physicsData
         };
 
-        // run physics passes
-        if (_physicsPasses.Count > 0)
-        {
-            foreach (var physicsPass in _physicsPasses)
-            {
-                for (var i = 0; i < physicsPass.Steps; i++)
-                {
-                    for (int j = 0; j < _points.Count(); j++)
-                        _points[j] = physicsPass.Action(_points[j], j, context);
-                }
-            }
-        }
+        // run pre-integration physics passes
+        RunPhysicsPasses(in physicsData, in _preIntegrationPhysicsPasses, context);
 
         // integrate motion
-        for (int j = 0; j < _points.Count(); j++)
-            _points[j] = _integrator(_points[j]);
+        for (int j = 0; j < physicsData.PointCount; j++)
+            physicsData.SetPoint(j, _integrator(context.LocalData.Points[j]));
+
+        // run post-integration physics passes
+        RunPhysicsPasses(in physicsData, in _postIntegrationPhysicsPasses, context);
 
         // constrain linked points
-        for (var i = 0; i < 8; i++)
+        for (var i = 0; i < context.GlobalData["timesConstrained"].Int; i++)
         {
-            foreach (var link in _links)
-                DistanceConstraint(in link);
+            foreach (var link in context.LocalData.Links)
+                DistanceConstraint(in physicsData, in link);
         }
     }
 
-    private void DistanceConstraint(in ILink link)
+    private void RunPhysicsPasses(in PhysicsData physicsData, in List<PhysicsPassData> physicsPasses, SimulationContext context)
     {
-        var point1 = GetLinkPoint(link, true);
-        var point2 = GetLinkPoint(link, false);
+        if (physicsPasses.Count <= 0)
+            return;
 
-        if (point1.Type == PhysicsPointType.Control)
+        foreach (var physicsPass in physicsPasses)
+        {
+            for (var i = 0; i < physicsPass.Steps; i++)
+            {
+                for (int j = 0; j < context.LocalData.PointCount; j++)
+                {
+                    context.Index = j;
+                    physicsData.SetPoint(j, physicsPass.Action(context.LocalData.Points[j], context));
+                }
+            }
+        }
+    }
+
+    private void DistanceConstraint(in PhysicsData physicsData, in ILink link)
+    {
+        var point1 = GetLinkPoint(in physicsData, in link, true);
+        var point2 = GetLinkPoint(in physicsData, in link, false);
+
+        if (point1.IsControl && !point2.IsControl)
         {
             var projection = (point2.Position - point1.Position).SafeNormalize(Vector2.Zero) * link.TargetDistance;
 
             point2.Position = point1.Position + projection;
 
-            SetLinkPoint(link, point2, false);
+            SetLinkPoint(in physicsData, in link, false, point2);
         }
-        else if (point2.Type == PhysicsPointType.Control)
+        else if (!point1.IsControl && point2.IsControl)
         {
             var projection = (point1.Position - point2.Position).SafeNormalize(Vector2.Zero) * link.TargetDistance;
 
             point1.Position = point2.Position + projection;
 
-            SetLinkPoint(link, point1, true);
+            SetLinkPoint(in physicsData, in link, true, point1);
         }
-        else
+        else if (!point1.IsControl && !point2.IsControl)
         {
             var midPoint = (point1.Position + point2.Position) * 0.5f;
             var projection = (point1.Position - point2.Position).SafeNormalize(Vector2.Zero) * link.TargetDistance * 0.5f;
@@ -141,20 +136,21 @@ internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator,
             point1.Position = midPoint + projection;
             point2.Position = midPoint - projection;
 
-            SetLinkPoint(link, point1, true);
-            SetLinkPoint(link, point2, false);
+            SetLinkPoint(in physicsData, in link, true, point1);
+            SetLinkPoint(in physicsData, in link, false, point2);
         }
+        else
+            throw new InvalidOperationException("Tried to constrain 2 control points together.");
     }
 
 
-    private PhysicsPoint GetLinkPoint(ILink link, bool isFirst)
+    private PhysicsPoint GetLinkPoint(in PhysicsData physicsData, in ILink link, bool isFirst)
     {
         dynamic pointIndex = link.GetPointIndex(isFirst);
-        return this.GetPoint(pointIndex);
+        return physicsData.GetPoint(pointIndex);
     }
 
-    // point is a verlet point bc the physics system should never be setting a control point
-    private void SetLinkPoint(ILink link, PhysicsPoint point, bool isFirst)
+    private void SetLinkPoint(in PhysicsData physicsData, in ILink link, bool isFirst, PhysicsPoint point)
     {
         dynamic pointIndex = link.GetPointIndex(isFirst);
 
@@ -162,8 +158,6 @@ internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator,
         if (pointIndex is string)
             return;
 
-        var verletPointIndex = (int)pointIndex;
-
-        SetPoint(verletPointIndex, point);
+        physicsData.SetPoint((int)pointIndex, point);
     }
 }

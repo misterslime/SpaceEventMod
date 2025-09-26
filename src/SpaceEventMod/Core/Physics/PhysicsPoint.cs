@@ -8,22 +8,9 @@ using System.Threading.Tasks;
 
 namespace SpaceEventMod.Core.Physics;
 
-[Flags]
-internal enum PhysicsPointType
+internal struct PhysicsPoint(Vector2 position, bool isControl = false)
 {
-    Control = 0b_0000_0000,  // Only Position is active
-    PreviousPosition = 0b_0000_0001,
-    Velocity = 0b_0000_0010,
-    Acceleration = 0b_0000_0100,
-
-    Euler = Velocity,
-    Verlet = PreviousPosition | Acceleration,
-    Kinematic = PreviousPosition | Velocity
-}
-
-internal struct PhysicsPoint(Vector2 position, PhysicsPointType type = PhysicsPointType.Control)
-{
-    public PhysicsPointType Type { get; set; } = type;
+    public bool IsControl { get; set; } = isControl;
     public Vector2 Position { get; set; } = position;
     public Vector2 PreviousPosition { get; set; } = position;
     public Vector2 Velocity { get; set; } = default;
