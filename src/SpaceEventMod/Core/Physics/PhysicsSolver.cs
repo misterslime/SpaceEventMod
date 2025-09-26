@@ -1,14 +1,9 @@
 using Microsoft.Xna.Framework;
-using MonoMod.Utils;
 using SpaceEventMod.Core.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
-using System.Linq;
-using System.Linq.Expressions;
 using Terraria;
-using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Physics;
 
@@ -24,12 +19,12 @@ internal record struct SimulationContext(
     PhysicsData LocalData
 );
 
-internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator, int timesConstrained = 8)
+internal sealed class PhysicsSolver(Func<PhysicsPoint, object, PhysicsPoint> integrator, int timesConstrained = 8)
 {
     private readonly Dictionary<string, ParameterValue> _globalData = new Dictionary<string, ParameterValue>{ ["timesConstrained"] = timesConstrained };
     private readonly List<PhysicsPassData> _preIntegrationPhysicsPasses = new List<PhysicsPassData>();
     private readonly List<PhysicsPassData> _postIntegrationPhysicsPasses = new List<PhysicsPassData>();
-    private readonly Func<PhysicsPoint, PhysicsPoint> _integrator = integrator;
+    private readonly Func<PhysicsPoint, object, PhysicsPoint> _integrator = integrator;
 
     public PhysicsSolver AddGlobalData(string key, ParameterValue value)
     {
@@ -55,36 +50,30 @@ internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator,
         return this;
     }
 
-    public PhysicsSolver AddPhysicsPass(params ReadOnlySpan<(string Name, bool PreIntegration, int Steps, Func<PhysicsPoint, SimulationContext, PhysicsPoint> Action)> values)
+    public PhysicsSolver AddPhysicsPasses(bool preIntegration, params ReadOnlySpan<(string Name, int Steps, Func<PhysicsPoint, SimulationContext, PhysicsPoint> Action)> values)
     {
         foreach (var value in values)
-            AddPhysicsPass(value.Name, value.PreIntegration, value.Action, value.Steps);
+            AddPhysicsPass(value.Name, preIntegration, value.Action, value.Steps);
 
         return this;
     }
 
-    public void RunSimulation(in PhysicsData physicsData)
+    public void RunSimulation(in PhysicsData physicsData, in object integrationParameters = null)
     {
-        SimulationContext context = new SimulationContext()
-        {
-            GlobalData = _globalData.AsReadOnly(),
-            LocalData = physicsData
-        };
-
         // run pre-integration physics passes
-        RunPhysicsPasses(in physicsData, in _preIntegrationPhysicsPasses, context);
+        RunPhysicsPasses(in physicsData, in _preIntegrationPhysicsPasses, new SimulationContext() { GlobalData = _globalData.AsReadOnly(), LocalData = physicsData });
 
         // integrate motion
         for (int j = 0; j < physicsData.PointCount; j++)
-            physicsData.SetPoint(j, _integrator(context.LocalData.Points[j]));
+            physicsData.SetPoint(j, _integrator(physicsData.Points[j], integrationParameters));
 
         // run post-integration physics passes
-        RunPhysicsPasses(in physicsData, in _postIntegrationPhysicsPasses, context);
+        RunPhysicsPasses(in physicsData, in _postIntegrationPhysicsPasses, new SimulationContext() { GlobalData = _globalData.AsReadOnly(), LocalData = physicsData });
 
         // constrain linked points
-        for (var i = 0; i < context.GlobalData["timesConstrained"].Int; i++)
+        for (var i = 0; i < _globalData["timesConstrained"].Int; i++)
         {
-            foreach (var link in context.LocalData.Links)
+            foreach (var link in physicsData.Links)
                 DistanceConstraint(in physicsData, in link);
         }
     }
@@ -105,6 +94,43 @@ internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator,
                 }
             }
         }
+    }
+
+    public PhysicsPoint RunSimulation(in PhysicsPoint physicsPoint, in object integrationParameters = null)
+    {
+        PhysicsPoint newPoint = physicsPoint;
+
+        SimulationContext context = new SimulationContext()
+        {
+            GlobalData = _globalData.AsReadOnly()
+        };
+
+        // run pre-integration physics passes
+        newPoint = RunPhysicsPasses(in newPoint, in _preIntegrationPhysicsPasses, context);
+
+        // integrate motion
+        newPoint = _integrator(newPoint, integrationParameters);
+
+        // run post-integration physics passes
+        RunPhysicsPasses(in newPoint, in _postIntegrationPhysicsPasses, context);
+
+        return newPoint;
+    }
+
+    private PhysicsPoint RunPhysicsPasses(in PhysicsPoint physicsPoint, in List<PhysicsPassData> physicsPasses, SimulationContext context)
+    {
+        if (physicsPasses.Count <= 0)
+            return physicsPoint;
+
+        PhysicsPoint newPoint = physicsPoint;
+
+        foreach (var physicsPass in physicsPasses)
+        {
+            for (var i = 0; i < physicsPass.Steps; i++)
+                newPoint = physicsPass.Action(newPoint, context);
+        }
+
+        return newPoint;
     }
 
     private void DistanceConstraint(in PhysicsData physicsData, in ILink link)
@@ -142,7 +168,6 @@ internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator,
         else
             throw new InvalidOperationException("Tried to constrain 2 control points together.");
     }
-
 
     private PhysicsPoint GetLinkPoint(in PhysicsData physicsData, in ILink link, bool isFirst)
     {

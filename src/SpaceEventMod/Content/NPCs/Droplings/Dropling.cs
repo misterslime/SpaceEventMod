@@ -33,13 +33,13 @@ public enum DroplingState
 
 public class Dropling : ModNPC
 {
-    public static readonly SecondOrderDynamics DroplingVelocity = new SecondOrderDynamics(1f / 85f, 0.6f, 0.2f);
+    private static readonly SecondOrderData DroplingVelocity = new SecondOrderData(1f / 85f, 0.6f, 0.2f);
 
-    public static readonly SecondOrderDynamics DroplingDeccelerate = new SecondOrderDynamics(1f / 85f, 1f, 0f);
+    private static readonly SecondOrderData DroplingDeccelerate = new SecondOrderData(1f / 85f, 1f, 0f);
 
-    public static readonly SecondOrderDynamics DroplingDash = new SecondOrderDynamics(1f / 120, 1f, -1.5f);
+    private static readonly SecondOrderData DroplingDash = new SecondOrderData(1f / 120, 1f, -1.5f);
 
-    public static readonly SecondOrderDynamics DroplingWingAngle = new SecondOrderDynamics(1f / 30, 0.8f, 0f);
+    private static readonly SecondOrderDynamicsOld DroplingWingAngle = new SecondOrderDynamicsOld(1f / 30, 0.8f, 0f);
 
     private static PhysicsSolver s_physicsSolver;
 
@@ -65,9 +65,13 @@ public class Dropling : ModNPC
 
     private Vector2 Acceleration { get; set; }
 
-    public Kinematics<Vector2> VelocityKinematics
+    private PhysicsPoint VelocityKinematics
     {
-        get => new Kinematics<Vector2>(NPC.velocity, NPC.oldVelocity, Acceleration);
+        get => new PhysicsPoint(NPC.velocity)
+        {
+            PreviousPosition = NPC.oldVelocity,
+            Velocity = Acceleration
+        };
         set
         {
             NPC.velocity = value.Position;
@@ -76,9 +80,13 @@ public class Dropling : ModNPC
         }
     }
 
-    public Kinematics<Vector2> PositionKinematics
+    private PhysicsPoint PositionKinematics
     {
-        get => new Kinematics<Vector2>(NPC.Center, PreviousPosition, NPC.velocity);
+        get => new PhysicsPoint(NPC.Center)
+        {
+            PreviousPosition = PreviousPosition,
+            Velocity = NPC.velocity
+        };
         set
         {
             NPC.Center = value.Position;
@@ -100,20 +108,20 @@ public class Dropling : ModNPC
         s_physicsSolver = new PhysicsSolver(Integrators.VerletIntegration)
             .AddGlobalData(
                 ("gravity", new Vector2(0, 0.025f)))
-            .AddPhysicsPass(
-                ("pushedByNPC", true, 1, (PhysicsPoint point, SimulationContext context) =>
+            .AddPhysicsPasses(true,
+                ("pushedByNPC", 1, (PhysicsPoint point, SimulationContext context) =>
                 {
                     point.Acceleration -= NPC.velocity / 2048;
 
                     return point;
-                }), 
-                ("tailEndRepulsion", true, 1, (PhysicsPoint point, SimulationContext context) =>
+                }),
+                ("tailEndRepulsion", 1, (PhysicsPoint point, SimulationContext context) =>
                 {
                     for (int i = 0; i < context.LocalData.PointCount; i++)
                     {
                         if (context.Index != i)
                         {
-                            Vector2 vector = point.Position - context.LocalData.GetPoint(i).Position;
+                            Vector2 vector = (Vector2)(point.Position - context.LocalData.GetPoint(i).Position);
 
                             if (vector.Length() < 32f)
                                 point.Acceleration += (vector.SafeNormalize(Vector2.Zero) * 0.015f) / vector.Length();
@@ -122,13 +130,13 @@ public class Dropling : ModNPC
 
                     return point;
                 }),
-                ("gravity", true, 1, (PhysicsPoint point, SimulationContext context) =>
+                ("gravity", 1, (PhysicsPoint point, SimulationContext context) =>
                 {
                     point.Acceleration += context.GlobalData["gravity"].Vector2 / 32;
 
                     return point;
                 }),
-                ("dampenVelocity", true, 1, (PhysicsPoint point, SimulationContext context) =>
+                ("dampenVelocity", 1, (PhysicsPoint point, SimulationContext context) =>
                 {
                     point.Acceleration -= (point.Position - point.PreviousPosition) * 0.1f * 0.125f;
 
@@ -212,7 +220,7 @@ public class Dropling : ModNPC
             DroplingState.Biting => Biting()
         };
 
-        if (_flagellum is not null)
+        if (HasAppendage(DroplingAppendage.Flagellum))
         {
             _flagellum.SetPoint("droplingTail", NPC.Center);
             s_physicsSolver.RunSimulation(in _flagellum);
@@ -221,7 +229,11 @@ public class Dropling : ModNPC
 
     private DroplingState Biting()
     {
-        PositionKinematics = DroplingDash.Update(1, PositionKinematics, TargetPosition);
+        SecondOrderParameters integrationParameters = new SecondOrderParameters(1, DroplingDash, TargetPosition);
+
+        PositionKinematics = SecondOrderDynamics.Solver.RunSimulation(PositionKinematics, integrationParameters);
+
+        //PositionKinematics = DroplingDash.Update(1, PositionKinematics, TargetPosition);
         NPC.rotation = NPC.rotation.AngleLerp((TargetPosition - NPC.Center).ToRotation(), 0.075f);
 
         if (!(Timer > 70f))
@@ -284,12 +296,21 @@ public class Dropling : ModNPC
                 TargetVelocity *= maxSpeed;
             }
 
-            VelocityKinematics = DroplingVelocity.Update(1, VelocityKinematics, TargetVelocity);
+            SecondOrderParameters integrationParameters = new SecondOrderParameters(1, DroplingVelocity, TargetVelocity);
+            
+            VelocityKinematics = SecondOrderDynamics.Solver.RunSimulation(VelocityKinematics, integrationParameters);
+
+            //VelocityKinematics = DroplingVelocity.Update(1, VelocityKinematics, TargetVelocity);
         }
         else
         {
             TargetVelocity = Vector2.Zero;
-            VelocityKinematics = DroplingDeccelerate.Update(1, VelocityKinematics, TargetVelocity);
+
+            SecondOrderParameters integrationParameters = new SecondOrderParameters(1, DroplingDeccelerate, TargetVelocity);
+
+            VelocityKinematics = SecondOrderDynamics.Solver.RunSimulation(VelocityKinematics, integrationParameters);
+
+            //VelocityKinematics = DroplingDeccelerate.Update(1, VelocityKinematics, TargetVelocity);
         }
 
 
@@ -597,20 +618,20 @@ public class Dropling : ModNPC
 
     private void DrawTail(in Pipeline pipeline, in SpriteBatch spriteBatch, Texture2D texture, Vector2 screenPos, Color drawColor)
     {
-        if (_flagellum is null)
+        if (!HasAppendage(DroplingAppendage.Flagellum))
             return;
 
         for (int i = 0; i < _flagellum.PointCount; i++)
         {
             PhysicsPoint point = _flagellum.GetPoint(i);
-            float rotation = (NPC.Center - point.Position).ToRotation();
+            float rotation = (NPC.Center - (Vector2)point.Position).ToRotation();
 
             if (i % 8 != 0)
-                rotation = (_flagellum.GetPoint(i - 1).Position - point.Position).ToRotation();
+                rotation = ((Vector2)_flagellum.GetPoint(i - 1).Position - (Vector2)point.Position).ToRotation();
 
             //spriteBatch.Draw(texture, point.Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
 
-            pipeline.DrawSprite(texture, point.Position - screenPos, drawColor, null, rotation + MathHelper.PiOver2, new Vector2(5, 22), new Vector2(NPC.scale), 0);
+            pipeline.DrawSprite(texture, (Vector2)point.Position - screenPos, drawColor, null, rotation + MathHelper.PiOver2, new Vector2(5, 22), new Vector2(NPC.scale), 0);
         }
     }
 

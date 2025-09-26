@@ -3,13 +3,10 @@ using SpaceEventMod.Core.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SpaceEventMod.Core.Physics;
 
-internal sealed class PhysicsData()
+internal struct PhysicsData()
 {
     private readonly Dictionary<string, ParameterValue> _localData = new Dictionary<string, ParameterValue>();
     private readonly List<PhysicsPoint> _points = new List<PhysicsPoint>();

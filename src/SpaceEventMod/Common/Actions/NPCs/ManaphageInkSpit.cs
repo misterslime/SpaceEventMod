@@ -12,7 +12,7 @@ namespace SpaceEventMod.Common.Actions.NPCs;
 
 public struct ManaphageInkSpit : IState<ModNPC>
 {
-    public static readonly SecondOrderDynamics SuddenJerk = new SecondOrderDynamics(1f / 120f, 0.7f, 0.8f);
+    internal static readonly SecondOrderData SuddenJerk = new SecondOrderData(1f / 120f, 0.7f, 0.8f);
 
     public void Enter(ModNPC context)
     {
@@ -59,13 +59,21 @@ public struct ManaphageInkSpit : IState<ModNPC>
             npc.rotation = npc.rotation.AngleLerp(theta.Value - MathHelper.PiOver2, 0.1f);
 
             manaphage.TargetStretching = new Vector2(1.2f, 0.8f);
-            manaphage.PositionKinematics = Manaphage.PositionSolver.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
+            //manaphage.PositionKinematics = Manaphage.PositionSolver.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
+
+            SecondOrderParameters integrationParameters = new SecondOrderParameters(1, manaphage.PositionSolver, manaphage.TargetPosition);
+
+            manaphage.PositionKinematics = SecondOrderDynamics.Solver.RunSimulation(manaphage.PositionKinematics, integrationParameters);
         }
         else
         {
             npc.rotation = npc.rotation.AngleLerp(-npc.velocity.X / (3 * MathF.PI), 0.35f);
 
-            manaphage.PositionKinematics = SuddenJerk.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
+            //manaphage.PositionKinematics = SuddenJerk.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
+
+            SecondOrderParameters integrationParameters = new SecondOrderParameters(1, SuddenJerk, manaphage.TargetPosition);
+
+            manaphage.PositionKinematics = SecondOrderDynamics.Solver.RunSimulation(manaphage.PositionKinematics, integrationParameters);
 
             if (manaphage.Time == 109 && Main.netMode != NetmodeID.MultiplayerClient)
             {

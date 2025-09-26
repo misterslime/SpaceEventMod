@@ -1,13 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Physics.Animation;
+using SpaceEventMod.Core.Physics;
 using Terraria;
 
 namespace SpaceEventMod.Content.Events.Space.LevelElements;
 
 public struct Asteroid(Vector2 initialPosition, int variant, int width, int height)
 {
-    public Kinematics<Vector2> Transform = new Kinematics<Vector2>(initialPosition);
+    public PhysicsPoint Transform = new PhysicsPoint(initialPosition);
     public int Variant = variant;
     public int Width = width;
     public int Height = height;

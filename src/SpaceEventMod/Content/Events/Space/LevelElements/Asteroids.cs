@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Content.NPCs.Manaphages;
 using SpaceEventMod.Core.Physics.Animation;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ public class Asteroids : ModSystem
 {
     public static List<Asteroid> List = new List<Asteroid>();
 
-    public static readonly SecondOrderDynamics AsteroidMovement = new SecondOrderDynamics(1f / 64f, 0.5f, 0.2f);
+    internal static readonly SecondOrderData AsteroidMovement = new SecondOrderData(1f / 64f, 0.5f, 0.2f);
 
     public override void OnWorldUnload()
     {
@@ -50,7 +51,13 @@ public class Asteroids : ModSystem
 
         newAsteroid.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + asteroid.RandomTimeDisplacement) / 60f) * 4 * Vector2.UnitY;
 
-        newAsteroid.Transform = AsteroidMovement.Update(1, asteroid.Transform, asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 24f : asteroid.RestPosition);
+        Vector2 target = asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 24f : asteroid.RestPosition;
+
+        SecondOrderParameters integrationParameters = new SecondOrderParameters(1, AsteroidMovement, target);
+
+        newAsteroid.Transform = SecondOrderDynamics.Solver.RunSimulation(newAsteroid.Transform, integrationParameters);
+
+        //newAsteroid.Transform = AsteroidMovement.Update(1, asteroid.Transform, );
         newAsteroid.BeingStoodOn = false;
 
         if (asteroid.ShakeTime > 0)

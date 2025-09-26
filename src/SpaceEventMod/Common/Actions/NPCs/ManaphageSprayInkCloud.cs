@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Content.NPCs.Manaphages;
 using SpaceEventMod.Core.Behavior.Automata;
+using SpaceEventMod.Core.Physics.Animation;
 using System;
 using Terraria;
 using Terraria.ID;
@@ -37,7 +38,11 @@ public struct ManaphageSprayInkCloud : IState<ModNPC>
         if (npc.ModNPC is not Manaphage manaphage)
             throw new Exception("Tried to run SprayInkCloud state code on a non-valid npc type.");
 
-        manaphage.PositionKinematics = Manaphage.PositionSolver.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
+        SecondOrderParameters integrationParameters = new SecondOrderParameters(1, manaphage.PositionSolver, manaphage.TargetPosition);
+
+        manaphage.PositionKinematics = SecondOrderDynamics.Solver.RunSimulation(manaphage.PositionKinematics, integrationParameters);
+
+        //manaphage.PositionKinematics = Manaphage.PositionSolver.Update(1, manaphage.PositionKinematics, manaphage.TargetPosition);
         manaphage.TargetStretching = Vector2.One;
 
         if (manaphage.Time > 0)

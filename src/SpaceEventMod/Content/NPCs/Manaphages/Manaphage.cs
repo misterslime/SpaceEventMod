@@ -4,6 +4,7 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Actions.NPCs;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Behavior.Automata;
+using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Physics.Animation;
 using System;
 using Terraria;
@@ -17,14 +18,14 @@ namespace SpaceEventMod.Content.NPCs.Manaphages;
 
 public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 {
-    public static StateMachine<ModNPC> StateMachine;
+    private static StateMachine<ModNPC> s_stateMachine;
 
-    public static readonly SecondOrderDynamics PositionSolver = new SecondOrderDynamics(1f / 128f, 0.85f, 0.2f);
+    private static readonly SecondOrderData s_manaphagePosition = new SecondOrderData(1f / 128f, 0.85f, 0.2f);
 
-    public static readonly SecondOrderDynamics StretchSolver = new SecondOrderDynamics(1f / 40f, 0.3f, -0.5f);
+    private static readonly SecondOrderData s_manaphageStretch = new SecondOrderData(1f / 40f, 0.3f, -0.5f);
 
     #region Fields and properties
-    public PushdownAutomaton<ModNPC> PushdownAutomaton;
+    private PushdownAutomaton<ModNPC> _pushdownAutomaton;
 
     public Vector2 CloudPosition
     {
@@ -50,9 +51,15 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public Vector2 TargetPosition { get; set; }
 
-    public Kinematics<Vector2> PositionKinematics
+    internal SecondOrderData PositionSolver { get => s_manaphagePosition; }
+
+    internal PhysicsPoint PositionKinematics
     {
-        get => new Kinematics<Vector2>(NPC.Center, PreviousPosition, NPC.velocity);
+        get => new PhysicsPoint(NPC.Center)
+        {
+            PreviousPosition = PreviousPosition,
+            Velocity = NPC.velocity
+        };
         set
         {
             NPC.Center = value.Position;
@@ -63,7 +70,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public Vector2 PreviousPosition { get; set; }
 
-    public Kinematics<Vector2> StretchingKinematics { get; set; }
+    internal PhysicsPoint StretchingKinematics { get; set; }
 
     public int MaxMana => 3;
 
@@ -93,7 +100,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
     {
         NPCID.Sets.UsesNewTargetting[Type] = true;
 
-        StateMachine = new StateMachine<ModNPC>();
+        s_stateMachine = new StateMachine<ModNPC>();
 
         var wander = new MovementRandomJitter();
         var goToStar = new MovementToStar();
@@ -155,7 +162,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
             return npc.life < npc.lifeMax * 0.5 && !npc.HasValidTarget;
         }
 
-        StateMachine
+        s_stateMachine
             .AddState((int)ManaphageStates.Wander, wander)
             .AddState((int)ManaphageStates.GoToStar, goToStar)
             .AddState((int)ManaphageStates.DrinkStar, drinkStar)
@@ -182,7 +189,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public override void Unload()
     {
-        StateMachine = null;
+        s_stateMachine = null;
     }
 
     public override void SetDefaults()
@@ -204,14 +211,14 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public override void OnSpawn(IEntitySource source)
     {
-        PushdownAutomaton = new PushdownAutomaton<ModNPC>();
-        PushdownAutomaton.PushState(0);
+        _pushdownAutomaton = new PushdownAutomaton<ModNPC>();
+        _pushdownAutomaton.PushState(0);
 
         TargetPosition = NPC.Center;
         Mana = MaxMana;
 
         TargetStretching = Vector2.One;
-        StretchingKinematics = new Kinematics<Vector2>(Vector2.One);
+        StretchingKinematics = new PhysicsPoint(Vector2.One);
 
         NPC.rotation = 0f;
 
@@ -225,7 +232,7 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
 
     public override bool PreAI()
     {
-        PushdownAutomaton.Update(this, StateMachine);
+        _pushdownAutomaton.Update(this, s_stateMachine);
         return false;
     }
 
@@ -263,7 +270,11 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
             NPC.netUpdate = true;
         }
 
-        PositionKinematics = PositionSolver.Update(1, PositionKinematics, TargetPosition);
+        SecondOrderParameters integrationParameters = new SecondOrderParameters(1, s_manaphagePosition, TargetPosition);
+
+        PositionKinematics = SecondOrderDynamics.Solver.RunSimulation(PositionKinematics, integrationParameters);
+
+        //PositionKinematics = PositionSolver.Update(1, PositionKinematics, TargetPosition);
         NPC.rotation = NPC.rotation.AngleLerp(NPC.velocity.X / (6 * MathF.PI), 0.95f);
     }
 
@@ -288,7 +299,12 @@ public class Manaphage : ModNPC, IMovement, IWantStar, ITimer
         var texture = TextureAssets.Npc[Type].Value;
         var drawPosition = NPC.Center - Main.screenPosition;
         var scale = Vector2.One;
-        StretchingKinematics = StretchSolver.Update(1, StretchingKinematics, TargetStretching);
+
+        SecondOrderParameters integrationParameters = new SecondOrderParameters(1, s_manaphageStretch, TargetPosition);
+
+        StretchingKinematics = SecondOrderDynamics.Solver.RunSimulation(StretchingKinematics, integrationParameters);
+
+        //StretchingKinematics = StretchSolver.Update(1, StretchingKinematics, TargetStretching);
 
         Main.EntitySpriteDraw(texture, drawPosition, texture.Frame(), NPC.GetAlpha(drawColor), NPC.rotation, texture.Size() * 0.5f, NPC.scale * StretchingKinematics.Position, 0);
 
