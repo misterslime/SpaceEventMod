@@ -12,7 +12,7 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.DataStructures;
 
-public struct Mesh
+public class Mesh
 {
     private readonly VertexPositionColor[] _vertices;
 
