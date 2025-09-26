@@ -4,19 +4,19 @@ using System;
 
 namespace SpaceEventMod.Core.Physics.Collision;
 
-public class SeparatingAxisTheorem
+public class PolygonCollisionHelper
 {
     private Polygon polygon1;
     private Vector2 polygon1Position;
     private Polygon polygon2;
     private Vector2 polygon2Position;
 
-    public SeparatingAxisTheorem()
+    public PolygonCollisionHelper()
     {
 
     }
 
-    public SeparatingAxisTheorem SetFirstPolygon(Polygon polygon, Vector2 position)
+    public PolygonCollisionHelper SetFirstPolygon(Polygon polygon, Vector2 position)
     {
         polygon1 = polygon;
         polygon1Position = position;
@@ -24,7 +24,7 @@ public class SeparatingAxisTheorem
         return this;
     }
 
-    public SeparatingAxisTheorem SetSecondPolygon(Polygon polygon, Vector2 position)
+    public PolygonCollisionHelper SetSecondPolygon(Polygon polygon, Vector2 position)
     {
         polygon2 = polygon;
         polygon2Position = position;

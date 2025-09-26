@@ -77,6 +77,25 @@ public struct ParameterValue
         Type = ParameterValueType.Matrix,
         Matrix = value,
     };
+
+    public static explicit operator float(ParameterValue value) => value.Float;
+    public static explicit operator int(ParameterValue value) => value.Int;
+    public static explicit operator Vector2(ParameterValue value) => value.Vector2;
+    public static explicit operator Vector3(ParameterValue value) => value.Vector3;
+    public static explicit operator Vector4(ParameterValue value) => value.Vector4;
+    public static explicit operator Texture2D(ParameterValue value) => value.Texture2D;
+    public static explicit operator Matrix(ParameterValue value) => value.Matrix;
+
+    public override readonly string ToString() => Type switch
+    {
+        ParameterValueType.Float => $"{Float}",
+        ParameterValueType.Int => $"{Int}",
+        ParameterValueType.Vector2 => $"{Vector2}",
+        ParameterValueType.Vector3 => $"{Vector3}",
+        ParameterValueType.Vector4 => $"{Vector4}",
+        ParameterValueType.Texture2D => $"{Texture2D}",
+        ParameterValueType.Matrix => $"{Matrix}",
+    };
 }
 
 public enum ParameterValueType

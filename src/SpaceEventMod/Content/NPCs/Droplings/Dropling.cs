@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
-using SpaceEventMod.Core.Physics.VerletIntegration;
 using SpaceEventMod.Core.Utilities;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
@@ -91,7 +90,7 @@ public class Dropling : ModNPC
 
     private bool HasAppendage(DroplingAppendage appendage) => (Appendage & appendage) == appendage;
 
-    private VerletSolver _flagellum;
+    private PhysicsSolver _flagellum;
 
     public override void SetDefaults()
     {
@@ -123,14 +122,15 @@ public class Dropling : ModNPC
         if (!HasAppendage(DroplingAppendage.Flagellum))
             return;
 
-        _flagellum = new VerletSolver(VerletSolver.VerletIntegration);
+        _flagellum = new PhysicsSolver(Integrators.VerletIntegration, PhysicsPointType.Verlet);
 
         float length = 22;
         int segments = 6;
 
-        _flagellum.AddControlPoint("droplingTail", new(NPC.Center));
+        _flagellum.AddGlobalData("droplingTail", NPC.Center);
         _flagellum.AddGlobalData("segmentsPerTail", segments);
         _flagellum.AddGlobalData("gravity", new Vector2(0, 0.025f));
+        _flagellum.AddGlobalData("timesConstrained", 8);
 
         for (int i = 0; i < 3; i++)
         {
@@ -143,7 +143,7 @@ public class Dropling : ModNPC
 
             for (int j = 0; j < segments; j++)
             {
-                _flagellum.AddPoints(new VerletPoint(NPC.Center + startVector * length * (j + 1)));
+                _flagellum.AddPoint(new PhysicsPoint(NPC.Center + startVector * length * (j + 1), PhysicsPointType.Verlet));
             }
 
             _flagellum.AddLink("droplingTail", i * segments, length);
@@ -159,20 +159,20 @@ public class Dropling : ModNPC
             }
         }
 
-        _flagellum.AddPhysicsPass("pushedByNPC", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        _flagellum.AddPhysicsPass("pushedByNPC", (PhysicsPoint point, int index, SimulationContext context) =>
         {
             point.Acceleration -= NPC.velocity / 2048;
 
             return point;
         });
 
-        _flagellum.AddPhysicsPass("tailEndRepulsion", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        _flagellum.AddPhysicsPass("tailEndRepulsion", (PhysicsPoint point, int index, SimulationContext context) =>
         {
-            for (int i = 0; i < simulation.Count; i++)
+            for (int i = 0; i < context.Points.Count; i++)
             {
                 if (index != i)
                 {
-                    Vector2 vector = (point.Position - simulation.GetPoint(i).Position);
+                    Vector2 vector = (point.Position - context.Points[i].Position);
 
                     if (vector.Length() < 32f)
                         point.Acceleration += (vector.SafeNormalize(Vector2.Zero) * 0.015f) / vector.Length();
@@ -182,14 +182,14 @@ public class Dropling : ModNPC
             return point;
         });
 
-        _flagellum.AddPhysicsPass("gravity", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        _flagellum.AddPhysicsPass("gravity", (PhysicsPoint point, int index, SimulationContext context) =>
         {
             point.Acceleration += context.Globals["gravity"].Vector2 / 32;
 
             return point;
         });
 
-        _flagellum.AddPhysicsPass("dampenVelocity", (VerletPoint point, int index, SimulationContext context, PhysicsSolver<VerletPoint> simulation) =>
+        _flagellum.AddPhysicsPass("dampenVelocity", (PhysicsPoint point, int index, SimulationContext context) =>
         {
             point.Acceleration -= (point.Position - point.PreviousPosition) * 0.1f * 0.125f;
 
@@ -209,11 +209,8 @@ public class Dropling : ModNPC
 
         if (_flagellum is not null)
         {
-            _flagellum.SetPoint("droplingTail", new ControlPoint(NPC.Center));
-
-            for (int i = 0; i < 8; i++)
-                _flagellum.RunSimulation();
-
+            _flagellum.SetPoint("droplingTail", NPC.Center);
+            _flagellum.RunSimulation();
         }
     }
 
@@ -600,7 +597,7 @@ public class Dropling : ModNPC
 
         for (int i = 0; i < _flagellum.Count; i++)
         {
-            IPoint point = _flagellum.GetPoint(i);
+            PhysicsPoint point = _flagellum.GetPoint(i);
             float rotation = (NPC.Center - point.Position).ToRotation();
 
             if (i % 8 != 0)
