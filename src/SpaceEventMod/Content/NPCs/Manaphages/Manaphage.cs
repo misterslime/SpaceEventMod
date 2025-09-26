@@ -4,7 +4,7 @@ using SpaceEventMod.Common.Actions.Interfaces;
 using SpaceEventMod.Common.Actions.NPCs;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Behavior.Automata;
-using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Physics.Animation;
 using System;
 using Terraria;
 using Terraria.DataStructures;

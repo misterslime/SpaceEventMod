@@ -33,7 +33,7 @@ internal sealed class PhysicsSolver(Func<PhysicsPoint, PhysicsPoint> integrator,
     private readonly Func<PhysicsPoint, PhysicsPoint> _integrator = integrator;
     private readonly PhysicsPointType _expectedType = expectedType;
 
-    public PhysicsPoint GetPoint(string key) => new PhysicsPoint(_globalData[key].Vector2);
+    public PhysicsPoint GetPoint(string key) => _globalData[key].Vector2;
     public PhysicsPoint GetPoint(int index) => _points[index];
 
     public void SetPoint(string key, in Vector2 point) => _globalData[key] = point;

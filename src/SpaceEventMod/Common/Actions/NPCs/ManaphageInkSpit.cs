@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Content.NPCs.Manaphages;
 using SpaceEventMod.Core.Behavior.Automata;
-using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Physics.Animation;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using Terraria;

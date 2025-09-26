@@ -1,6 +1,6 @@
 using System;
 
-namespace SpaceEventMod.Core.Physics;
+namespace SpaceEventMod.Core.Physics.Animation;
 
 public struct Kinematics<T>
 {

@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Physics.Animation;
 using Terraria;
 
 namespace SpaceEventMod.Content.Events.Space.LevelElements;
