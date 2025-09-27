@@ -123,8 +123,8 @@ public class Dropling : ModNPC
                         {
                             Vector2 vector = (Vector2)(point.Position - context.LocalData.GetPoint(i).Position);
 
-                            if (vector.Length() < 32f)
-                                point.Acceleration += (vector.SafeNormalize(Vector2.Zero) * 0.015f) / vector.Length();
+                            if (vector.LengthSquared() < 256)
+                                point.Acceleration += (vector.SafeNormalize(Vector2.Zero) * 1.5f) / vector.Length();
                         }
                     }
 
@@ -138,7 +138,7 @@ public class Dropling : ModNPC
                 }),
                 ("dampenVelocity", 1, (PhysicsPoint point, SimulationContext context) =>
                 {
-                    point.Acceleration -= (point.Position - point.PreviousPosition) * 0.1f * 0.125f;
+                    point.Acceleration -= (point.Position - point.PreviousPosition) * 0.05f;
 
                     return point;
                 }));
