@@ -10,11 +10,9 @@ internal struct PhysicsData(PhysicsPoint[] points, ILink[] links)
 {
     private readonly PhysicsPoint[] _points = points;
     private readonly ILink[] _links = links;
-    private readonly Stack<int> _mergeHistory = new Stack<int>();
 
     public int PointCount { get; init; } = points.Length;
     public int LinkCount { get; init; } = links.Length;
-    public int StackSize { get => _mergeHistory.Count; }
 
     public ReadOnlySpan<PhysicsPoint> Points { get => _points; }
     public ReadOnlySpan<ILink> Links { get => _links; }
