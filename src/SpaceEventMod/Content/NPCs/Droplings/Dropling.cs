@@ -494,6 +494,12 @@ public class Dropling : ModNPC
             DrawWings(in pipeline, in trailPointsArray, trailPoints[7], screenPos, drawColor);
         }
 
+        if (HasAppendage(DroplingAppendage.Flagellum))
+        {
+            _flagellum.SetLocalData("droplingTail", trailPoints[16]);
+            DrawTail(in pipeline, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+        }
+
         pipeline
             .DrawTrail(
                 trailPointsArray,
@@ -579,12 +585,6 @@ public class Dropling : ModNPC
         else
             spriteBatch.Draw(jawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["jaw"], NPC.scale, 0, 0);
 
-        if (HasAppendage(DroplingAppendage.Flagellum))
-        {
-            _flagellum.SetLocalData("droplingTail", tailPosition);
-            DrawTail(in spriteBatch, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
-        }
-
         pipeline
             .ApplyOutline(new Color(23, 23, 130))
             .ApplyOutline(new Color(23, 23, 130))
@@ -626,7 +626,7 @@ public class Dropling : ModNPC
         return newTrailPoints.ToArray();
     }
 
-    private void DrawTail(in SpriteBatch spriteBatch, Texture2D texture, Vector2 screenPos, Color drawColor)
+    private void DrawTail(in Pipeline pipeline, Texture2D texture, Vector2 screenPos, Color drawColor)
     {
         _flagellum.LocalData.TryGetValue("droplingTail", out ParameterValue value);
         _flagellum.LocalData.TryGetValue("segmentsPerTail", out ParameterValue segments);
@@ -635,31 +635,34 @@ public class Dropling : ModNPC
         {
             List<Vector2> points = new List<Vector2>();
 
-            for (int j = _flagellum.PhysicsData[i].PointCount - 1; j >= 0; j--)
+            points.Add(value.Vector2);
+
+            for (int j = 0; j < _flagellum.PhysicsData[i].PointCount - 1; j++)
                 points.Add(_flagellum.PhysicsData[i].GetPoint(j).Position);
 
             var trailPoints = new List<Vector2>();
 
             ReadOnlySpan<Vector2> controlPoints = points.ToArray();
             using (var curve = new BezierCurve(controlPoints))
-                trailPoints = curve.GetPoints(7 + 1);
+                trailPoints = curve.GetPoints(7);
 
-            trailPoints.Add(value.Vector2);
+            //trailPoints.Add(value.Vector2);
 
-            for (int j = 0; j < trailPoints.Count; j++)
+            for (int j = 0; j < trailPoints.Count - 1; j++)
             {
-                if (j == 0)
-                    continue;
-
-                Vector2 point1Position = trailPoints[j - 1];
-                Vector2 point2Position = trailPoints[j];
+                Vector2 point1Position = trailPoints[j];
+                Vector2 point2Position = trailPoints[j + 1];
 
                 float rotation = (point1Position - point2Position).ToRotation();
 
-                spriteBatch.Draw(texture, point2Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
+                //spriteBatch.Draw(texture, point2Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
 
-                //pipeline.DrawSprite(texture, point2Position, drawColor, null, rotation + MathHelper.PiOver2, new Vector2(5, 22), new Vector2(NPC.scale), 0);
+                pipeline.DrawSprite(texture, point1Position - screenPos, drawColor, null, rotation + MathHelper.PiOver2, texture.Size() * 0.5f, new Vector2(NPC.scale), 0);
             }
+
+            //spriteBatch.Draw(texture, point2Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
+
+            //pipeline.DrawSprite(texture, value.Vector2 - screenPos, drawColor, null, (value.Vector2 - trailPoints[0]).ToRotation() - MathHelper.PiOver2, texture.Size() * 0.5f, new Vector2(NPC.scale), 0);
         }
     }
 
