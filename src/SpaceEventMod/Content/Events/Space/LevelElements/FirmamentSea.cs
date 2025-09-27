@@ -186,10 +186,20 @@ public struct FirmamentSea
                         rightDeltas[chunk, spring] = clampedSpread * (newSea.Springs[chunk][spring].Position - newSea.Springs[chunk + 1][0].Position);
                         newSea.Springs[chunk + 1][0].Velocity += rightDeltas[chunk, spring];
                     }
+
+                    if (spring > 0)
+                        newSea.Springs[chunk][spring - 1].Position += leftDeltas[chunk, spring];
+                    else if (chunk > 0)
+                        newSea.Springs[chunk - 1][newSea.Springs[chunk].Length - 1].Position += leftDeltas[chunk, spring];
+
+                    if (spring < newSea.Springs[chunk].Length - 1)
+                        newSea.Springs[chunk][spring + 1].Position += rightDeltas[chunk, spring];
+                    else if (chunk < newSea.Springs.Length - 1)
+                        newSea.Springs[chunk + 1][0].Position += rightDeltas[chunk, spring];
                 }
             }
 
-            for (var chunk = 0; chunk < newSea.Springs.Length; chunk++)
+            /*for (var chunk = 0; chunk < newSea.Springs.Length; chunk++)
             {
                 for (var spring = 0; spring < newSea.Springs[chunk].Length; spring++)
                 {
@@ -203,7 +213,7 @@ public struct FirmamentSea
                     else if (chunk < newSea.Springs.Length - 1)
                         newSea.Springs[chunk + 1][0].Position += rightDeltas[chunk, spring];
                 }
-            }
+            }*/
         }
 
         return newSea;

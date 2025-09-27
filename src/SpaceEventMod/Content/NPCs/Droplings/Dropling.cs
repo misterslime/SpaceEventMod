@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.Events.Space.LevelElements;
+using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Physics.Animation;
@@ -11,6 +13,7 @@ using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
+using Terraria.GameContent.Animations;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -101,13 +104,13 @@ public class Dropling : ModNPC
 
     private bool HasAppendage(DroplingAppendage appendage) => (Appendage & appendage) == appendage;
 
-    private PhysicsData _flagellum;
+    private PhysicsObject _flagellum;
 
     public override void SetStaticDefaults()
     {
         s_physicsSolver = new PhysicsSolver(Integrators.VerletIntegration)
             .AddGlobalData(
-                ("gravity", new Vector2(0, 0.025f)))
+                ("gravity", new Vector2(0, 0.5f)))
             .AddPhysicsPasses(true,
                 ("pushedByNPC", 1, (PhysicsPoint point, SimulationContext context) =>
                 {
@@ -117,14 +120,18 @@ public class Dropling : ModNPC
                 }),
                 ("tailEndRepulsion", 1, (PhysicsPoint point, SimulationContext context) =>
                 {
-                    for (int i = 0; i < context.LocalData.PointCount; i++)
+                    for (int i = 0; i < context.PhysicsObject.PhysicsData.Length; i++)
                     {
-                        if (context.Index != i)
+                        for (int j = 0; j < context.PhysicsObject.PhysicsData[i].PointCount; j++)
                         {
-                            Vector2 vector = (Vector2)(point.Position - context.LocalData.GetPoint(i).Position);
+                            if (context.Index == j)
+                                continue;
 
-                            if (vector.LengthSquared() < 256)
-                                point.Acceleration += (vector.SafeNormalize(Vector2.Zero) * 1.5f) / vector.Length();
+                            PhysicsPoint point2 = context.PhysicsObject.PhysicsData[i].GetPoint(j);
+
+                            Vector2 vector = point.Position - point2.Position;
+
+                            point.Acceleration += (vector.SafeNormalize(Vector2.Zero) * 0.5f) / vector.Length();
                         }
                     }
 
@@ -177,13 +184,13 @@ public class Dropling : ModNPC
         float length = 22;
         int segments = 6;
 
-        _flagellum = new PhysicsData()
-            .AddLocalData(
-                ("droplingTail", NPC.Center),
-                ("segmentsPerTail", segments));
+        List<PhysicsData> data = new List<PhysicsData>();
 
         for (int i = 0; i < 3; i++)
         {
+            List<PhysicsPoint> points = new List<PhysicsPoint>();
+            List<ILink> links = new List<ILink>(); 
+
             Vector2 startVector = i switch
             {
                 0 => Vector2.UnitY,
@@ -193,21 +200,21 @@ public class Dropling : ModNPC
 
             for (int j = 0; j < segments; j++)
             {
-                _flagellum.AddPoint(new PhysicsPoint(NPC.Center + startVector * length * (j + 1)));
+                points.Add(new PhysicsPoint(NPC.Center + startVector * length * (j + 1)));
+
+                if (j > 0)
+                    links.Add(new PhysicsLink(j - 1, j, length));
             }
 
-            _flagellum.AddLink("droplingTail", i * segments, length);
+            links.Add(new ControlledPhysicsLink("droplingTail", 0, length));
+
+            data.Add(new PhysicsData(points.ToArray(), links.ToArray()));
         }
 
-        for (int i = 0; i < 3; i++)
-        {
-            int count = _flagellum.PointCount / 3;
-
-            for (int j = 1; j < count; j++)
-            {
-                _flagellum.AddLink(count * i + j - 1, count * i + j, length);
-            }
-        }
+        _flagellum = new PhysicsObject(data.ToArray())
+            .AddLocalData(
+                ("droplingTail", NPC.Center),
+                ("segmentsPerTail", segments));
     }
 
     public override void AI()
@@ -222,8 +229,7 @@ public class Dropling : ModNPC
 
         if (HasAppendage(DroplingAppendage.Flagellum))
         {
-            _flagellum.SetPoint("droplingTail", NPC.Center);
-            s_physicsSolver.RunSimulation(in _flagellum);
+            _flagellum = s_physicsSolver.RunSimulation(_flagellum);
         }
     }
 
@@ -573,7 +579,11 @@ public class Dropling : ModNPC
         else
             spriteBatch.Draw(jawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["jaw"], NPC.scale, 0, 0);
 
-        DrawTail(in pipeline, in spriteBatch, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+        if (HasAppendage(DroplingAppendage.Flagellum))
+        {
+            _flagellum.SetLocalData("droplingTail", tailPosition);
+            DrawTail(in spriteBatch, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+        }
 
         pipeline
             .ApplyOutline(new Color(23, 23, 130))
@@ -616,22 +626,40 @@ public class Dropling : ModNPC
         return newTrailPoints.ToArray();
     }
 
-    private void DrawTail(in Pipeline pipeline, in SpriteBatch spriteBatch, Texture2D texture, Vector2 screenPos, Color drawColor)
+    private void DrawTail(in SpriteBatch spriteBatch, Texture2D texture, Vector2 screenPos, Color drawColor)
     {
-        if (!HasAppendage(DroplingAppendage.Flagellum))
-            return;
+        _flagellum.LocalData.TryGetValue("droplingTail", out ParameterValue value);
+        _flagellum.LocalData.TryGetValue("segmentsPerTail", out ParameterValue segments);
 
-        for (int i = 0; i < _flagellum.PointCount; i++)
+        for (int i = 0; i < _flagellum.PhysicsData.Length; i++)
         {
-            PhysicsPoint point = _flagellum.GetPoint(i);
-            float rotation = (NPC.Center - (Vector2)point.Position).ToRotation();
+            List<Vector2> points = new List<Vector2>();
 
-            if (i % 8 != 0)
-                rotation = ((Vector2)_flagellum.GetPoint(i - 1).Position - (Vector2)point.Position).ToRotation();
+            for (int j = _flagellum.PhysicsData[i].PointCount - 1; j >= 0; j--)
+                points.Add(_flagellum.PhysicsData[i].GetPoint(j).Position);
 
-            //spriteBatch.Draw(texture, point.Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
+            var trailPoints = new List<Vector2>();
 
-            pipeline.DrawSprite(texture, (Vector2)point.Position - screenPos, drawColor, null, rotation + MathHelper.PiOver2, new Vector2(5, 22), new Vector2(NPC.scale), 0);
+            ReadOnlySpan<Vector2> controlPoints = points.ToArray();
+            using (var curve = new BezierCurve(controlPoints))
+                trailPoints = curve.GetPoints(7 + 1);
+
+            trailPoints.Add(value.Vector2);
+
+            for (int j = 0; j < trailPoints.Count; j++)
+            {
+                if (j == 0)
+                    continue;
+
+                Vector2 point1Position = trailPoints[j - 1];
+                Vector2 point2Position = trailPoints[j];
+
+                float rotation = (point1Position - point2Position).ToRotation();
+
+                spriteBatch.Draw(texture, point2Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
+
+                //pipeline.DrawSprite(texture, point2Position, drawColor, null, rotation + MathHelper.PiOver2, new Vector2(5, 22), new Vector2(NPC.scale), 0);
+            }
         }
     }
 

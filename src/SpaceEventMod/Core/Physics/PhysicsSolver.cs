@@ -16,7 +16,8 @@ internal record struct PhysicsPassData(
 internal record struct SimulationContext(
     int Index,
     ReadOnlyDictionary<string, ParameterValue> GlobalData,
-    PhysicsData LocalData
+    PhysicsObject PhysicsObject,
+    object IntegrationParameters
 );
 
 internal sealed class PhysicsSolver(Func<PhysicsPoint, object, PhysicsPoint> integrator, int timesConstrained = 8)
@@ -58,131 +59,134 @@ internal sealed class PhysicsSolver(Func<PhysicsPoint, object, PhysicsPoint> int
         return this;
     }
 
-    public void RunSimulation(in PhysicsData physicsData, in object integrationParameters = null)
+    public PhysicsPoint RunSimulation(PhysicsPoint point, in object integrationParameters = null)
     {
+        SimulationContext context = new SimulationContext()
+        {
+            GlobalData = _globalData.AsReadOnly(),
+            IntegrationParameters = integrationParameters
+        };
+
+        PhysicsData data = RunSimulation(new PhysicsData([point], []), context);
+
+        return data.GetPoint(0);
+    }
+
+    public PhysicsObject RunSimulation(PhysicsObject physicsObject, in object integrationParameters = null)
+    {
+        SimulationContext context = new SimulationContext()
+        {
+            PhysicsObject = physicsObject,
+            GlobalData = _globalData.AsReadOnly(),
+            IntegrationParameters = integrationParameters
+        };
+
+        List<PhysicsData> data = new List<PhysicsData>();
+
+        for (int i = 0; i < physicsObject.PhysicsData.Length; i++)
+            data.Add(RunSimulation(physicsObject.PhysicsData[i], context));
+
+        return new PhysicsObject(data.ToArray());
+    }
+
+    public PhysicsData RunSimulation(PhysicsData physicsData, in SimulationContext context)
+    {
+        PhysicsData newPhysicsData = physicsData;
+
         // run pre-integration physics passes
-        RunPhysicsPasses(in physicsData, in _preIntegrationPhysicsPasses, new SimulationContext() { GlobalData = _globalData.AsReadOnly(), LocalData = physicsData });
+        newPhysicsData = RunPhysicsPasses(newPhysicsData, in _preIntegrationPhysicsPasses, context);
 
         // integrate motion
         for (int j = 0; j < physicsData.PointCount; j++)
-            physicsData.SetPoint(j, _integrator(physicsData.Points[j], integrationParameters));
+            newPhysicsData.SetPoint(j, _integrator(physicsData.GetPoint(j), context.IntegrationParameters));
 
         // run post-integration physics passes
-        RunPhysicsPasses(in physicsData, in _postIntegrationPhysicsPasses, new SimulationContext() { GlobalData = _globalData.AsReadOnly(), LocalData = physicsData });
+        newPhysicsData = RunPhysicsPasses(newPhysicsData, in _postIntegrationPhysicsPasses, context);
+
+        // if the physics data doesn't have links, end
+        if (newPhysicsData.LinkCount <= 0)
+            return newPhysicsData;
 
         // constrain linked points
         for (var i = 0; i < _globalData["timesConstrained"].Int; i++)
         {
-            foreach (var link in physicsData.Links)
-                DistanceConstraint(in physicsData, in link);
+            for (int j = 0; j < newPhysicsData.LinkCount; j++)
+                newPhysicsData = DistanceConstraint(newPhysicsData.GetLink(j), newPhysicsData, context);
         }
+
+        return newPhysicsData;
     }
 
-    private void RunPhysicsPasses(in PhysicsData physicsData, in List<PhysicsPassData> physicsPasses, SimulationContext context)
+    private PhysicsData RunPhysicsPasses(PhysicsData physicsData, in List<PhysicsPassData> physicsPasses, SimulationContext context)
     {
         if (physicsPasses.Count <= 0)
-            return;
+            return physicsData;
+
+        PhysicsData newPhysicsData = physicsData;
 
         foreach (var physicsPass in physicsPasses)
         {
             for (var i = 0; i < physicsPass.Steps; i++)
             {
-                for (int j = 0; j < context.LocalData.PointCount; j++)
+                for (int j = 0; j < physicsData.PointCount; j++)
                 {
                     context.Index = j;
-                    physicsData.SetPoint(j, physicsPass.Action(context.LocalData.Points[j], context));
+                    newPhysicsData.SetPoint(j, physicsPass.Action(newPhysicsData.GetPoint(j), context));
                 }
             }
         }
+
+        return newPhysicsData;
     }
 
-    public PhysicsPoint RunSimulation(in PhysicsPoint physicsPoint, in object integrationParameters = null)
+    private PhysicsData DistanceConstraint(ILink link, PhysicsData data, SimulationContext context)
     {
-        PhysicsPoint newPoint = physicsPoint;
+        if (link is PhysicsLink physicsLink)
+            return DistanceConstraint(physicsLink, data, context);
+        else if (link is ControlledPhysicsLink controlledPhysicsLink)
+            return DistanceConstraint(controlledPhysicsLink, data, context);
 
-        SimulationContext context = new SimulationContext()
-        {
-            GlobalData = _globalData.AsReadOnly()
-        };
-
-        // run pre-integration physics passes
-        newPoint = RunPhysicsPasses(in newPoint, in _preIntegrationPhysicsPasses, context);
-
-        // integrate motion
-        newPoint = _integrator(newPoint, integrationParameters);
-
-        // run post-integration physics passes
-        RunPhysicsPasses(in newPoint, in _postIntegrationPhysicsPasses, context);
-
-        return newPoint;
+        return data;
     }
 
-    private PhysicsPoint RunPhysicsPasses(in PhysicsPoint physicsPoint, in List<PhysicsPassData> physicsPasses, SimulationContext context)
+    private PhysicsData DistanceConstraint(PhysicsLink link, PhysicsData data, SimulationContext context)
     {
-        if (physicsPasses.Count <= 0)
-            return physicsPoint;
+        PhysicsData newPhysicsData = data;
 
-        PhysicsPoint newPoint = physicsPoint;
+        int point1Index = link.GetPointIndex(true);
+        int point2Index = link.GetPointIndex(false);
 
-        foreach (var physicsPass in physicsPasses)
-        {
-            for (var i = 0; i < physicsPass.Steps; i++)
-                newPoint = physicsPass.Action(newPoint, context);
-        }
+        var point1 = data.GetPoint(point1Index);
+        var point2 = data.GetPoint(point2Index);
 
-        return newPoint;
+        var midPoint = (point1.Position + point2.Position) * 0.5f;
+        var projection = (point1.Position - point2.Position).SafeNormalize(Vector2.Zero) * link.TargetDistance * 0.5f;
+
+        point1.Position = midPoint + projection;
+        point2.Position = midPoint - projection;
+
+        newPhysicsData.SetPoint(point1Index, point1);
+        newPhysicsData.SetPoint(point2Index, point2);
+
+        return newPhysicsData;
     }
 
-    private void DistanceConstraint(in PhysicsData physicsData, in ILink link)
+    private PhysicsData DistanceConstraint(ControlledPhysicsLink link, PhysicsData data, SimulationContext context)
     {
-        var point1 = GetLinkPoint(in physicsData, in link, true);
-        var point2 = GetLinkPoint(in physicsData, in link, false);
+        PhysicsData newPhysicsData = data;
 
-        if (point1.IsControl && !point2.IsControl)
-        {
-            var projection = (point2.Position - point1.Position).SafeNormalize(Vector2.Zero) * link.TargetDistance;
+        string controlIndex = link.GetPointIndex(true);
+        int pointIndex = link.GetPointIndex(false);
 
-            point2.Position = point1.Position + projection;
+        PhysicsPoint physicsPoint = data.GetPoint(pointIndex);
+        Vector2 controlPoint = context.PhysicsObject.LocalData[controlIndex].Vector2;
 
-            SetLinkPoint(in physicsData, in link, false, point2);
-        }
-        else if (!point1.IsControl && point2.IsControl)
-        {
-            var projection = (point1.Position - point2.Position).SafeNormalize(Vector2.Zero) * link.TargetDistance;
+        var projection = (physicsPoint.Position - controlPoint).SafeNormalize(Vector2.Zero) * link.TargetDistance;
 
-            point1.Position = point2.Position + projection;
+        physicsPoint.Position = controlPoint + projection;
 
-            SetLinkPoint(in physicsData, in link, true, point1);
-        }
-        else if (!point1.IsControl && !point2.IsControl)
-        {
-            var midPoint = (point1.Position + point2.Position) * 0.5f;
-            var projection = (point1.Position - point2.Position).SafeNormalize(Vector2.Zero) * link.TargetDistance * 0.5f;
+        newPhysicsData.SetPoint(pointIndex, physicsPoint);
 
-            point1.Position = midPoint + projection;
-            point2.Position = midPoint - projection;
-
-            SetLinkPoint(in physicsData, in link, true, point1);
-            SetLinkPoint(in physicsData, in link, false, point2);
-        }
-        else
-            throw new InvalidOperationException("Tried to constrain 2 control points together.");
-    }
-
-    private PhysicsPoint GetLinkPoint(in PhysicsData physicsData, in ILink link, bool isFirst)
-    {
-        dynamic pointIndex = link.GetPointIndex(isFirst);
-        return physicsData.GetPoint(pointIndex);
-    }
-
-    private void SetLinkPoint(in PhysicsData physicsData, in ILink link, bool isFirst, PhysicsPoint point)
-    {
-        dynamic pointIndex = link.GetPointIndex(isFirst);
-
-        // it should never be setting a control point
-        if (pointIndex is string)
-            return;
-
-        physicsData.SetPoint((int)pointIndex, point);
+        return newPhysicsData;
     }
 }

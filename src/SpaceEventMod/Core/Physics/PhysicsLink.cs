@@ -10,25 +10,38 @@ namespace SpaceEventMod.Core.Physics;
 internal interface ILink
 {
     public float TargetDistance { get; }
-
-    public dynamic GetPointIndex(bool isFirst);
 }
 
 /// <summary>
 /// Link between 2 points in a <see cref="PhysicsSolver"/> simulation.
 /// Stores the key or index of the point.
 /// </summary>
-/// <typeparam name="TFirst">Type of the first point.</typeparam>
-/// <typeparam name="TSecond">Type of the second point.</typeparam>
-internal struct PhysicsLink<TFirst, TSecond>(TFirst point1, TSecond point2, float targetDistance) : ILink
+internal struct PhysicsLink(int point1, int point2, float targetDistance) : ILink
 {
-    private TFirst _point1Index = point1;
-    private TSecond _point2Index = point2;
+    private int _point1Index = point1;
+    private int _point2Index = point2;
 
     public float TargetDistance { get; } = targetDistance;
 
-    public dynamic GetPointIndex(bool isFirst)
+    public int GetPointIndex(bool isFirst)
     {
         return isFirst ? _point1Index : _point2Index;
+    }
+}
+
+/// <summary>
+/// Link between 2 points in a <see cref="PhysicsSolver"/> simulation.
+/// Stores the key or index of the point.
+/// </summary>
+internal struct ControlledPhysicsLink(string controlPoint, int point, float targetDistance) : ILink
+{
+    private string _controlPointIndex = controlPoint;
+    private int _pointIndex = point;
+
+    public float TargetDistance { get; } = targetDistance;
+
+    public dynamic GetPointIndex(bool isControl)
+    {
+        return isControl ? _controlPointIndex : _pointIndex;
     }
 }

@@ -10,13 +10,9 @@ using Terraria.ModLoader;
 namespace SpaceEventMod.Content.Dusts;
 
 [Autoload(Side = ModSide.Client)]
-public class InkRenderer : ILoadable
+public class InkRenderer : ModSystem
 {
-    public void Load(Mod mod) => On_Main.DrawDust += DrawManaInk;
-
-    public void Unload() => On_Main.DrawDust -= DrawManaInk;
-
-    public void DrawManaInk(On_Main.orig_DrawDust orig, Main self)
+    public override void PostDrawTiles()
     {
         Pipeline pipeline = Graphics.BeginPipeline(0.5f);
 
@@ -32,8 +28,8 @@ public class InkRenderer : ILoadable
             var drawPosition = Vector2.Lerp(manaInkData.TargetPosition, dust.position, EasingFunctions.SineEaseInOut(Math.Clamp((manaInkData.Lifetime - dust.fadeIn) / 60, 0, 1)));
 
             pipeline.DrawSprite(
-                inkTexture, 
-                (manaInkData.InkType == InkType.Orbiting ? drawPosition : dust.position) - Main.screenPosition, 
+                inkTexture,
+                (manaInkData.InkType == InkType.Orbiting ? drawPosition : dust.position) - Main.screenPosition,
                 dust.color,
                 frame,
                 dust.rotation,
@@ -65,7 +61,5 @@ public class InkRenderer : ILoadable
         pipeline
             .ApplyOutline(new Color(69, 77, 255))
             .Schedule(RenderLayer.AfterTiles);
-
-        orig(self);
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
 
 namespace SpaceEventMod.Core.Geometry;
@@ -12,7 +13,7 @@ public struct Line(Vector2 point1, Vector2 point2)
 {
     public Vector2 point1 = point1, point2 = point2;
 
-    public Vector2[] GetPoints(int quantity)
+    public ReadOnlySpan<Vector2> GetPoints(int quantity)
     {
         var scale = 1f / quantity;
         var points = new Vector2[quantity];
