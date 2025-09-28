@@ -18,3 +18,6 @@ https://code.tutsplus.com/make-a-splash-with-dynamic-2d-water-effects--gamedev-2
 The graphics pipeline and bezier curves in this mod was borrowed from the All Beginnings mod with permission.
 https://github.com/mayli4/AllBeginningsMod/tree/main/src/AllBeginningsMod/Common/Graphics
 
+These videos helped me a lot with soft body physics.
+https://www.youtube.com/watch?v=GXh0Vxg7AnQ
+https://www.youtube.com/watch?v=3OmkehAJoyo

@@ -11,6 +11,7 @@ NPCs: {
 	Dropling.DisplayName: Dropling
 	TitanSpawn.DisplayName: Titan Spawn
 	PantsEnemy.DisplayName: Pants Enemy
+	SoftBodyExperiment.DisplayName: Soft Body Experiment
 }
 
 Projectiles: {
