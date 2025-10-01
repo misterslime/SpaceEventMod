@@ -18,7 +18,6 @@ internal class ConserveVolume(int steps) : IPass
         PhysicsShape shape = physicsObject.GetComponent<PhysicsShape>();
 
         float dilation = body.ScaleFactor * (body.DesiredArea - -shape.GetArea());
-        Main.NewText(dilation);
 
         for (int i = 0; i < shape.Points.Length; i++)
         {

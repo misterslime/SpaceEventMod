@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Animation;
 using SpaceEventMod.Core.Animation.SecondOrderDynamics;
-using SpaceEventMod.Core.Animation.Splines;
 using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;

@@ -24,7 +24,7 @@ internal class DampenVelocity(int steps) : IPass
         {
             PhysicsPoint shapePoint = physicsObject.GetComponent<PhysicsShape>().Points[i];
 
-            physicsObject.GetComponent<PhysicsShape>().Points[i].PreviousPosition = Vector2.Lerp(shapePoint.Position, shapePoint.PreviousPosition, 0.95f);
+            physicsObject.GetComponent<PhysicsShape>().Points[i].PreviousPosition = Vector2.Lerp(shapePoint.Position, shapePoint.PreviousPosition, 0.96f);
         }
     }
 }

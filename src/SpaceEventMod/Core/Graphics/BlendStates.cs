@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Core.Utilities;
+namespace SpaceEventMod.Core.Graphics;
 
 internal static class BlendStates
 {

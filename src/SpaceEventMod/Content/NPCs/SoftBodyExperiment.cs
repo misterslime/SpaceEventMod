@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.NPCs.Droplings;
+using SpaceEventMod.Core.Animation;
 using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
@@ -86,11 +87,11 @@ internal class SoftBodyExperiment : ModNPC
 
         for (int i = 0; i < numPoints; i++)
         {
-            int nextIndex = (i + 1) % numPoints;
+            int prevIndex = (i - 1 + numPoints) % numPoints;
 
-            float length = (points[i].Position - points[nextIndex].Position).Length();
+            float length = (points[i].Position - points[prevIndex].Position).Length();
 
-            joints.Add(new DistanceConstraint(new(IndexType.Point, nextIndex), new(IndexType.Point, i), length));
+            joints.Add(new DistanceConstraint(new(IndexType.Point, i), new(IndexType.Point, prevIndex), length));
         }
 
         //joints.Add(new DistanceConstraint(new(IndexType.Point, 0), new(IndexType.Point, numPoints - 1), length));
@@ -104,7 +105,7 @@ internal class SoftBodyExperiment : ModNPC
 
         PhysicsShape shape = _physicsObject.GetComponent<PhysicsShape>();
 
-        _physicsObject.AddComponent(new GasFilledSoftBody(shape.GetArea(), shape.GetArea(), 0.0015f));
+        _physicsObject.AddComponent(new GasFilledSoftBody(shape.GetArea(), 0, 0.0015f));
     }
 
     public override void AI()
@@ -124,11 +125,18 @@ internal class SoftBodyExperiment : ModNPC
             positions.Add(physicsPoints[i].Position);
 
         positions.Add(physicsPoints[0].Position);
+        positions.Add(physicsPoints[1].Position);
+
+        var trailPoints = new List<Vector2>();
+
+        ReadOnlySpan<Vector2> controlPoints = positions.ToArray();
+
+        trailPoints = new CatmullRomCurve(controlPoints, true).GetPoints(4);
 
         Graphics.BeginPipeline(0.5f)
             .DrawBasicTrail(
-                positions.ToArray(),
-                _ => 2f,
+                trailPoints.ToArray(),
+                _ => 3f,
                 Assets.Assets.Textures.WhitePixel.Value,
                 Color.White)
             .ApplyOutline(Color.Black)
