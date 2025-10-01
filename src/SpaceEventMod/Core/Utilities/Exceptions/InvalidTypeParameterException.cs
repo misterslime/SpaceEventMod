@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Core.Exceptions;
+namespace SpaceEventMod.Core.Utilities.Exceptions;
 
 [Serializable]
 internal class InvalidTypeParameterException : Exception

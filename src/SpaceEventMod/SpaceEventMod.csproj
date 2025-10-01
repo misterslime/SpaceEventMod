@@ -40,6 +40,9 @@
       <!-- Publicizes all FNA types -->
       <Publicize Include="tModLoader;FNA" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Core\Physics\Animation\" />
+    </ItemGroup>
 
     <Target Name="BuildEffects" BeforeTargets="BuildMod" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
         <Exec Command="@(ShaderFiles->'&quot;$(FXCPath)&quot; &quot;%(RecursiveDir)%(FileName)%(Extension)&quot; /T fx_2_0 /D FX=1 /nologo /Fo &quot;%(RecursiveDir)%(FileName).fxc&quot; &#xA;&#xD;')" IgnoreExitCode="true" />

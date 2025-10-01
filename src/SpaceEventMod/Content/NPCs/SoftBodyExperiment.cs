@@ -5,10 +5,20 @@ using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Physics.Collision;
+using SpaceEventMod.Core.Physics.Components;
+using SpaceEventMod.Core.Physics.Components.SoftBodies;
+using SpaceEventMod.Core.Physics.Interfaces;
+using SpaceEventMod.Core.Physics.Joints;
+using SpaceEventMod.Core.Physics.Passes;
+using SpaceEventMod.Core.Physics.Passes.Collision;
+using SpaceEventMod.Core.Physics.Passes.Integrators;
+using SpaceEventMod.Core.Physics.Passes.NPCs;
+using SpaceEventMod.Core.Physics.Passes.SoftBodies;
 using SpaceEventMod.Core.Utilities;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.Animations;
@@ -20,73 +30,21 @@ namespace SpaceEventMod.Content.NPCs;
 
 internal class SoftBodyExperiment : ModNPC
 {
-    private static PhysicsSolver s_physicsSolver;
+    private static PhysicsSolver s_softBodySolver;
 
     private PhysicsObject _physicsObject;
 
     public override void SetStaticDefaults()
     {
-        s_physicsSolver = new PhysicsSolver(Integrators.VerletIntegration)
-            .AddGlobalData(
-                ("gravity", new Vector2(0, 0.075f)))
-            .AddPhysicsPasses(true,
-                ("gravity", 1, (PhysicsPoint point, SimulationContext context) =>
-                {
-                    point.Acceleration += context.GlobalData["gravity"].Vector2;
+        s_softBodySolver = new PhysicsSolver();
 
-                    return point;
-                }),
-                ("conserveVolume", 1, (PhysicsPoint point, SimulationContext context) =>
-                {
-                    context.PhysicsObject.LocalData.TryGetValue("desiredArea", out ParameterValue desiredArea);
-                    context.PhysicsObject.LocalData.TryGetValue("currentArea", out ParameterValue currentArea);
-                    context.PhysicsObject.LocalData.TryGetValue("scaleFactor", out ParameterValue scaleFactor);
-
-                    float dilation = scaleFactor.Float * (desiredArea.Float - currentArea.Float);
-
-                    ReadOnlySpan<PhysicsPoint> data = context.PhysicsObject.PhysicsData[0].Points;
-
-                    int leftIndex = (context.Index - 1 + data.Length) % data.Length;
-                    int rightIndex = (context.Index + 1) % data.Length;
-
-                    Vector2 point1 = data[leftIndex].Position;
-                    Vector2 point2 = data[rightIndex].Position;
-
-                    Vector2 vector = point1 - point2;
-
-                    vector = new Vector2(-vector.Y, vector.X).SafeNormalize(Vector2.Zero) * dilation;
-
-                    point.Acceleration += vector;
-
-                    return point;
-                }),
-                ("tileCollisions", 1, (PhysicsPoint point, SimulationContext context) => TileCollisionHelper.CheckPoint(point, 6, 16))
-            );
-    }
-
-
-
-    private float ShapeArea(ReadOnlySpan<PhysicsPoint> physicsPoints)
-    {
-        float area = 0;
-
-        for (int i = 0; i < physicsPoints.Length; i++)
-        {
-            //int leftIndex = (i - 1 + physicsPoints.Length) % physicsPoints.Length;
-            int rightIndex = (i + 1) % physicsPoints.Length;
-
-            Vector2 point1 = physicsPoints[i].Position;
-            Vector2 point2 = physicsPoints[rightIndex].Position;
-
-            float width = point2.X - point1.X;
-            float length = (point1.Y + point2.Y) * 0.5f;
-
-            area += width * length;
-        }
-
-        //Main.NewText(area);
-
-        return area;
+        s_softBodySolver.AddPhysicsPass(new Gravity(new Vector2(0, 0.075f), 1));
+        s_softBodySolver.AddPhysicsPass(new ConserveVolume(1));
+        s_softBodySolver.AddPhysicsPass(new TileCollision(1));
+        s_softBodySolver.AddPhysicsPass(new VerletIntegration());
+        s_softBodySolver.AddPhysicsPass(new JointPhysics(4));
+        s_softBodySolver.AddPhysicsPass(new AnchorShape());
+        s_softBodySolver.AddPhysicsPass(new AnchorNPC());
     }
 
     public override void SetDefaults()
@@ -111,13 +69,11 @@ internal class SoftBodyExperiment : ModNPC
         float radius = 64f;
 
         List<PhysicsPoint> points = new List<PhysicsPoint>();
-        List<ILink> links = new List<ILink>();
+        List<IJoint> joints = new List<IJoint>();
 
         float angle = MathHelper.TwoPi / numPoints;
 
-        float length = ((Vector2.UnitX.RotatedBy(angle * 1) * radius) - (Vector2.UnitX.RotatedBy(angle * 2) * radius)).Length();
-
-        float desiredArea = -12540;
+        //float length = ((Vector2.UnitX.RotatedBy(angle * 1) * radius) - (Vector2.UnitX.RotatedBy(angle * 2) * radius)).Length();
 
         for (int i = 0; i < numPoints; i++)
         {
@@ -126,42 +82,46 @@ internal class SoftBodyExperiment : ModNPC
             pointPosition += NPC.Center;
 
             points.Add(new PhysicsPoint(pointPosition));
-
-            if (i > 0)
-                links.Add(new PhysicsLink(i - 1, i, length));
         }
 
-        links.Add(new PhysicsLink(0, numPoints - 1, length));
+        for (int i = 0; i < numPoints; i++)
+        {
+            int nextIndex = (i + 1) % numPoints;
 
-        _physicsObject = new PhysicsObject([new(points.ToArray(), links.ToArray())])
-            .AddLocalData(
-                ("desiredArea", desiredArea),
-                ("currentArea", desiredArea),
-                ("scaleFactor", 1f));
+            float length = (points[i].Position - points[nextIndex].Position).Length();
+
+            joints.Add(new DistanceConstraint(new(IndexType.Point, nextIndex), new(IndexType.Point, i), length));
+        }
+
+        //joints.Add(new DistanceConstraint(new(IndexType.Point, 0), new(IndexType.Point, numPoints - 1), length));
+
+        _physicsObject = new PhysicsObject(new(NPC.Center));
+
+        _physicsObject.AddComponent(new PhysicsShape(points.ToArray()));
+        _physicsObject.AddComponent(new PhysicsJoints(joints.ToArray()));
+        _physicsObject.AddComponent(new NPCReference(NPC.whoAmI));
+        _physicsObject.AddComponent(new AnchorObjectCentroid(true));
+
+        PhysicsShape shape = _physicsObject.GetComponent<PhysicsShape>();
+
+        _physicsObject.AddComponent(new GasFilledSoftBody(shape.GetArea(), shape.GetArea(), 0.0015f));
     }
 
     public override void AI()
     {
-        _physicsObject = s_physicsSolver.RunSimulation(_physicsObject);
-        _physicsObject = _physicsObject.SetLocalData("desiredArea", 12540f);
-        _physicsObject = _physicsObject.SetLocalData("currentArea", -ShapeArea(_physicsObject.PhysicsData[0].Points));
-        _physicsObject = _physicsObject.SetLocalData("scaleFactor", 0.00075f);
+        s_softBodySolver.RunPhysicsPasses([_physicsObject]);
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        PhysicsObject psgmdomf = _physicsObject;
-
-        if (psgmdomf.Equals(default(PhysicsObject)))
+        if (_physicsObject is null)
             return false;
 
-        ReadOnlySpan<PhysicsPoint> physicsPoints = _physicsObject.PhysicsData[0].Points;
+        ReadOnlySpan<PhysicsPoint> physicsPoints = _physicsObject.GetComponent<PhysicsShape>().Points;
         List<Vector2> positions = new List<Vector2>();
 
         for (int i = 0; i < physicsPoints.Length; i++)
-        {
             positions.Add(physicsPoints[i].Position);
-        }
 
         positions.Add(physicsPoints[0].Position);
 
@@ -173,16 +133,6 @@ internal class SoftBodyExperiment : ModNPC
                 Color.White)
             .ApplyOutline(Color.Black)
             .Schedule(RenderLayer.AfterNPCs);
-
-        /*for (int i = 0; i < _physicsObject.PhysicsData[0].LinkCount; i++)
-        {
-            Tuple<PhysicsPoint, PhysicsPoint> physicsPoints = _physicsObject.GetLinkPoints(0, i);
-
-            Vector2 point1Position = physicsPoints.Item1.Position;
-            Vector2 point2Position = physicsPoints.Item2.Position;
-
-            spriteBatch.DrawLine(point1Position - screenPos, point2Position - screenPos, Color.White, 2);
-        }*/
 
         return false;
     }

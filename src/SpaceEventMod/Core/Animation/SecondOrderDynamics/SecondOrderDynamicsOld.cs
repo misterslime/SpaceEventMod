@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Core.Physics.Animation;
+namespace SpaceEventMod.Core.Animation.SecondOrderDynamics;
 
 public struct Kinematics<T>
 {

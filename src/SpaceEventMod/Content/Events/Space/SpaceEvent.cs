@@ -1,8 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space.LevelElements;
-using SpaceEventMod.Content.NPCs.Manaphages;
-using SpaceEventMod.Core.Utilities;
+using SpaceEventMod.Core.Animation;
 using System;
 using Terraria;
 using Terraria.DataStructures;

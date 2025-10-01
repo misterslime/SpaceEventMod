@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.NPCs.Manaphages;
-using SpaceEventMod.Core.Physics.Animation;
+using SpaceEventMod.Core.Animation.SecondOrderDynamics;
+using SpaceEventMod.Core.Physics;
+using SpaceEventMod.Core.Physics.Components.Animation;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -20,7 +21,7 @@ public class Asteroids : ModSystem
 {
     public static List<Asteroid> List = new List<Asteroid>();
 
-    internal static readonly SecondOrderData AsteroidMovement = new SecondOrderData(1f / 64f, 0.5f, 0.2f);
+    internal static readonly SecondOrderAnimation AsteroidMovement = new SecondOrderAnimation(1f / 64f, 0.5f, 0.2f);
 
     public override void OnWorldUnload()
     {
@@ -53,9 +54,12 @@ public class Asteroids : ModSystem
 
         Vector2 target = asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 24f : asteroid.RestPosition;
 
-        SecondOrderParameters integrationParameters = new SecondOrderParameters(1, AsteroidMovement, target);
+        PhysicsObject physicsObject = new PhysicsObject(newAsteroid.Transform);
+        physicsObject.AddComponent(new SecondOrderData(1, AsteroidMovement, target));
 
-        newAsteroid.Transform = SecondOrderDynamics.Solver.RunSimulation(newAsteroid.Transform, integrationParameters);
+        SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
+
+        newAsteroid.Transform = physicsObject.Center;
 
         //newAsteroid.Transform = AsteroidMovement.Update(1, asteroid.Transform, );
         newAsteroid.BeingStoodOn = false;

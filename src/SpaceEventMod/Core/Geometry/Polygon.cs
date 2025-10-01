@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Geometry.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,128 +11,29 @@ namespace SpaceEventMod.Core.Geometry;
 /// A collection of vertices that constitutes a 2D shape.
 /// </summary>
 /// <param name="points">List of points in the polygon.</param>
-public class Polygon(Vector2[] points)
+internal class Polygon(Vector2[] points) : IGeometry<Vector2>, ITriangulate
 {
-    public Vector2[] Vertices = points;
+    protected Vector2[] _points = points;
 
-    /// <summary>
-    /// Triangulates the polygon using the ear clipping method.<br/>
-    /// <see href="https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf">Click here for more info.</see>
-    /// </summary>
-    /// <returns>A <see cref="List{T}"/> of <see cref="Triangle"/>s that compose the polygon.</returns>
-    public List<Triangle> Triangulate()
-    {
-        var trianglePoints = new Vector2[Vertices.Length];
-        trianglePoints = Vertices;
-        var polygon = new Polygon(trianglePoints);
+    public ReadOnlySpan<Vector2> Points { get => _points; }
 
-        polygon.OrientClockwise();
-
-        var triangles = new List<Triangle>();
-
-        // If the polygon is not a triangle remove an ear from the polygon.
-        while (polygon.Vertices.Count() > 3)
-            polygon.FindAndRemoveEar(ref triangles);
-
-        triangles.Add(new Triangle(polygon.Vertices[0], polygon.Vertices[1], polygon.Vertices[2]));
-        return triangles;
-    }
-
-    /// <summary>
-    /// Makes sure the polygon is clockwise oriented so we can find concave & convex vertices
-    /// </summary>
-    private void OrientClockwise()
-    {
-        var vertices = Vertices.ToList();
-        vertices.Add(Vertices[0]);
-
-        float polygonArea = 0;
-        for (var i = 0; i < Vertices.Length; i++)
-            polygonArea += (vertices[i + 1].X - vertices[i].X) * (vertices[i + 1].Y + vertices[i].Y) / 2;
-
-        if (polygonArea > 0)
-            Vertices.Reverse();
-    }
-
-    private void FindAndRemoveEar(ref List<Triangle> triangles)
-    {
-        // Check for an ear
-        int[] triangle = [0, 0, 0];
-        triangle = FindEar(triangle[0], triangle[1], triangle[2]);
-
-        // Add a new ear to the list
-        if (triangle != null)
-        {
-            triangles.Add(new Triangle(Vertices[triangle[0]], Vertices[triangle[1]], Vertices[triangle[2]]));
-            // Remove the ear from the polygon.
-            var vertices = Vertices.ToList();
-            vertices.RemoveAt(triangle[1]);
-            Vertices = vertices.ToArray();
-        }
-    }
-
-    private int[] FindEar(int leftVertex, int middleVertex, int rightVertex)
-    {
-        for (leftVertex = 0; leftVertex < Vertices.Length; leftVertex++)
-        {
-            middleVertex = (leftVertex + 1) % Vertices.Length;//if vertex0 was the last point or last - 1 point take the last or first point
-            rightVertex = (middleVertex + 1) % Vertices.Length;//if vertex0 was the last point or last - 1 point take the first or second point
-            // Send three points and check if it's an ear or not
-            if (CheckEar(Vertices, leftVertex, middleVertex, rightVertex))
-                return [leftVertex, middleVertex, rightVertex];
-        }
-        return null;
-    }
-
-    private bool CheckEar(Vector2[] points, int leftVertex, int middleVertex, int rightVertex)
-    {
-        // Check if p1 is concave
-        var angle = GetAngle(points[leftVertex], points[middleVertex], points[rightVertex]);
-        if (angle > 180 || angle < -180)
-            return false;
-
-        var triangle = new Polygon([points[leftVertex], points[middleVertex], points[rightVertex]]);
-        // Make sure there is no point inside our ear
-        for (var i = 0; i < points.Length; i++)
-        {
-            if ((i != leftVertex) && (i != middleVertex) && (i != rightVertex))
-            {
-                if (triangle.PointInsidePolygon(points[i]))
-                    return false;
-            }
-        }
-        return true;
-    }
-
-    public float GetAngle(Vector2 leftVertex, Vector2 middleVertex, Vector2 rightVertex)
-    {
-        // Get angle
-        var radians = Math.Atan(Cross(leftVertex - middleVertex, rightVertex - middleVertex) / Vector2.Dot(leftVertex - middleVertex, rightVertex - middleVertex));
-        var angle = radians * (180 / Math.PI);
-
-        return (float)angle;
-    }
-
-    /// <summary>
-    /// Normal cross product method.
-    /// </summary>
-    /// <returns></returns>
-    public float Cross(Vector2 value1, Vector2 value2) => (value1.X * value2.Y) - (value1.Y * value2.X);
+    public Vector2 GetPoint(int index) => _points[index];
+    public void SetPoint(Vector2 point, int index) => _points[index] = point;
 
     /// <summary>
     /// Checks if a point is inside the polygon
     /// </summary>
     /// <param name="point">Point to check.</param>
     /// <returns><see langword="true"> the point is inside the polygon, <see langword="false"> if not.</returns>
-    public bool PointInsidePolygon(Vector2 point)
+    public bool PointInside(Vector2 point)
     {
         var result = false;
-        var j = Vertices.Count() - 1;
-        for (var i = 0; i < Vertices.Count(); i++)
+        var j = _points.Length - 1;
+        for (var i = 0; i < _points.Length; i++)
         {
-            if (Vertices[i].Y < point.X && Vertices[j].Y >= point.Y || Vertices[j].Y < point.Y && Vertices[i].Y >= point.Y)
+            if (_points[i].Y < point.X && _points[j].Y >= point.Y || _points[j].Y < point.Y && _points[i].Y >= point.Y)
             {
-                if (Vertices[i].X + (point.Y - Vertices[i].Y) / (Vertices[j].Y - Vertices[i].Y) * (Vertices[j].X - Vertices[i].X) < point.X)
+                if (_points[i].X + (point.Y - _points[i].Y) / (_points[j].Y - _points[i].Y) * (_points[j].X - _points[i].X) < point.X)
                     result = !result;
             }
             j = i;

@@ -8,6 +8,6 @@ namespace SpaceEventMod.Core.Geometry;
 /// <param name="A">First point of the triangle.</param>
 /// <param name="B">Second point of the triangle.</param>
 /// <param name="C">Third point of the triangle.</param>
-public class Triangle(Vector2 A, Vector2 B, Vector2 C) : Polygon([A, B, C])
+internal sealed class Triangle(Vector2 A, Vector2 B, Vector2 C) : Polygon([A, B, C])
 {
 }

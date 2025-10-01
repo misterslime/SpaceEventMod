@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Core.Animation;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Utilities;
 using System;

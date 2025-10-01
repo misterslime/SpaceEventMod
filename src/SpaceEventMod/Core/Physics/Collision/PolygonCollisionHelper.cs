@@ -4,9 +4,9 @@ using System;
 
 namespace SpaceEventMod.Core.Physics.Collision;
 
-public static class PolygonCollisionHelper
+internal static class PolygonCollisionHelper
 {
-    public struct SATCollisionData(
+    internal struct SATCollisionData(
         Polygon polygon1, 
         Vector2 polygon1Position,
         Polygon polygon2,
@@ -23,7 +23,7 @@ public static class PolygonCollisionHelper
     /// Testing twice with one being in reverse order, and then comparing length, removes artifacts where the hitbox extends too far.
     /// </summary>
     /// <returns>The normal collision <see cref="Vector2"/>, returns <see langword="null""/> if the polygons arent colliding.</returns>
-    public static Vector2? TestCollisionNormal(SATCollisionData data)
+    internal static Vector2? TestCollisionNormal(SATCollisionData data)
     {
         // Run a test of each polygon against the other
         var testAB = SolveCollision(data);
@@ -46,7 +46,7 @@ public static class PolygonCollisionHelper
     /// <param name="polygon2">Second polygon.</param>
     /// <param name="polygon2Position">Position of the second polygon.</param>
     /// <returns></returns>
-    private static Tuple<Vector2?, float> SolveCollision(SATCollisionData data, bool flipResultPositions = false)
+    internal static Tuple<Vector2?, float> SolveCollision(SATCollisionData data, bool flipResultPositions = false)
     {
         var shortestDist = float.MaxValue;
 
@@ -57,13 +57,13 @@ public static class PolygonCollisionHelper
         var normal = Vector2.Zero;
 
         // Loop over all of the sides on the first polygon and check the perpendicular axis
-        for (var i = 0; i < data.Polygon1.Vertices.Length; i++)
+        for (var i = 0; i < data.Polygon1.Points.Length; i++)
         {
             // Get the perpendicular axis that we will be projecting onto
-            var axis = GetPerpendicularAxis(data.Polygon1.Vertices, i);
+            var axis = GetPerpendicularAxis(data.Polygon1.Points, i);
 
-            var polygon1Range = ProjectVerticesForMinMax(axis, data.Polygon1.Vertices);
-            var polygon2Range = ProjectVerticesForMinMax(axis, data.Polygon2.Vertices);
+            var polygon1Range = ProjectVerticesForMinMax(axis, data.Polygon1.Points);
+            var polygon2Range = ProjectVerticesForMinMax(axis, data.Polygon2.Points);
 
             var scalerOffset = Vector2.Dot(axis, offset);
             polygon1Range.X += scalerOffset;
@@ -100,7 +100,7 @@ public static class PolygonCollisionHelper
     /// <param name="axis"></param>
     /// <param name="vertices"></param>
     /// <returns></returns>
-    private static Vector2 ProjectVerticesForMinMax(Vector2 axis, Vector2[] vertices)
+    internal static Vector2 ProjectVerticesForMinMax(Vector2 axis, ReadOnlySpan<Vector2> vertices)
     {
         // Note that we project the first point to both min and max
         var minimum = Vector2.Dot(axis, vertices[0]);
@@ -124,7 +124,7 @@ public static class PolygonCollisionHelper
     /// <param name="vertices"></param>
     /// <param name="index"></param>
     /// <returns></returns>
-    private static Vector2 GetPerpendicularAxis(Vector2[] vertices, int index)
+    internal static Vector2 GetPerpendicularAxis(ReadOnlySpan<Vector2> vertices, int index)
     {
         var point1 = vertices[index];
         var point2 = index >= vertices.Length - 1 ? vertices[0] : vertices[index + 1];  // Get the next index, or wrap around if at the end

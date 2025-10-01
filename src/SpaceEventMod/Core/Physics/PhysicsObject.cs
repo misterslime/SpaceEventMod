@@ -1,80 +1,92 @@
-using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.DataStructures;
+using SpaceEventMod.Core.Physics.Attributes;
+using SpaceEventMod.Core.Physics.Components;
+using SpaceEventMod.Core.Physics.Interfaces;
+using SpaceEventMod.Core.Physics.Joints;
+using SpaceEventMod.Core.Utilities.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
-using System.Diagnostics.Metrics;
-using System.Drawing;
 using System.Linq;
-using Terraria;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection;
+using Terraria.ModLoader;
+using static Terraria.Localization.NetworkText;
 
 namespace SpaceEventMod.Core.Physics;
 
-internal struct PhysicsObject(PhysicsData[] physicsDatas)
+internal class PhysicsObject(PhysicsPoint position)
 {
-    private readonly Dictionary<string, ParameterValue> _localData = new Dictionary<string, ParameterValue>();
-    private readonly PhysicsData[] _physicsDatas = physicsDatas;
+    private readonly List<IComponent> _components = new List<IComponent>();
 
-    public ReadOnlyDictionary<string, ParameterValue> LocalData { get => _localData.AsReadOnly(); }
-    public ReadOnlySpan<PhysicsData> PhysicsData { get => _physicsDatas; }
+    public PhysicsPoint Center { get; set; } = position;
+    public List<IComponent> Components { get => _components; }
 
-    public int PointCount { get => _physicsDatas.Sum((physicsDataSet) => physicsDataSet.PointCount); }
-    public int LinkCount { get => _physicsDatas.Sum((physicsDataSet) => physicsDataSet.LinkCount); }
-
-    public PhysicsObject SetLocalData(string key, ParameterValue value)
+    public void AddComponent<T>(T component) where T : struct, IComponent
     {
-        if (_localData.ContainsKey(key))
-            _localData[key] = value;
-        else
-            AddLocalData(key, value);
-
-        return this;
+        if (CanAddComponent<T>())
+            _components.Add(component);
     }
 
-    public PhysicsObject AddLocalData(string key, ParameterValue value)
-    {
-        _localData.Add(key, value);
+    public bool HasComponent<T>() where T : struct, IComponent => (from component in _components
+                                                                   where component is T
+                                                                   select component).Any();
 
-        return this;
+    public IEnumerable<T> GetInstancedComponents<T>() where T : struct, IComponent, IInstancedComponent => (from component in _components
+                                                                                                            where component is T
+                                                                                                            select (T)component);
+
+    public T GetInstancedComponent<T>(int index) where T : struct, IComponent, IInstancedComponent => (T)(from component in _components
+                                                                                                          where component is T
+                                                                                                          select component).ElementAt(index);
+
+    public T GetComponent<T>() where T : struct, IComponent
+    {
+        if (typeof(T) is IInstancedComponent)
+            throw new InvalidTypeParameterException("Tried to run GetComponent with an instanced component type.");
+
+        return (T)(from component in _components
+                   where component is T
+                   select component).First();
     }
 
-    public PhysicsObject AddLocalData(params ReadOnlySpan<(string Name, ParameterValue Value)> values)
+    public void AddChild(PhysicsObject child)
     {
-        foreach (var value in values)
-            _localData.Add(value.Name, value.Value);
-
-        return this;
+        this.AddComponent(new ChildObject(child));
+        child.AddComponent(new ParentObject(this));
     }
 
-    public Tuple<PhysicsPoint, PhysicsPoint> GetLinkPoints(int dataSet, int linkIndex)
+    private bool CanAddComponent<T>()
     {
-        ILink link = _physicsDatas[dataSet].GetLink(linkIndex);
+        var conditional = typeof(T).GetCustomAttributes(true);
 
-        if (link is PhysicsLink physicsLink)
-            return GetLinkPoints(physicsLink, dataSet);
-        else if (link is ControlledPhysicsLink controlledPhysicsLink)
-            return GetLinkPoints(controlledPhysicsLink, dataSet);
+        if (conditional.Length <= 0)
+            return true;
 
-        return Tuple.Create<PhysicsPoint, PhysicsPoint>(default, default);
-    }
+        var rejects = from condition in conditional
+                      where condition is RejectsAttribute
+                      from type in (condition as RejectsAttribute).Types
+                      select type;
 
-    private Tuple<PhysicsPoint, PhysicsPoint> GetLinkPoints(PhysicsLink link, int dataSet)
-    {
-        int point1Index = link.GetPointIndex(true);
-        int point2Index = link.GetPointIndex(false);
-        
-        return Tuple.Create(_physicsDatas[dataSet].GetPoint(point1Index), _physicsDatas[dataSet].GetPoint(point2Index));
-    }
+        if (rejects.Any())
+        {
+            if (_components.Any((component) => rejects.Contains(component.GetType())))
+                return false;
+        }
 
-    private Tuple<PhysicsPoint, PhysicsPoint> GetLinkPoints(ControlledPhysicsLink link, int dataSet)
-    {
-        int pointIndex = link.GetPointIndex(false);
-        string controlIndex = link.GetPointIndex(true);
+        var needs = from condition in conditional
+                    where condition is NeedsAttribute
+                    from type in (condition as NeedsAttribute).Types
+                    select type;
 
-        _localData.TryGetValue(controlIndex, out ParameterValue value);
+        if (needs.Any())
+        {
+            var componentTypes = from component in _components
+                                 select component.GetType();
 
-        return Tuple.Create(new PhysicsPoint(value.Vector2), _physicsDatas[dataSet].GetPoint(pointIndex));
+            if (!needs.All(componentTypes.Contains))
+                return false;
+        }
+
+        return true;
     }
 }
