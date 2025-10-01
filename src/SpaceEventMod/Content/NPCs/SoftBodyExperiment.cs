@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.Events.Space.Rendering;
 using SpaceEventMod.Content.NPCs.Droplings;
 using SpaceEventMod.Core.Animation;
 using SpaceEventMod.Core.DataStructures;
@@ -31,23 +32,6 @@ namespace SpaceEventMod.Content.NPCs;
 
 internal class SoftBodyExperiment : ModNPC
 {
-    private static PhysicsSolver s_softBodySolver;
-
-    private PhysicsObject _physicsObject;
-
-    public override void SetStaticDefaults()
-    {
-        s_softBodySolver = new PhysicsSolver();
-
-        s_softBodySolver.AddPhysicsPass(new Gravity(new Vector2(0, 0.075f), 1));
-        s_softBodySolver.AddPhysicsPass(new ConserveVolume(1));
-        s_softBodySolver.AddPhysicsPass(new TileCollision(1));
-        s_softBodySolver.AddPhysicsPass(new VerletIntegration());
-        s_softBodySolver.AddPhysicsPass(new JointPhysics(4));
-        s_softBodySolver.AddPhysicsPass(new AnchorShape());
-        s_softBodySolver.AddPhysicsPass(new AnchorNPC());
-    }
-
     public override void SetDefaults()
     {
         NPC.width = 46;
@@ -96,52 +80,96 @@ internal class SoftBodyExperiment : ModNPC
 
         //joints.Add(new DistanceConstraint(new(IndexType.Point, 0), new(IndexType.Point, numPoints - 1), length));
 
-        _physicsObject = new PhysicsObject(new(NPC.Center));
+        PhysicsObject physicsObject = new PhysicsObject(new(NPC.Center));
 
-        _physicsObject.AddComponent(new PhysicsShape(points.ToArray()));
-        _physicsObject.AddComponent(new PhysicsJoints(joints.ToArray()));
-        _physicsObject.AddComponent(new NPCReference(NPC.whoAmI));
-        _physicsObject.AddComponent(new AnchorObjectCentroid(true));
+        physicsObject.AddComponent(new PhysicsShape(points.ToArray()));
+        physicsObject.AddComponent(new PhysicsJoints(joints.ToArray()));
+        physicsObject.AddComponent(new NPCReference(NPC.whoAmI));
+        physicsObject.AddComponent(new AnchorObjectCentroid(true));
 
-        PhysicsShape shape = _physicsObject.GetComponent<PhysicsShape>();
+        PhysicsShape shape = physicsObject.GetComponent<PhysicsShape>();
 
-        _physicsObject.AddComponent(new GasFilledSoftBody(shape.GetArea(), 0, 0.0015f));
-    }
+        physicsObject.AddComponent(new GasFilledSoftBody(shape.GetArea(), 0, 0.0015f));
 
-    public override void AI()
-    {
-        s_softBodySolver.RunPhysicsPasses([_physicsObject]);
+        SoftBodyManager.SoftBodies.Add(physicsObject);
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        if (_physicsObject is null)
-            return false;
-
-        ReadOnlySpan<PhysicsPoint> physicsPoints = _physicsObject.GetComponent<PhysicsShape>().Points;
-        List<Vector2> positions = new List<Vector2>();
-
-        for (int i = 0; i < physicsPoints.Length; i++)
-            positions.Add(physicsPoints[i].Position);
-
-        positions.Add(physicsPoints[0].Position);
-        positions.Add(physicsPoints[1].Position);
-
-        var trailPoints = new List<Vector2>();
-
-        ReadOnlySpan<Vector2> controlPoints = positions.ToArray();
-
-        trailPoints = new CatmullRomCurve(controlPoints, true).GetPoints(4);
-
-        Graphics.BeginPipeline(0.5f)
-            .DrawBasicTrail(
-                trailPoints.ToArray(),
-                _ => 3f,
-                Assets.Assets.Textures.WhitePixel.Value,
-                Color.White)
-            .ApplyOutline(Color.Black)
-            .Schedule(RenderLayer.AfterNPCs);
-
         return false;
+    }
+}
+
+internal class SoftBodyManager : ModSystem
+{
+    private static PhysicsSolver s_softBodySolver;
+
+    public static List<PhysicsObject> SoftBodies { get; set; }
+
+    public override void Load()
+    {
+        SoftBodies = new List<PhysicsObject>();
+
+        s_softBodySolver = new PhysicsSolver();
+
+        s_softBodySolver.AddPhysicsPass(new Gravity(new Vector2(0, 0.2f), 1));
+        s_softBodySolver.AddPhysicsPass(new ConserveVolume(1));
+        s_softBodySolver.AddPhysicsPass(new SoftBodyCollision(4));
+        s_softBodySolver.AddPhysicsPass(new TileCollision(1));
+        s_softBodySolver.AddPhysicsPass(new VerletIntegration());
+        s_softBodySolver.AddPhysicsPass(new JointPhysics(4));
+        s_softBodySolver.AddPhysicsPass(new AnchorShape());
+        s_softBodySolver.AddPhysicsPass(new AnchorNPC());
+
+        On_Main.DrawInfernoRings += DrawThings;
+    }
+
+    public override void Unload()
+    {
+        SoftBodies.Clear();
+
+        On_Main.DrawInfernoRings -= DrawThings;
+    }
+
+    public override void PostUpdateNPCs()
+    {
+        s_softBodySolver.RunPhysicsPasses(SoftBodies);
+    }
+
+    public override void ClearWorld()
+    {
+        SoftBodies?.Clear();
+    }
+
+    private void DrawThings(On_Main.orig_DrawInfernoRings orig, Main self)
+    {
+        orig(self);
+
+        foreach (var softBody in SoftBodies)
+        {
+            ReadOnlySpan<PhysicsPoint> physicsPoints = softBody.GetComponent<PhysicsShape>().Points;
+            List<Vector2> positions = new List<Vector2>();
+
+            for (int i = 0; i < physicsPoints.Length; i++)
+                positions.Add(physicsPoints[i].Position);
+
+            positions.Add(physicsPoints[0].Position);
+            positions.Add(physicsPoints[1].Position);
+
+            var trailPoints = new List<Vector2>();
+
+            ReadOnlySpan<Vector2> controlPoints = positions.ToArray();
+
+            trailPoints = new CatmullRomCurve(controlPoints, true).GetPoints(4);
+
+            Graphics.BeginPipeline(0.5f)
+                .DrawBasicTrail(
+                    trailPoints.ToArray(),
+                    _ => 3f,
+                    Assets.Assets.Textures.WhitePixel.Value,
+                    Color.White)
+                .ApplyOutline(Color.Black)
+                .Schedule(RenderLayer.AfterNPCs);
+        }
     }
 }
