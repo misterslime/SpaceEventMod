@@ -54,30 +54,6 @@ public class SpaceEvent : ModSystem
 
         SpawnAsteroids();
         SpawnStars();
-        SpawnAmbientEnemies();
-    }
-
-    private void SpawnAmbientEnemies()
-    {
-        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
-            return;
-
-        var playerCenter = Main.player[Main.myPlayer].Center;
-        var randomPosition = playerCenter + Main.rand.NextVector2CircularEdge(75 * 16, 75 * 16);
-        // 0.05f
-
-        // only spawn 20 tiles above the sea surface
-        if (randomPosition.Y > (float)(Main.worldSurface * 0.35 * 16) - 320 || randomPosition.Y <= 5 * 16)
-            return;
-
-        if (Main.netMode != NetmodeID.MultiplayerClient && Main.rand.NextBool(1000))
-        {
-            var enemyPosition = randomPosition + Main.rand.NextVector2CircularEdge(20 * 16, 20 * 16);
-
-            var n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)randomPosition.X, (int)randomPosition.Y, ModContent.NPCType<Manaphage>());
-            if (Main.npc.IndexInRange(n))
-                NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
-        }
     }
 
     private void SpawnStars()
@@ -111,20 +87,6 @@ public class SpaceEvent : ModSystem
             return;
 
         Stars.List.Add(new Events.Space.LevelElements.Star(randomPosition));
-
-        if (Main.netMode != NetmodeID.MultiplayerClient)
-        {
-            var enemies = Main.rand.Next(1, 4);
-
-            for (var i = 0; i < enemies; i++)
-            {
-                var enemyPosition = randomPosition + Main.rand.NextVector2CircularEdge(20 * 16, 20 * 16);
-
-                var n = NPC.NewNPC(new EntitySource_SpawnNPC(), (int)enemyPosition.X, (int)enemyPosition.Y, ModContent.NPCType<Manaphage>());
-                if (Main.npc.IndexInRange(n))
-                    NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
-            }
-        }
 
     }
 
