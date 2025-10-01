@@ -11,9 +11,8 @@ using System.Threading.Tasks;
 
 namespace SpaceEventMod.Core.Physics;
 
-public struct PhysicsPoint(Vector2 position, bool isControl = false) : IPoint
+public struct PhysicsPoint(Vector2 position) : IPoint
 {
-    public bool IsControl { get; set; } = isControl;
     public Vector2 Position { get; set; } = position;
     public Vector2 PreviousPosition { get; set; } = position;
     public Vector2 Velocity { get; set; } = default;

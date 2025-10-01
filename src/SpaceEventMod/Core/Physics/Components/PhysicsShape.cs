@@ -17,9 +17,10 @@ internal enum ShapeAnchorMode
     AnchoredByObject = 2
 }
 
-internal struct PhysicsShape(PhysicsPoint[] points) : IComponent
+internal struct PhysicsShape(PhysicsPoint[] points, bool closed = false) : IComponent
 {
     public PhysicsPoint[] Points { get; set; } = points;
+    public bool Closed { get; init; } = closed;
 
     public void MoveBy(Vector2 amount)
     {

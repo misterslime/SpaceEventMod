@@ -116,6 +116,7 @@ internal class SoftBodyManager : ModSystem
         s_softBodySolver.AddPhysicsPass(new ConserveVolume(1));
         s_softBodySolver.AddPhysicsPass(new SoftBodyCollision(4));
         s_softBodySolver.AddPhysicsPass(new TileCollision(1));
+        s_softBodySolver.AddPhysicsPass(new ProjectileCollision(1));
         s_softBodySolver.AddPhysicsPass(new VerletIntegration());
         s_softBodySolver.AddPhysicsPass(new JointPhysics(4));
         s_softBodySolver.AddPhysicsPass(new AnchorShape());

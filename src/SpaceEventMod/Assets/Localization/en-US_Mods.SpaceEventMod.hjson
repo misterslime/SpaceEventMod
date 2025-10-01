@@ -12,6 +12,7 @@ NPCs: {
 	TitanSpawn.DisplayName: Titan Spawn
 	PantsEnemy.DisplayName: Pants Enemy
 	SoftBodyExperiment.DisplayName: Soft Body Experiment
+	PhysicsJellyfish.DisplayName: Physics Jellyfish
 }
 
 Projectiles: {

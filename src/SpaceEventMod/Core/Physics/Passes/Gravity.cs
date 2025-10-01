@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Physics.Attributes;
 using SpaceEventMod.Core.Physics.Components;
 using SpaceEventMod.Core.Physics.Interfaces;
 using System;
@@ -10,6 +11,7 @@ using Terraria;
 
 namespace SpaceEventMod.Core.Physics.Passes;
 
+[Rejects(typeof(NoGravity))]
 internal class Gravity(Vector2 gravity, int steps) : IPass
 {
     private Vector2 _gravity = gravity;

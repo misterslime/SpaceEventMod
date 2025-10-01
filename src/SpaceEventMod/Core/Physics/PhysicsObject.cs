@@ -49,6 +49,14 @@ internal class PhysicsObject(PhysicsPoint position)
                    select component).First();
     }
 
+    public void RemoveComponent<T>() where T : struct, IComponent
+    {
+        if (typeof(T) is IInstancedComponent)
+            throw new InvalidTypeParameterException("Tried to run RemoveComponent with an instanced component type.");
+
+        _components.Remove(GetComponent<T>());
+    }
+
     public void AddChild(PhysicsObject child)
     {
         this.AddComponent(new ChildObject(child));

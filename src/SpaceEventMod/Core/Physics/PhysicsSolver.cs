@@ -41,8 +41,11 @@ internal class PhysicsSolver
 
         if (rejects.Any())
         {
-            if (physicsObject.Components.Any((component) => rejects.Contains(component.GetType())))
-                return false;
+            foreach (var component in physicsObject.Components)
+            {
+                if (rejects.Contains(component.GetType()))
+                    return false;
+            }
         }
 
         var needs = from condition in conditional
