@@ -20,27 +20,26 @@ internal class SecondOrderIntegration : IPass
     {
         SecondOrderData data = physicsObject.GetComponent<SecondOrderData>();
 
-        var currentPoint = physicsObject.Center;
-        var secondOrderDynamics = data.SecondOrderDynamics;
+        var point = physicsObject.Center;
+        var dynamics = data.SecondOrderDynamics;
+        var input = data.InputPosition;
+        var previousInput = data.PreviousInput;
 
-        Vector2 currentInput = data.InputPosition;
-        Vector2 inputVelocity = data.Velocity;
-        Vector2 nextPosition = physicsObject.Center.Position;
-        Vector2 previousVelocity = physicsObject.Center.Velocity;
+        float k1 = dynamics.GetK1;
+        float k2 = dynamics.GetK2;
+        float k3 = dynamics.GetK3;
 
-        if (data.SetVelocity == false)
-        {
-            inputVelocity = (currentInput - physicsObject.Center.PreviousPosition) / data.DeltaTime;
-            currentPoint.PreviousPosition = data.InputPosition;
-        }
+        Vector2 deltaInput = (k3 + 1) * input - k3 * previousInput;
+        Vector2 deltaCurrent = k1 * point.PreviousPosition - (k1 + 1) * point.Position;
+        Vector2 acceleration = (deltaInput + deltaCurrent) / k2;
 
-        var k2Constrained = MathF.Max(secondOrderDynamics.GetK2, 1.1f * (data.DeltaTime * data.DeltaTime * 0.25f + data.DeltaTime * secondOrderDynamics.GetK1 * 0.5f));
-        nextPosition += data.DeltaTime * previousVelocity; // integrate position with velocity
-        previousVelocity += data.DeltaTime * (data.InputPosition + secondOrderDynamics.GetK3 * inputVelocity - nextPosition - secondOrderDynamics.GetK1 * previousVelocity) / k2Constrained; // integrate velocity with acceleration
+        acceleration *= data.DeltaTime * data.DeltaTime;
 
-        currentPoint.Position = nextPosition;
-        currentPoint.Velocity = previousVelocity;
+        var newPoint = point;
 
-        physicsObject.Center = currentPoint;
+        newPoint.Position = 2 * point.Position - point.PreviousPosition + acceleration;
+        newPoint.PreviousPosition = point.Position;
+
+        physicsObject.Center = newPoint;
     }
 }

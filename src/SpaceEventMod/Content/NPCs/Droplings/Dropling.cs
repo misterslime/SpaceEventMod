@@ -47,7 +47,7 @@ public class Dropling : ModNPC
 
     private static readonly SecondOrderAnimation DroplingDeccelerate = new SecondOrderAnimation(1f / 85f, 1f, 0f);
 
-    private static readonly SecondOrderAnimation DroplingDash = new SecondOrderAnimation(1f / 120, 1f, -1.5f);
+    private static readonly SecondOrderAnimation DroplingDash = new SecondOrderAnimation(1f / 85f, 1f, -1.5f);
 
     private static PhysicsSolver s_droplingSolver;
 
@@ -71,19 +71,15 @@ public class Dropling : ModNPC
 
     private Vector2 TargetVelocity { get; set; }
 
-    private Vector2 Acceleration { get; set; }
-
     private PhysicsPoint VelocityKinematics
     {
         get => new PhysicsPoint(NPC.velocity)
         {
             PreviousPosition = NPC.oldVelocity,
-            Velocity = Acceleration
         };
         set
         {
             NPC.velocity = value.Position;
-            Acceleration = value.Velocity;
             NPC.oldVelocity = value.PreviousPosition;
         }
     }
@@ -93,12 +89,10 @@ public class Dropling : ModNPC
         get => new PhysicsPoint(NPC.Center)
         {
             PreviousPosition = PreviousPosition,
-            Velocity = NPC.velocity
         };
         set
         {
             NPC.Center = value.Position;
-            NPC.velocity = value.Velocity;
             PreviousPosition = value.PreviousPosition;
         }
     }
@@ -147,7 +141,6 @@ public class Dropling : ModNPC
         Appendage = (DroplingAppendage)Main.rand.Next(0, 8);
 
         TargetVelocity = Vector2.Zero;
-        Acceleration = Vector2.Zero;
 
         State = DroplingState.Moving;
 
@@ -249,6 +242,9 @@ public class Dropling : ModNPC
 
     private DroplingState Biting()
     {
+        NPC.velocity = Vector2.Zero;
+        NPC.oldVelocity = Vector2.Zero;
+
         PhysicsObject physicsObject = new PhysicsObject(PositionKinematics);
         physicsObject.AddComponent(new SecondOrderData(1, DroplingDash, TargetPosition));
 
@@ -360,7 +356,6 @@ public class Dropling : ModNPC
         }
 
         NPC.knockBackResist = 0f;
-        Acceleration = Vector2.Zero;
         PreviousPosition = NPC.Center - NPC.velocity;
         TargetPosition = Main.player[NPC.target].Center + target * 16f * 1.5f;
         Timer = 0;

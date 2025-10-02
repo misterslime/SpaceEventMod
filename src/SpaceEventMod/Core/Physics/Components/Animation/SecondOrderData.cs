@@ -4,11 +4,26 @@ using SpaceEventMod.Core.Physics.Interfaces;
 
 namespace SpaceEventMod.Core.Physics.Components.Animation;
 
-internal struct SecondOrderData(float deltaTime, SecondOrderAnimation secondOrderDynamics, Vector2 inputPosition, bool setVelocity = false, Vector2 velocity = default) : IComponent
+internal struct SecondOrderData : IComponent
 {
-    public SecondOrderAnimation SecondOrderDynamics { get; set; } = secondOrderDynamics;
-    public float DeltaTime { get; set; } = deltaTime;
-    public Vector2 InputPosition { get; set; } = inputPosition;
-    public bool SetVelocity { get; set; } = setVelocity;
-    public Vector2 Velocity { get; set; } = velocity;
+    public SecondOrderAnimation SecondOrderDynamics { get; }
+    public float DeltaTime { get; }
+    public Vector2 InputPosition { get; }
+    public Vector2 PreviousInput { get; }
+
+    public SecondOrderData(float deltaTime, SecondOrderAnimation secondOrderDynamics, Vector2 inputPosition)
+    {
+        DeltaTime = deltaTime;
+        SecondOrderDynamics = secondOrderDynamics;
+        InputPosition = inputPosition;
+        PreviousInput = inputPosition;
+    }
+
+    public SecondOrderData(float deltaTime, SecondOrderAnimation secondOrderDynamics, Vector2 inputPosition, Vector2 previousInput)
+    {
+        DeltaTime = deltaTime;
+        SecondOrderDynamics = secondOrderDynamics;
+        InputPosition = inputPosition;
+        PreviousInput = previousInput;
+    }
 }

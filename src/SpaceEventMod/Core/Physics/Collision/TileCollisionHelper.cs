@@ -34,7 +34,7 @@ internal static class TileCollisionHelper
                 if (!tileRectangle.Contains(point.Position.ToPoint()))
                     continue;
 
-                Circle circle = new Circle(point.Position, pointRadius, point.Velocity);
+                Circle circle = new Circle(point.Position, pointRadius, point.GetVelocity(1f));
 
                 circle = RectangleCircle(tileRectangle, circle);
 
