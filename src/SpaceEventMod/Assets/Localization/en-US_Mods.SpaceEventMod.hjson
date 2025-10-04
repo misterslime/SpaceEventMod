@@ -13,6 +13,7 @@ NPCs: {
 	PantsEnemy.DisplayName: Pants Enemy
 	SoftBodyExperiment.DisplayName: Soft Body Experiment
 	PhysicsJellyfish.DisplayName: Physics Jellyfish
+	Sackterium.DisplayName: Sackterium
 }
 
 Projectiles: {

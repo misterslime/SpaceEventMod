@@ -21,3 +21,6 @@ https://github.com/mayli4/AllBeginningsMod/tree/main/src/AllBeginningsMod/Common
 These videos helped me a lot with soft body physics.
 https://www.youtube.com/watch?v=GXh0Vxg7AnQ
 https://www.youtube.com/watch?v=3OmkehAJoyo
+
+RotatedRectangle is adapted from here.
+http://www.xnadevelopment.com/tutorials/rotatedrectanglecollisions/rotatedrectanglecollisions.shtml
