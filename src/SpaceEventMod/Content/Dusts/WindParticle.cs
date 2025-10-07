@@ -14,14 +14,20 @@ using static tModPorter.ProgressUpdate;
 
 namespace SpaceEventMod.Content.Dusts;
 
-internal struct WindParticleData(Color secondColor, int maxOldPositions, int direction, int startDirection, float curveAmount, float width)
+internal struct WindParticleData(
+    int npc,
+    Color secondColor, 
+    int maxOldPositions,
+    Point direction,
+    float curveAmount, 
+    float width)
 {
+    public int NPC { get; } = npc;
     public Color SecondColor { get; } = secondColor;
-    public Vector2[] OldPositions { get; init; } = new Vector2[maxOldPositions];
-    public int Direction { get; } = direction;
-    public int StartDirection { get; } = startDirection;
+    public Vector2[] OldPositions { get; set; } = new Vector2[maxOldPositions];
+    public Point Direction { get; } = direction;
     public float CurveAmount { get; } = curveAmount;
-    public float Width { get; } = width;
+    public float Width { get; set; } = width;
 }
 
 internal class WindParticle : ModDust
@@ -36,17 +42,21 @@ internal class WindParticle : ModDust
             return false;
         }
 
-        float curveAmount = (dust.fadeIn <= 120) ? data.CurveAmount * data.Direction : 0.02f * data.StartDirection;
+        float curveAmount = (dust.fadeIn <= 60) ? data.CurveAmount * data.Direction.X : 0.02f * data.Direction.Y;
+
+        dust.velocity *= 0.985f;
+        dust.velocity = dust.velocity.RotatedBy(curveAmount).RotatedByRandom(curveAmount);
+
+        dust.position += dust.velocity;
 
         dust.fadeIn--;
-        if (dust.fadeIn >= 60)
+        if (dust.fadeIn <= 30)
         {
             dust.velocity *= 0.965f;
-            dust.velocity = dust.velocity.RotatedBy(curveAmount).RotatedByRandom(curveAmount);
-
-            dust.position += dust.velocity;
+            data = Shorten(dust, in data);
         }
-        else if (dust.fadeIn <= 0)
+
+        if (dust.fadeIn <= 0)
             dust.active = false;
 
         dust.customData = UpdatePositions(dust, in data);
@@ -54,14 +64,36 @@ internal class WindParticle : ModDust
         return false;
     }
 
+    private WindParticleData Shorten(Dust dust, in WindParticleData data)
+    {
+        if (data.OldPositions.Length <= 2)
+            return data;
+
+        WindParticleData newData = data;
+
+        var positions = newData.OldPositions;
+
+        Array.Resize(ref positions, positions.Length - 1);
+
+        newData.OldPositions = positions;
+
+        return newData;
+    }
+
     private WindParticleData UpdatePositions(Dust dust, in WindParticleData data)
     {
+        if (data.OldPositions.Length < 2)
+            return data;
+
         WindParticleData newData = data;
 
         for (int i = data.OldPositions.Length - 2; i >= 0; i--)
             newData.OldPositions[i + 1] = data.OldPositions[i];
 
         newData.OldPositions[0] = dust.position;
+
+        if (dust.fadeIn <= 30)
+            newData.Width *= 0.95f;
 
         return newData;
     }
@@ -73,9 +105,13 @@ internal class WindParticle : ModDust
             return false;
         }
 
+        NPC npc = Main.npc[data.NPC];
+
+        float lerpAmount = 0.03f + MathF.Sin(Main.GlobalTimeWrappedHourly * 8) * 0.03f;
+
         var positions = from position in data.OldPositions
                         where !Equals(position, default(Vector2))
-                        select position;
+                        select MapPosition(position, dust, npc, lerpAmount);
 
         if (positions.Count() < 2)
             return false;
@@ -98,5 +134,23 @@ internal class WindParticle : ModDust
             .Schedule(RenderLayer.AfterPlayers);
 
         return false;
+    }
+
+    private Vector2 MapPosition(Vector2 position, Dust dust, NPC npc, float lerpAmount)
+    {
+        float rotation = npc.rotation;
+
+        if (dust.position.X < npc.Center.X)
+            rotation += MathF.PI;
+
+        position -= npc.Center;
+
+        position = Vector2.Lerp(position, Vector2.Zero, lerpAmount);
+
+        position = position.RotatedBy(rotation);
+
+        position += npc.Center;
+
+        return position;
     }
 }

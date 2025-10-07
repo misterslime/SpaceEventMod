@@ -3,19 +3,27 @@ using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Utilities.Extensions;
+using System;
+using System.Collections;
 using System.Linq;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static Terraria.GameContent.Biomes.DunesBiome;
 
 namespace SpaceEventMod.Content.NPCs;
 
 internal class Sackterium : ModNPC
 {
+    private ref float Timer => ref NPC.ai[1];
+
     public RotatedRectangle WindGustTrigger { get; private set; }
 
     public bool IsPushing { get; set; }
+
+    private Queue _windDirections = new Queue();
 
     public override void SetDefaults()
     {
@@ -33,8 +41,18 @@ internal class Sackterium : ModNPC
         NPC.noTileCollide = true;
     }
 
+    public override void OnSpawn(IEntitySource source)
+    {
+        _windDirections.Enqueue(new Point(-1, -1));
+        _windDirections.Enqueue(new Point(1, -1));
+        _windDirections.Enqueue(new Point(1, 1));
+        _windDirections.Enqueue(new Point(-1, 1));
+    }
+
     public override void AI()
     {
+        Timer++;
+
         NPC.TargetClosest(false);
 
         if (!NPC.HasValidTarget)
@@ -49,7 +67,7 @@ internal class Sackterium : ModNPC
         Rectangle rectangle = new Rectangle(rectanglePosition.X, rectanglePosition.Y, rectangleDimensions.X, rectangleDimensions.Y);
         WindGustTrigger = new RotatedRectangle(rectangle, NPC.rotation);
 
-        if (!Main.rand.NextBool(5))
+        if (Timer % 12 != 0)
             return;
 
         Rectangle dustVelocityRectangle = new Rectangle(0, 0, rectangleDimensions.X, rectangleDimensions.Y);
@@ -59,22 +77,42 @@ internal class Sackterium : ModNPC
         dustVelocityRectangle.Height = (int)(dustVelocityRectangle.Height * 0.25f);
 
         Vector2 dustVelocity = Main.rand.NextVector2FromRectangle(dustVelocityRectangle);
-        dustVelocity = dustVelocity.RotatedBy(NPC.rotation) / 12f;
+        dustVelocity = dustVelocity / 12f;
+
+        if (NPC.Center.X > Main.player[NPC.target].Center.X)
+            dustVelocity *= -1;
 
         Vector2 dustPosition = NPC.Center;
 
+        var color = Main.rand.NextFromList(
+            (Color.White, Color.White),
+            (Color.Gray, Color.White),
+            (Color.White, Color.Gray));
+
+        Point direction = (Point)_windDirections.Dequeue();
+
+        _windDirections.Enqueue(direction);
+
         Dust dust = Dust.NewDustPerfect(dustPosition, ModContent.DustType<WindParticle>(), dustVelocity);
         dust.noGravity = true;
-        dust.color = Main.rand.NextBool() ? Color.White : Color.Gray;
+        dust.color = color.Item1;
 
-        float curveAmount = Main.rand.NextFloat(0.05f, 0.2f);
-        int direction = Main.rand.NextBool() ? 1 : -1;
-        int startDirection = Main.rand.NextBool() ? 1 : -1;
-        float width = Main.rand.NextFloat(1f, 7f);
-        Color second = Main.rand.NextBool() ? Color.White : Color.Gray;
+        float curveAmount = Main.rand.NextFloat(0.15f, 0.25f);
 
-        dust.customData = new WindParticleData(second, 30, direction, startDirection, curveAmount, width);
-        dust.fadeIn = 140;
+        if (direction.X == direction.Y)
+            curveAmount = Main.rand.NextFloat(0.2f, 0.3f);
+
+        float width = Main.rand.NextFloat(2f, 8f);
+        Color second = color.Item2;
+
+        dust.customData = new WindParticleData(
+            NPC.whoAmI,
+            second, 
+            30, 
+            direction,
+            curveAmount, 
+            width);
+        dust.fadeIn = 80;
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
@@ -85,6 +123,8 @@ internal class Sackterium : ModNPC
         var rotation = NPC.rotation + MathHelper.PiOver2;
 
         spriteBatch.Draw(texture, NPC.Center - screenPos, null, drawColor, rotation, origin, NPC.scale, 0, 0);
+
+        return false;
 
         Vector2 topLeft = WindGustTrigger.TopLeft() - screenPos;
         Vector2 topRight = WindGustTrigger.TopRight() - screenPos;
