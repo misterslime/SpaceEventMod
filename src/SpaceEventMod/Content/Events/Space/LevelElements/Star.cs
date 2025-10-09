@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Common.Actions.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,10 +64,10 @@ public struct Star(Vector2 spawnPosition)
                 continue;
             }
 
-            if (Main.npc[npcIndex].ModNPC is not IWantStar wantStar)
+            /*if (Main.npc[npcIndex].ModNPC is not IWantStar wantStar)
                 continue;
 
-            wantStar.ObservedStar = this;
+            wantStar.ObservedStar = this;*/
         }
     }
 
