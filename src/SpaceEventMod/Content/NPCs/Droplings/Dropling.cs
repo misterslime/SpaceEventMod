@@ -1,9 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.Events.Space.LevelElements;
+using SpaceEventMod.Common.NPCs;
+using SpaceEventMod.Common.NPCs.Attributes;
 using SpaceEventMod.Core.Animation;
 using SpaceEventMod.Core.Animation.SecondOrderDynamics;
-using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Physics.Components;
@@ -20,7 +20,6 @@ using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
-using Terraria.GameContent.Animations;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -41,7 +40,7 @@ public enum DroplingState
     Biting = 1
 }
 
-public class Dropling : ModNPC
+internal class Dropling : BaseStateNPC<DroplingState>
 {
     private static readonly SecondOrderAnimation DroplingVelocity = new SecondOrderAnimation(1f / 85f, 0.6f, 0.2f);
 
@@ -51,55 +50,18 @@ public class Dropling : ModNPC
 
     private static PhysicsSolver s_droplingSolver;
 
-    private ref float Timer => ref NPC.ai[1];
-
-    public DroplingState State
-    {
-        get => (DroplingState)NPC.ai[0];
-        set => NPC.ai[0] = (float)value;
-    }
-
-    private DroplingAppendage Appendage
+    public DroplingAppendage Appendage
     {
         get => (DroplingAppendage)NPC.ai[2];
         set => NPC.ai[2] = (float)value;
     }
 
-    private Vector2 PreviousPosition { get; set; }
-
-    private Vector2 TargetPosition { get; set; }
-
-    private Vector2 TargetVelocity { get; set; }
-
-    private PhysicsPoint VelocityKinematics
-    {
-        get => new PhysicsPoint(NPC.velocity)
-        {
-            PreviousPosition = NPC.oldVelocity,
-        };
-        set
-        {
-            NPC.velocity = value.Position;
-            NPC.oldVelocity = value.PreviousPosition;
-        }
-    }
-
-    private PhysicsPoint PositionKinematics
-    {
-        get => new PhysicsPoint(NPC.Center)
-        {
-            PreviousPosition = PreviousPosition,
-        };
-        set
-        {
-            NPC.Center = value.Position;
-            PreviousPosition = value.PreviousPosition;
-        }
-    }
-
     private float _desiredRotation = 0;
     private float _tailRotation = 0;
     private float _wiggleTimer = 0;
+
+    public float Speed { get; set; }
+    public float TurnLerp { get; set; }
 
     private bool HasAppendage(DroplingAppendage appendage) => (Appendage & appendage) == appendage;
 
@@ -124,7 +86,7 @@ public class Dropling : ModNPC
     {
         NPC.width = 46;
         NPC.height = 42;
-        NPC.damage = 0;
+        NPC.damage = 50;
         NPC.defense = 16;
         NPC.lifeMax = 250;
         NPC.HitSound = SoundID.NPCHit1;
@@ -138,73 +100,32 @@ public class Dropling : ModNPC
 
     public override void OnSpawn(IEntitySource source)
     {
-        Appendage = (DroplingAppendage)Main.rand.Next(0, 8);
+        List<DroplingAppendage> appendages = [ DroplingAppendage.Flagellum, DroplingAppendage.Wings, DroplingAppendage.BigJaw];
+        Appendage = DroplingAppendage.None;
+
+        do
+        {
+            Appendage = Appendage | Main.rand.NextFromCollection(appendages);
+
+            appendages.Remove(Appendage);
+        } 
+        while (appendages.Any() && Main.rand.NextBool(4));
 
         TargetVelocity = Vector2.Zero;
 
         State = DroplingState.Moving;
 
-        Main.NewText(Appendage.ToString());
+        ApplyStats();
 
         if (!HasAppendage(DroplingAppendage.Flagellum))
             return;
 
-        float length = 22;
-        int segments = 6;
+        const float length = 22;
+        const int segments = 6;
 
-        for (int i = 0; i < 3; i++)
-        {
-            List<PhysicsPoint> points = new List<PhysicsPoint>();
-            List<IJoint> joints = new List<IJoint>(); 
-
-            Vector2 startVector = i switch
-            {
-                0 => Vector2.UnitY,
-                1 => Vector2.UnitX,
-                2 => -Vector2.UnitX
-            };
-
-            for (int j = 0; j < segments; j++)
-            {
-                points.Add(new PhysicsPoint(NPC.Center + startVector * length * (j + 1)));
-
-                if (j > 0)
-                {
-                    JointIndex index1 = new(IndexType.Point, j - 1);
-                    JointIndex index2 = new(IndexType.Point, j);
-
-                    joints.Add(new DistanceConstraint(index1, index2, length));
-                }
-            }
-
-            JointIndex controlIndex = new(IndexType.ObjectPosition, 0);
-            JointIndex pointIndex = new(IndexType.Point, 0);
-
-            joints.Add(new DistanceConstraint(controlIndex, pointIndex, length, true));
-
-            switch (i)
-            {
-                case 0:
-                    _flagellumTail1 = new PhysicsObject(new(NPC.Center));
-                    _flagellumTail1.AddComponent(new PhysicsShape(points.ToArray()));
-                    _flagellumTail1.AddComponent(new PhysicsJoints(joints.ToArray()));
-                    _flagellumTail1.AddComponent(new NPCReference(NPC.whoAmI));
-                    break;
-                case 1:
-                    _flagellumTail2 = new PhysicsObject(new(NPC.Center));
-                    _flagellumTail2.AddComponent(new PhysicsShape(points.ToArray()));
-                    _flagellumTail2.AddComponent(new PhysicsJoints(joints.ToArray()));
-                    _flagellumTail2.AddComponent(new NPCReference(NPC.whoAmI));
-                    break;
-                case 2:
-                    _flagellumTail3 = new PhysicsObject(new(NPC.Center));
-                    _flagellumTail3.AddComponent(new PhysicsShape(points.ToArray()));
-                    _flagellumTail3.AddComponent(new PhysicsJoints(joints.ToArray()));
-                    _flagellumTail3.AddComponent(new NPCReference(NPC.whoAmI));
-                    break;
-                default: break;
-            }
-        }
+        ConstructTail(ref _flagellumTail1, Vector2.UnitX, segments, length);
+        ConstructTail(ref _flagellumTail2, Vector2.UnitY, segments, length);
+        ConstructTail(ref _flagellumTail3, -Vector2.UnitX, segments, length);
 
         _flagellum = new PhysicsObject(new(NPC.Center));
         _flagellum.AddChild(_flagellumTail1);
@@ -224,33 +145,75 @@ public class Dropling : ModNPC
         _flagellum.AddComponent(new PhysicsJoints(flagellumJoints.ToArray()));
     }
 
-    public override void AI()
+    private void ApplyStats()
     {
-        Timer++;
+        Speed = 4.5f;
+        TurnLerp = 0.1f;
 
-        State = State switch
+        if (HasAppendage(DroplingAppendage.Wings))
+            TurnLerp = 0.20f;
+
+        if (HasAppendage(DroplingAppendage.BigJaw))
+            NPC.damage *= 2;
+
+        if (HasAppendage(DroplingAppendage.Flagellum))
         {
-            DroplingState.Moving => Moving(),
-            DroplingState.Biting => Biting()
-        };
+            NPC.lifeMax = (int)(NPC.lifeMax * 1.5f);
+            NPC.life = NPC.lifeMax;
 
+            Speed = 6f;
+        }    
+    }
+
+    private void ConstructTail(ref PhysicsObject tail, Vector2 start, float segments, float segmentLength)
+    {
+        List<PhysicsPoint> points = new List<PhysicsPoint>();
+        List<IJoint> joints = new List<IJoint>();
+
+        for (int j = 0; j < segments; j++)
+        {
+            points.Add(new PhysicsPoint(NPC.Center + start * segmentLength * (j + 1)));
+
+            if (j <= 0)
+                continue;
+
+            JointIndex index1 = new(IndexType.Point, j - 1);
+            JointIndex index2 = new(IndexType.Point, j);
+
+            joints.Add(new DistanceConstraint(index1, index2, segmentLength));
+        }
+
+        JointIndex controlIndex = new(IndexType.ObjectPosition, 0);
+        JointIndex pointIndex = new(IndexType.Point, 0);
+
+        joints.Add(new DistanceConstraint(controlIndex, pointIndex, segmentLength, true));
+
+        tail = new PhysicsObject(new(NPC.Center));
+        tail.AddComponent(new PhysicsShape(points.ToArray()));
+        tail.AddComponent(new PhysicsJoints(joints.ToArray()));
+        tail.AddComponent(new NPCReference(NPC.whoAmI));
+    }
+
+    public override void PostAI()
+    {
         if (HasAppendage(DroplingAppendage.Flagellum))
         {
             s_droplingSolver.RunPhysicsPasses([_flagellum, _flagellumTail1, _flagellumTail2, _flagellumTail3]);
         }
     }
 
-    private DroplingState Biting()
+    [StateProcess<DroplingState>(DroplingState.Biting)]
+    public DroplingState Biting()
     {
         NPC.velocity = Vector2.Zero;
         NPC.oldVelocity = Vector2.Zero;
 
-        PhysicsObject physicsObject = new PhysicsObject(PositionKinematics);
+        PhysicsObject physicsObject = new PhysicsObject(PositionPhysics);
         physicsObject.AddComponent(new SecondOrderData(1, DroplingDash, TargetPosition));
 
         SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
 
-        PositionKinematics = physicsObject.Center;
+        PositionPhysics = physicsObject.Center;
 
         //PositionKinematics = DroplingDash.Update(1, PositionKinematics, TargetPosition);
         NPC.rotation = NPC.rotation.AngleLerp((TargetPosition - NPC.Center).ToRotation(), 0.075f);
@@ -267,7 +230,8 @@ public class Dropling : ModNPC
 
     }
 
-    private DroplingState Moving()
+    [StateProcess<DroplingState>(DroplingState.Moving)]
+    public DroplingState Moving()
     {
         NPC.TargetClosest(false);
 
@@ -286,8 +250,6 @@ public class Dropling : ModNPC
         var minBitingDistance = 4f * 16f;
         var distance = Vector2.Distance(Main.player[NPC.target].Center, NPC.Center);
 
-        var maxSpeed = 4.5f;
-
         var neighbors = Main.npc.Where(x => x.type == ModContent.NPCType<Dropling>() && x.active && Vector2.Distance(NPC.Center, x.Center) < radius).ToArray();
 
         var target = (Main.player[NPC.target].Center - NPC.Center).SafeNormalize(Vector2.Zero) * targetWeight;
@@ -301,7 +263,7 @@ public class Dropling : ModNPC
 
         var forces = cohesion + separation + alignment + target + surround;
 
-        NPC.rotation = NPC.rotation.AngleLerp(forces.ToRotation(), 0.125f);
+        NPC.rotation = NPC.rotation.AngleLerp(forces.ToRotation(), TurnLerp);
 
         var lineOfSight = Vector2.Dot(forces.SafeNormalize(Vector2.Zero), NPC.rotation.ToRotationVector2()) >= 0.96;
 
@@ -309,29 +271,29 @@ public class Dropling : ModNPC
         {
             TargetVelocity += forces;
 
-            if (TargetVelocity.Length() > maxSpeed)
+            if (TargetVelocity.Length() > Speed)
             {
                 TargetVelocity = TargetVelocity.SafeNormalize(Vector2.Zero);
-                TargetVelocity *= maxSpeed;
+                TargetVelocity *= Speed;
             }
 
-            PhysicsObject physicsObject = new PhysicsObject(VelocityKinematics);
+            PhysicsObject physicsObject = new PhysicsObject(VelocityPhysics);
             physicsObject.AddComponent(new SecondOrderData(1, DroplingVelocity, TargetVelocity));
 
             SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
 
-            VelocityKinematics = physicsObject.Center;
+            VelocityPhysics = physicsObject.Center;
 
             //VelocityKinematics = DroplingVelocity.Update(1, VelocityKinematics, TargetVelocity);
         }
         else
         {
-            PhysicsObject physicsObject = new PhysicsObject(VelocityKinematics);
+            PhysicsObject physicsObject = new PhysicsObject(VelocityPhysics);
             physicsObject.AddComponent(new SecondOrderData(1, DroplingDeccelerate, TargetVelocity));
 
             SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
 
-            VelocityKinematics = physicsObject.Center;
+            VelocityPhysics = physicsObject.Center;
 
             TargetVelocity = Vector2.Zero;
 
@@ -503,7 +465,9 @@ public class Dropling : ModNPC
         var wiggleStrength = Math.Clamp(NPC.velocity.Length() * 0.5f, 1, 4);
         var sineLimit = (3.5f * MathF.PI) / 2;
 
-        Vector2[] trailPointsArray = ApplyWiggleToPoints(in trailPoints, wiggleStrength, sineLimit, bendiness);
+        _wiggleTimer += 1 / 8f + wiggleStrength / 30f;
+
+        Vector2[] trailPointsArray = WiggleBody(in trailPoints, _wiggleTimer, wiggleStrength, sineLimit, bendiness);
 
         Pipeline pipeline = Graphics.BeginPipeline();
 
@@ -516,9 +480,9 @@ public class Dropling : ModNPC
         {
             _flagellum.Center = new(trailPoints[16]);
 
-            DrawTail(in pipeline, _flagellumTail1, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
-            DrawTail(in pipeline, _flagellumTail2, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
-            DrawTail(in pipeline, _flagellumTail3, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+            DrawTail(in pipeline, _flagellumTail1, 0, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+            DrawTail(in pipeline, _flagellumTail2, 1, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+            DrawTail(in pipeline, _flagellumTail3, 2, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
         }
 
         pipeline
@@ -562,7 +526,7 @@ public class Dropling : ModNPC
             heartbeat = 0;
 
         float starScale = 0.75f + 0.75f * heartbeat;
-        float starRotation = (trailPoints[7] - trailPoints[8]).ToRotation();
+        float starRotation = (trailPoints[7] - trailPoints[8]).ToRotation() * 0.5f;
 
         Color starColor = Color.Cyan;
         starColor.A = 0;
@@ -614,11 +578,9 @@ public class Dropling : ModNPC
         return false;
     }
 
-    private Vector2[] ApplyWiggleToPoints(in List<Vector2> trailPoints, float wiggleStrength, float sineLimit, float bendiness)
+    private Vector2[] WiggleBody(in List<Vector2> trailPoints, float timer, float wiggleStrength, float sineLimit, float bendiness)
     {
         var newTrailPoints = trailPoints;
-
-        _wiggleTimer += 1 / 8f + wiggleStrength / 30f;
 
         for (var i = 0; i < trailPoints.Count; i++)
         {
@@ -630,7 +592,7 @@ public class Dropling : ModNPC
                 var displacement = point - nextPoint;
                 displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
 
-                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + _wiggleTimer);
+                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + timer);
             }
             else
             {
@@ -640,16 +602,52 @@ public class Dropling : ModNPC
                 var displacement = previousPoint - point;
                 displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
 
-                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + _wiggleTimer);
+                newTrailPoints[i] = point + displacement * wiggleStrength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + timer);
             }
         }
 
         return newTrailPoints.ToArray();
     }
 
-    private void DrawTail(in Pipeline pipeline, PhysicsObject physicsObject, Texture2D texture, Vector2 screenPos, Color drawColor)
+    private List<Vector2> WiggleTail(in List<Vector2> trailPoints, float timer, float wiggleStrength, float sineLimit, float bendiness)
+    {
+        var newTrailPoints = trailPoints;
+
+        for (var i = 0; i < trailPoints.Count; i++)
+        {
+            float lerp = EasingFunctions.CubicEaseInOut((float)i / (float)trailPoints.Count);
+
+            float strength = MathHelper.Lerp(0, wiggleStrength, lerp) + 2f;
+
+            if (i < trailPoints.Count - 1)
+            {
+                var point = newTrailPoints[i];
+                var nextPoint = newTrailPoints[i + 1];
+
+                var displacement = point - nextPoint;
+                displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
+
+                point += displacement * strength * (float)Math.Clamp(bendiness, 0.5, 1) * MathF.Sin(((sineLimit * i) / trailPoints.Count) + timer);
+
+                newTrailPoints[i] = point;
+            }
+        }
+
+        return newTrailPoints;
+    }
+
+    private void DrawTail(in Pipeline pipeline, PhysicsObject physicsObject, int which, Texture2D texture, Vector2 screenPos, Color drawColor)
     {
         PhysicsShape shape = physicsObject.GetComponent<PhysicsShape>();
+
+        var wiggleStrength = 20 * physicsObject.Center.GetVelocity(1 / 60f).Length();
+
+        var sineLimit = (2 * MathF.PI);
+
+        var timeDisplacement = MathHelper.TwoPi / 3;
+        timeDisplacement *= which;
+
+        //shape.Points = ApplyWiggleToPoints(shape.Points, Main.GlobalTimeWrappedHourly * -3 + timeDisplacement, wiggleStrength, sineLimit, 0f);
 
         List<Vector2> points = new List<Vector2>();
 
@@ -662,21 +660,22 @@ public class Dropling : ModNPC
 
         ReadOnlySpan<Vector2> controlPoints = points.ToArray();
         using (var curve = new BezierCurve(controlPoints))
-            trailPoints = curve.GetPoints(7);
+            trailPoints = curve.GetPoints(20);
 
-        //trailPoints.Add(_flagellum.Center.Position);
+        var wiggledPoints = WiggleTail(in trailPoints, Main.GlobalTimeWrappedHourly * -8 + timeDisplacement, wiggleStrength, sineLimit, 0f);
 
-        for (int j = 0; j < trailPoints.Count - 1; j++)
-        {
-            Vector2 point1Position = trailPoints[j];
-            Vector2 point2Position = trailPoints[j + 1];
+        wiggledPoints.RemoveAt(wiggledPoints.Count - 1);
 
-            float rotation = (point1Position - point2Position).ToRotation();
-
-            //spriteBatch.Draw(texture, point2Position - screenPos, null, drawColor, rotation + MathHelper.PiOver2, new Vector2(5, 22), NPC.scale, 0, 0);
-
-            pipeline.DrawSprite(texture, point1Position - screenPos, drawColor, null, rotation + MathHelper.PiOver2, texture.Size() * 0.5f, new Vector2(NPC.scale), 0);
-        }
+        pipeline
+            .DrawTrail(
+                trailPoints.ToArray(),
+                _ => texture.Width,
+                _ => drawColor,
+                Assets.Assets.Shaders.Trail.RepeatingTexture.Value,
+                ("transformMatrix", Graphics.WorldTransformMatrix),
+                ("sampleTexture", texture),
+                ("repeats", points.Count),
+                ("spriteRotation", 1));
     }
 
     private void DrawWings(in Pipeline pipeline, in Vector2[] trailPoints, Vector2 drawPosition, Vector2 screenPos, Color drawColor, bool drawingGlow = false)

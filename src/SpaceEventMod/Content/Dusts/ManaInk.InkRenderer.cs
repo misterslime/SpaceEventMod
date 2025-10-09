@@ -21,7 +21,7 @@ public class InkRenderer : ModSystem
         foreach (var dust in Main.dust.Where(d => d.type == ModContent.DustType<ManaInk>() && d.active))
         {
             if (dust.customData == null || dust.customData is not ManaInkData manaInkData)
-                return;
+                continue;
 
             var frame = new Rectangle(0, 34 * manaInkData.FrameVariant, 32, 34);
 
@@ -44,7 +44,7 @@ public class InkRenderer : ModSystem
         foreach (var dust in Main.dust.Where(d => d.type == ModContent.DustType<InkStar>() && d.active))
         {
             if (dust.customData == null || dust.customData is not InkStarData manaInkData)
-                return;
+                continue;
 
             var opacity = (float)Math.Sin((dust.fadeIn / 20) * MathHelper.Pi);
 
