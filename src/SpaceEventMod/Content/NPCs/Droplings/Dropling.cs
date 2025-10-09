@@ -1,26 +1,17 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.NPCs;
 using SpaceEventMod.Common.NPCs.Attributes;
-using SpaceEventMod.Core.Animation;
 using SpaceEventMod.Core.Animation.SecondOrderDynamics;
-using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
-using SpaceEventMod.Core.Physics.Components;
 using SpaceEventMod.Core.Physics.Components.Animation;
-using SpaceEventMod.Core.Physics.Interfaces;
-using SpaceEventMod.Core.Physics.Joints;
 using SpaceEventMod.Core.Physics.Passes;
 using SpaceEventMod.Core.Physics.Passes.Integrators;
 using SpaceEventMod.Core.Physics.Passes.NPCs;
 using SpaceEventMod.Core.Utilities;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
