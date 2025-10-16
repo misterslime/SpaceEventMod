@@ -14,5 +14,6 @@ internal enum MoveState : byte
     RightWall,
     Ceiling,
     Falling,
-    Jumping
+    Jumping,
+    KickedOut
 }

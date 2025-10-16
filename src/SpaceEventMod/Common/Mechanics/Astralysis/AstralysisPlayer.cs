@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Common.Mechanics.Astralysis;
 
@@ -220,6 +219,50 @@ internal class AstralysisPlayer : ModPlayer
             MoveState.Jumping,
             MoveState.Falling));
         #endregion
+
+        #region Grounded to Kicked Out
+        s_stateTransitions.Add(new(
+            MoveState.Floor,
+            MoveState.KickedOut,
+            ("bottom", StarsapTile.Uncoated)));
+
+        s_stateTransitions.Add(new(
+            MoveState.Ceiling,
+            MoveState.KickedOut,
+            ("top", StarsapTile.Uncoated)));
+
+        s_stateTransitions.Add(new(
+            MoveState.RightWall,
+            MoveState.KickedOut,
+            ("right", StarsapTile.Uncoated)));
+
+        s_stateTransitions.Add(new(
+            MoveState.LeftWall,
+            MoveState.KickedOut,
+            ("left", StarsapTile.Uncoated)));
+        #endregion
+
+        #region Falling to kicked out
+        s_stateTransitions.Add(new(
+            MoveState.Falling,
+            MoveState.KickedOut,
+            ("bottom", StarsapTile.Uncoated)));
+
+        s_stateTransitions.Add(new(
+            MoveState.Falling,
+            MoveState.KickedOut,
+            ("top", StarsapTile.Uncoated)));
+
+        s_stateTransitions.Add(new(
+            MoveState.Falling,
+            MoveState.KickedOut,
+            ("right", StarsapTile.Uncoated)));
+
+        s_stateTransitions.Add(new(
+            MoveState.Falling,
+            MoveState.KickedOut,
+            ("left", StarsapTile.Uncoated)));
+        #endregion
     }
 
     private MoveState _lastGrounded;
@@ -233,11 +276,15 @@ internal class AstralysisPlayer : ModPlayer
 
     public override void ModifyScreenPosition()
     {
+        return;
+
         if (!_active)
             return;
 
         var visualThing = GetSlidingVelocity(_state, _progress);
         visualThing *= _progress;
+
+        Vector2 target = _desiredPosition.ToWorldCoordinates() + visualThing;
 
         Main.screenPosition = _cameraPosition - Main.ScreenSize.ToVector2() * 0.5f;
 
@@ -246,8 +293,13 @@ internal class AstralysisPlayer : ModPlayer
 
     public override void PostUpdate()
     {
+        CheckActivate();
+
         if (!_active)
             return;
+
+        Player.velocity *= 0;
+        Player.gfxOffY = 0;
 
         PushOut();
 
@@ -257,6 +309,9 @@ internal class AstralysisPlayer : ModPlayer
         {
             _lastGrounded = _state;
         }
+
+        if (Player.controlUp)
+            newState = MoveState.KickedOut;
 
         _state = newState;
 
@@ -268,13 +323,38 @@ internal class AstralysisPlayer : ModPlayer
         {
             JumpingBehavior();
         }
+        else if (_state == MoveState.KickedOut)
+        {
+            _active = false;
+            Player.velocity.X = _speed * 0.1f;
+        }
         else
         {
             SlidingBehavior();
         }
+    }
 
-        Player.velocity *= 0;
-        Player.gfxOffY = 0;
+    private void CheckActivate()
+    {
+        int x = (int)(Player.Center.X / 16f);
+        int y = Player.gravDir == -1 ? (int)((Player.position.Y - 0.1f) / 16f) : (int)(Player.Bottom.Y / 16f);
+        Tile? floorTile = Player.GetFloorTile(x, y);
+
+        if (floorTile is null)
+            return;
+
+        ref StarsapTileData tileData = ref floorTile.Value.Get<StarsapTileData>();
+
+        if (tileData.Coated && Player.controlDown && !_active)
+        {
+            _state = MoveState.Falling;
+            _active = true;
+            _desiredPosition = Player.Center.ToTileCoordinates();
+            _cameraPosition = Player.Center;
+            _astralysisVelocity = Vector2.Zero;
+            _speed = 0;
+            _progress = 0;
+        }
     }
 
     private void FallingBehavior()
@@ -485,15 +565,6 @@ internal class AstralysisPlayer : ModPlayer
         return newPosition;
     }
 
-    public void ToggleAstralysis()
-    {
-        _state = MoveState.Falling;
-        _active = !_active;
-        _desiredPosition = Player.Center.ToTileCoordinates();
-        _cameraPosition = Player.Center;
-        _astralysisVelocity = Vector2.Zero;
-    }
-
     private bool IsTileActive(Tile tile)
     {
         return tile.active() && Main.tileSolid[tile.type];
@@ -504,6 +575,8 @@ internal class AstralysisPlayer : ModPlayer
         if (!IsTileActive(tile))
             return StarsapTile.Empty;
 
-        return StarsapTile.Coated;
+        ref StarsapTileData tileData = ref tile.Get<StarsapTileData>();
+
+        return tileData.Coated ? StarsapTile.Coated : StarsapTile.Uncoated;
     }
 }
