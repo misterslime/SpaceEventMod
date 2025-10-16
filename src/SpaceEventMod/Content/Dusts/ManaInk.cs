@@ -5,14 +5,13 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Dusts;
 
-public struct ManaInkData(int variant, InkType inkType, int lifetime, float spin, Vector2 targetPosition, int parent = -1)
+public struct ManaInkData(int variant, InkType inkType, int lifetime, float spin, Vector2 targetPosition)
 {
     public int FrameVariant = variant;
     public InkType InkType = inkType;
     public int Lifetime = lifetime;
     public float Spin = spin;
     public Vector2 TargetPosition = targetPosition;
-    public int Parent = parent;
 }
 
 public class ManaInk : ModDust

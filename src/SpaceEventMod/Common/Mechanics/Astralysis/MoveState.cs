@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Common.Players;
+namespace SpaceEventMod.Common.Mechanics.Astralysis;
 
 internal enum MoveState : byte
 {

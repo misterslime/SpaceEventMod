@@ -3,6 +3,11 @@ Items: {
 		DisplayName: Debug
 		Tooltip: ""
 	}
+
+	Starsap: {
+		DisplayName: Starsap
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -19,4 +24,5 @@ NPCs: {
 Projectiles: {
 	ManaCloud.DisplayName: Mana Cloud
 	InkSpit.DisplayName: Ink Spit
+	StarsapProjectile.DisplayName: Starsap Projectile
 }

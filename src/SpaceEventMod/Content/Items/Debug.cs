@@ -1,4 +1,4 @@
-using SpaceEventMod.Common.Players;
+using SpaceEventMod.Common.Mechanics.Astralysis;
 using SpaceEventMod.Content.Events.Space;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using Terraria;

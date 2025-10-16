@@ -1,13 +1,7 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using SpaceEventMod.Common.Mechanics.StarsapCoating;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SpaceEventMod.Common.Players;
+namespace SpaceEventMod.Common.Mechanics.Astralysis;
 
 [StructLayout(LayoutKind.Explicit)]
 internal struct TransitionValue

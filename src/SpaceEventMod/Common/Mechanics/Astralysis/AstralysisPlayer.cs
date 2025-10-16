@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Common.Mechanics.StarsapCoating;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Physics;
@@ -9,7 +10,7 @@ using Terraria;
 using Terraria.ModLoader;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace SpaceEventMod.Common.Players;
+namespace SpaceEventMod.Common.Mechanics.Astralysis;
 
 internal record struct MoveStateTransition(
     MoveState From,
@@ -235,7 +236,7 @@ internal class AstralysisPlayer : ModPlayer
         if (!_active)
             return;
 
-        Vector2 visualThing = GetSlidingVelocity(_state, _progress);
+        var visualThing = GetSlidingVelocity(_state, _progress);
         visualThing *= _progress;
 
         Main.screenPosition = _cameraPosition - Main.ScreenSize.ToVector2() * 0.5f;
@@ -250,7 +251,7 @@ internal class AstralysisPlayer : ModPlayer
 
         PushOut();
 
-        MoveState newState = GetState(new AdjacencyData<StarsapTile>(_desiredPosition.X, _desiredPosition.Y, GetStarsap));
+        var newState = GetState(new AdjacencyData<StarsapTile>(_desiredPosition.X, _desiredPosition.Y, GetStarsap));
 
         if (newState != _state && (newState == MoveState.Falling || newState == MoveState.Jumping))
         {
@@ -327,7 +328,7 @@ internal class AstralysisPlayer : ModPlayer
             _astralysisVelocity = Vector2.UnitY * 16f;
         }
 
-        _astralysisVelocity += GetSlidingVelocity(_lastGrounded, (float)_speed * 0.01f);
+        _astralysisVelocity += GetSlidingVelocity(_lastGrounded, _speed * 0.01f);
 
         Player.Center = _desiredPosition.ToWorldCoordinates();
     }
@@ -341,9 +342,9 @@ internal class AstralysisPlayer : ModPlayer
         else if (_speed != 0)
             _speed = (int)MathHelper.Lerp(_speed, 0, 0.1f);
 
-        _progress += (float)_speed * 0.01f;
+        _progress += _speed * 0.01f;
 
-        Point newPosition = _desiredPosition;
+        var newPosition = _desiredPosition;
         if (_progress > 1f)
         {
             _progress -= 1f;
@@ -358,14 +359,14 @@ internal class AstralysisPlayer : ModPlayer
         }
         _desiredPosition = newPosition;
 
-        Vector2 visualThing = GetSlidingVelocity(_state, _progress);
+        var visualThing = GetSlidingVelocity(_state, _progress);
 
         Player.Center = _desiredPosition.ToWorldCoordinates() + visualThing * _progress;
     }
 
     private Vector2 GetSlidingVelocity(MoveState state, float speed)
     {
-        Vector2 unitVector = Vector2.Zero;
+        var unitVector = Vector2.Zero;
 
         if (state == MoveState.Floor)
         {
@@ -394,7 +395,7 @@ internal class AstralysisPlayer : ModPlayer
             if (item.From != _state)
                 continue;
 
-            bool shouldTransition = true;
+            var shouldTransition = true;
 
             foreach(var condition in item.Conditions)
             {
@@ -432,7 +433,7 @@ internal class AstralysisPlayer : ModPlayer
 
     private void PushOut()
     {
-        Tile tile = Framing.GetTileSafely(_desiredPosition);
+        var tile = Framing.GetTileSafely(_desiredPosition);
 
         if (IsTileActive(tile))
         {
@@ -462,7 +463,7 @@ internal class AstralysisPlayer : ModPlayer
 
     private Point GetMovement(int moveSpeed)
     {
-        Point newPosition = _desiredPosition;
+        var newPosition = _desiredPosition;
 
         if (_state == MoveState.Floor)
         {
