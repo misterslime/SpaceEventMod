@@ -5,7 +5,7 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.NPCs.Sackterium;
+namespace SpaceEventMod.Content.NPCs.Sackteriums;
 internal partial class Sackterium
 {
     private Queue _windDirections = new Queue();

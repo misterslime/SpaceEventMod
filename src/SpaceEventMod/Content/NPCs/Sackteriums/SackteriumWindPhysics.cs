@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.NPCs.Sackterium;
+namespace SpaceEventMod.Content.NPCs.Sackteriums;
 
 internal class SackteriumWindPhysics : ModSystem
 {
@@ -22,8 +22,6 @@ internal class SackteriumWindPhysics : ModSystem
         {
             if (!sackterium.WindGustTrigger.Intersects(rectangle))
                 continue;
-
-            sackterium.IsPushing = true;
 
             var windAcceleration = Vector2.UnitX.RotatedBy(sackterium.NPC.rotation);
 

@@ -1,3 +1,4 @@
+using SpaceEventMod.Common.Players;
 using SpaceEventMod.Content.Events.Space;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using Terraria;
@@ -22,6 +23,10 @@ public class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
+        player.GetModPlayer<AstralysisPlayer>().ToggleAstralysis();
+
+        return true;
+
         if (!SpaceEvent.Sea.Active)
             SpaceEvent.Sea = new FirmamentSea(16, 64, 3);
         else

@@ -12,7 +12,7 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.NPCs.Sackterium;
+namespace SpaceEventMod.Content.NPCs.Sackteriums;
 
 internal partial class Sackterium : ModNPC
 {

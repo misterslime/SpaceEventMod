@@ -9,17 +9,17 @@ namespace SpaceEventMod.Core.DataStructures;
 /// <param name="i">Horizontal coordinate.</param>
 /// <param name="j">Vertical coordinate.</param>
 /// <param name="action">Action that retrieves the desired information from the tiles.</param>
-public ref struct AdjacencyData<T>(int i, int j, Func<Tile, T> action)
+public struct AdjacencyData<T>(int i, int j, Func<Tile, T> action)
 {
-    public T Top = action(Framing.GetTileSafely(i, j - 1));
-    public T Bottom = action(Framing.GetTileSafely(i, j + 1));
+    public T Top { get; } = action(Framing.GetTileSafely(i, j - 1));
+    public T Bottom { get; } = action(Framing.GetTileSafely(i, j + 1));
 
-    public T Left = action(Framing.GetTileSafely(i - 1, j));
-    public T Right = action(Framing.GetTileSafely(i + 1, j));
+    public T Left { get; } = action(Framing.GetTileSafely(i - 1, j));
+    public T Right { get; } = action(Framing.GetTileSafely(i + 1, j));
 
-    public T TopLeft = action(Framing.GetTileSafely(i - 1, j - 1));
-    public T TopRight = action(Framing.GetTileSafely(i + 1, j - 1));
+    public T TopLeft { get; } = action(Framing.GetTileSafely(i - 1, j - 1));
+    public T TopRight { get; } = action(Framing.GetTileSafely(i + 1, j - 1));
 
-    public T BottomLeft = action(Framing.GetTileSafely(i - 1, j - 1));
-    public T BottomRight = action(Framing.GetTileSafely(i + 1, j - 1));
+    public T BottomLeft { get; } = action(Framing.GetTileSafely(i - 1, j + 1));
+    public T BottomRight { get; } = action(Framing.GetTileSafely(i + 1, j + 1));
 }
