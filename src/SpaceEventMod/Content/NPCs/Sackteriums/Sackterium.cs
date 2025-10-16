@@ -54,7 +54,7 @@ internal partial class Sackterium : ModNPC
         var rectangle = new Rectangle(rectanglePosition.X, rectanglePosition.Y, rectangleDimensions.X, rectangleDimensions.Y);
         WindGustTrigger = new RotatedRectangle(rectangle, NPC.rotation);
 
-        if (Timer % 12 != 0)
+        if (Timer % 6 != 0)
             return;
 
         SpawnWindGust(rectangleDimensions);

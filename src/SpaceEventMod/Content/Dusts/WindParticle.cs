@@ -5,12 +5,8 @@ using SpaceEventMod.Core.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static tModPorter.ProgressUpdate;
 
 namespace SpaceEventMod.Content.Dusts;
 
