@@ -42,8 +42,8 @@ internal partial class Sackterium
         color.Item1.A = 0;
         color.Item2.A = 0;
 
-        color.Item1 *= 0.4f;
-        color.Item2 *= 0.5f;
+        color.Item1 *= 0.8f;
+        color.Item2 *= 0.8f;
 
         var direction = (Point)_windDirections.Dequeue();
 
@@ -58,7 +58,7 @@ internal partial class Sackterium
         if (direction.X == direction.Y)
             curveAmount = Main.rand.NextFloat(0.2f, 0.3f);
 
-        var width = Main.rand.NextFloat(2f, 8f) * 1.2f;
+        var width = Main.rand.NextFloat(2f, 8f) * 2.1f;
         var second = color.Item2;
 
         dust.customData = new WindParticleData(

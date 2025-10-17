@@ -122,7 +122,7 @@ internal class WindParticle : ModDust
             .DrawBasicTrail(
                 trailPoints.ToArray(),
                 progress => MathF.Sin(progress * MathHelper.Pi) * data.Width,
-                Assets.Assets.Textures.WhitePixel.Value,
+                Assets.Assets.Textures.Trails.WindTrail.Value,
                 progress => Color.Lerp(dust.color, data.SecondColor, progress))
             .Schedule(RenderLayer.AfterPlayers);
 
