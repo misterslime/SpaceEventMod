@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Animation;
+using SpaceEventMod.Core.Animation.Splines;
+using SpaceEventMod.Core.Animation.Tweening;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Physics.Components;
@@ -114,15 +115,15 @@ internal partial class Dropling
         float heartbeat = 0;
 
         if (time <= 0.15)
-            heartbeat = EasingFunctions.QuintEaseInOut(time / 0.15f);
+            heartbeat = EasingFunctions.InOutQuint(time / 0.15f);
         else if (time <= 0.15 + 0.15)
-            heartbeat = 1 - EasingFunctions.CircEaseIn((time - 0.15f) / 0.15f);
+            heartbeat = 1 - EasingFunctions.InCirc((time - 0.15f) / 0.15f);
         else if (time <= 0.15 + 0.15 + 0.1)
             heartbeat = 0.20f;
         else if (time <= 0.15 + 0.15 + 0.1 + 0.15)
-            heartbeat = 0.20f + 0.55f * EasingFunctions.SineEaseIn((time - 0.15f - 0.15f - 0.1f) / 0.15f);
+            heartbeat = 0.20f + 0.55f * EasingFunctions.InSine((time - 0.15f - 0.15f - 0.1f) / 0.15f);
         else if (time <= 0.15 + 0.15 + 0.1 + 0.15 + 0.15)
-            heartbeat = 0.75f - 0.75f * EasingFunctions.CircEaseIn((time - 0.15f - 0.15f - 0.1f - 0.15f) / 0.15f);
+            heartbeat = 0.75f - 0.75f * EasingFunctions.InCirc((time - 0.15f - 0.15f - 0.1f - 0.15f) / 0.15f);
         else if (time <= 0.15 + 0.15 + 0.1 + 0.15 + 0.15 + 0.65)
             heartbeat = 0;
 
@@ -216,7 +217,7 @@ internal partial class Dropling
 
         for (var i = 0; i < trailPoints.Count; i++)
         {
-            float lerp = EasingFunctions.CubicEaseInOut((float)i / (float)trailPoints.Count);
+            float lerp = EasingFunctions.InOutCubic((float)i / (float)trailPoints.Count);
 
             float strength = MathHelper.Lerp(0, wiggleStrength, lerp) + 2f;
 

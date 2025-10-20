@@ -24,3 +24,6 @@ https://www.youtube.com/watch?v=3OmkehAJoyo
 
 RotatedRectangle is adapted from here.
 http://www.xnadevelopment.com/tutorials/rotatedrectanglecollisions/rotatedrectanglecollisions.shtml
+
+the easing functions from EasingFunctions are from this gist.
+https://gist.github.com/Kryzarel/bba64622057f21a1d6d44879f9cd7bd4 

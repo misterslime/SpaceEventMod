@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Animation;
+using SpaceEventMod.Core.Animation.Tweening;
 using SpaceEventMod.Core.Graphics;
 using System;
 using System.Linq;
@@ -25,7 +25,7 @@ public class InkRenderer : ModSystem
 
             var frame = new Rectangle(0, 34 * manaInkData.FrameVariant, 32, 34);
 
-            var drawPosition = Vector2.Lerp(manaInkData.TargetPosition, dust.position, EasingFunctions.SineEaseInOut(Math.Clamp((manaInkData.Lifetime - dust.fadeIn) / 60, 0, 1)));
+            var drawPosition = Vector2.Lerp(manaInkData.TargetPosition, dust.position, EasingFunctions.InOutSine(Math.Clamp((manaInkData.Lifetime - dust.fadeIn) / 60, 0, 1)));
 
             pipeline.DrawSprite(
                 inkTexture,

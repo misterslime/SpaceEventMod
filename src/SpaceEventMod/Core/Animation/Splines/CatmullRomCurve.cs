@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace SpaceEventMod.Core.Animation;
+namespace SpaceEventMod.Core.Animation.Splines;
 
 internal ref struct CatmullRomCurve
 {

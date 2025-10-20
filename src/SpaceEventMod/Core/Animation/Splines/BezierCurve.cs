@@ -4,7 +4,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace SpaceEventMod.Core.Animation;
+namespace SpaceEventMod.Core.Animation.Splines;
 
 public ref struct BezierCurve : IDisposable
 {

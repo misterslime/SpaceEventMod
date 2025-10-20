@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Animation;
+using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using Terraria;
 using Terraria.ModLoader;
@@ -31,7 +31,7 @@ public class AsteroidDrawing : ILoadable
 
             var wave = MathF.Pow(MathF.Sin(Main.GameUpdateCount * 0.1f), 2);
             var lifeRatio = asteroid.Durability / 200f;
-            var drawColor = Color.Lerp(Color.White, Color.Red, wave * EasingFunctions.CircEaseIn(1 - lifeRatio));
+            var drawColor = Color.Lerp(Color.White, Color.Red, wave * EasingFunctions.InCirc(1 - lifeRatio));
 
             var shakeVector = MathF.Sin(Main.GameUpdateCount) * 2f * (asteroid.ShakeTime / 20f) * asteroid.ShakeDirection;
 

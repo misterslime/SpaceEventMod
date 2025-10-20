@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space.LevelElements;
-using SpaceEventMod.Core.Animation;
+using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using Terraria;
 using Terraria.DataStructures;
@@ -105,7 +105,7 @@ public class SpaceEvent : ModSystem
 
         var noiseSample = (float)(1 + noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
 
-        var density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.CircEaseIn(noiseSample));
+        var density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.InCirc(noiseSample));
 
         var asteroids = Asteroids.List;
 

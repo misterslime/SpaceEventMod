@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Animation;
+using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using Terraria;
 using Terraria.ModLoader;
@@ -28,7 +28,7 @@ public class StarDrawing : ILoadable
 
             var wave = MathF.Pow(MathF.Sin(Main.GameUpdateCount * 0.1f), 2);
             var lifeRatio = star.Durability / 1000f;
-            var drawColor = Color.Lerp(Color.White, Color.Transparent, wave * EasingFunctions.CircEaseIn(1 - lifeRatio));
+            var drawColor = Color.Lerp(Color.White, Color.Transparent, wave * EasingFunctions.InCirc(1 - lifeRatio));
 
             var shakeVector = MathF.Sin(Main.GameUpdateCount) * 2f * (star.ShakeTime / 20f) * star.ShakeDirection;
 
