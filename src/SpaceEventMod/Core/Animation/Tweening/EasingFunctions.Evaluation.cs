@@ -9,39 +9,53 @@ namespace SpaceEventMod.Core.Animation.Tweening;
 
 internal static partial class EasingFunctions
 {
-    private delegate float EasingFunction(float interpolant);
-
-    public static float Evaluate(float t, EaseCurve curve, EaseType type)
+    public static float Evaluate(this Ease curve, float interpolant)
     {
         return curve switch
         {
-            EaseCurve.Sine => Evaluate(t, type, InSine, OutSine, InOutSine),
-            EaseCurve.Quad => Evaluate(t, type, InQuad, OutQuad, InOutQuad),
-            EaseCurve.Cubic => Evaluate(t, type, InCubic, OutCubic, InOutCubic),
-            EaseCurve.Quart => Evaluate(t, type, InQuart, OutQuart, InOutQuart),
-            EaseCurve.Quint => Evaluate(t, type, InQuint, OutQuint, InOutQuint),
-            EaseCurve.Expo => Evaluate(t, type, InExpo, OutExpo, InOutExpo),
-            EaseCurve.Circ => Evaluate(t, type, InCirc, OutCirc, InOutCirc),
-            EaseCurve.Elastic => Evaluate(t, type, InElastic, OutElastic, InOutElastic),
-            EaseCurve.Back => Evaluate(t, type, InBack, OutBack, InOutBack),
-            EaseCurve.Bounce => Evaluate(t, type, InBounce, OutBounce, InOutBounce),
-            _ => t,
-        };
-    }
+            Ease.Delay => 0f,
 
-    private static float Evaluate(
-        float t,
-        EaseType type, 
-        in EasingFunction inFunction, 
-        in EasingFunction outFunction, 
-        in EasingFunction inOutFunction)
-    {
-        return type switch
-        {
-            EaseType.In => inFunction(t),
-            EaseType.Out => outFunction(t),
-            EaseType.InOut => inOutFunction(t),
-            _ => t,
+            Ease.InQuad => InQuad(interpolant),
+            Ease.OutQuad => OutQuad(interpolant),
+            Ease.InOutQuad => InOutQuad(interpolant),
+
+            Ease.InCubic => InCubic(interpolant),
+            Ease.OutCubic => OutCubic(interpolant),
+            Ease.InOutCubic => InOutCubic(interpolant),
+
+            Ease.InQuart => InQuart(interpolant),
+            Ease.OutQuart => OutQuart(interpolant),
+            Ease.InOutQuart => InOutQuart(interpolant),
+
+            Ease.InQuint => InQuint(interpolant),
+            Ease.OutQuint => OutQuint(interpolant),
+            Ease.InOutQuint => InOutQuint(interpolant),
+
+            Ease.InSine => InSine(interpolant),
+            Ease.OutSine => OutSine(interpolant),
+            Ease.InOutSine => InOutSine(interpolant),
+
+            Ease.InExpo => InExpo(interpolant),
+            Ease.OutExpo => OutExpo(interpolant),
+            Ease.InOutExpo => InOutExpo(interpolant),
+
+            Ease.InCirc => InCirc(interpolant),
+            Ease.OutCirc => OutCirc(interpolant),
+            Ease.InOutCirc => InOutCirc(interpolant),
+
+            Ease.InElastic => InElastic(interpolant),
+            Ease.OutElastic => OutElastic(interpolant),
+            Ease.InOutElastic => InOutElastic(interpolant),
+
+            Ease.InBack => InBack(interpolant),
+            Ease.OutBack => OutBack(interpolant),
+            Ease.InOutBack => InOutBack(interpolant),
+
+            Ease.InBounce => InBounce(interpolant),
+            Ease.OutBounce => OutBounce(interpolant),
+            Ease.InOutBounce => InOutBounce(interpolant),
+
+            _ => interpolant,
         };
     }
 }

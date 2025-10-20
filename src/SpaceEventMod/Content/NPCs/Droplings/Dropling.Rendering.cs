@@ -7,9 +7,6 @@ using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Physics.Components;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent;
 
@@ -18,6 +15,15 @@ namespace SpaceEventMod.Content.NPCs.Droplings;
 internal partial class Dropling
 {
     private float _wiggleTimer = 0;
+
+    // duration in seconds here but can be anything
+    private readonly static EasingMotion s_droplingHeartbeat = new EasingMotion()
+        .ChainMotion(duration: 0.15f, endValue: 1f, Ease.InOutQuint)
+        .ChainMotion(duration: 0.15f, endValue: 0.2f, Ease.InCirc)
+        .DelayMotion(duration: 0.1f)
+        .ChainMotion(duration: 0.15f, endValue: 0.75f, Ease.InSine)
+        .ChainMotion(duration: 0.15f, endValue: 0, Ease.InCirc)
+        .DelayMotion(duration: 0.65f);
 
     private int AppendageFrame()
     {
@@ -110,22 +116,8 @@ internal partial class Dropling
 
         Vector2 starPosition = drawPosition + starPositionDifferenceFromCenter + new Vector2(4, 0).RotatedBy(NPC.rotation);
 
-        // fuck my life
-        float time = (NPC.whoAmI * 0.13f + Main.GlobalTimeWrappedHourly) % 1.35f;
-        float heartbeat = 0;
-
-        if (time <= 0.15)
-            heartbeat = EasingFunctions.InOutQuint(time / 0.15f);
-        else if (time <= 0.15 + 0.15)
-            heartbeat = 1 - EasingFunctions.InCirc((time - 0.15f) / 0.15f);
-        else if (time <= 0.15 + 0.15 + 0.1)
-            heartbeat = 0.20f;
-        else if (time <= 0.15 + 0.15 + 0.1 + 0.15)
-            heartbeat = 0.20f + 0.55f * EasingFunctions.InSine((time - 0.15f - 0.15f - 0.1f) / 0.15f);
-        else if (time <= 0.15 + 0.15 + 0.1 + 0.15 + 0.15)
-            heartbeat = 0.75f - 0.75f * EasingFunctions.InCirc((time - 0.15f - 0.15f - 0.1f - 0.15f) / 0.15f);
-        else if (time <= 0.15 + 0.15 + 0.1 + 0.15 + 0.15 + 0.65)
-            heartbeat = 0;
+        float time = (NPC.whoAmI * 0.13f + Main.GlobalTimeWrappedHourly);
+        float heartbeat = s_droplingHeartbeat.Evaluate(time, out bool completed);
 
         float starScale = 0.75f + 0.75f * heartbeat;
         float starRotation = (trailPoints[7] - trailPoints[8]).ToRotation() * 0.5f;
@@ -135,25 +127,6 @@ internal partial class Dropling
 
         spriteBatch.Draw(starGlowTexture, starPosition - screenPos, null, starColor, starRotation, starGlowTexture.Size() * 0.5f, NPC.scale * starScale * 0.95f, 0, 0);
         spriteBatch.Draw(starTexture, starPosition - screenPos, null, Color.White, starRotation, starTexture.Size() * 0.5f, NPC.scale * starScale, 0, 0);
-
-        /*Graphics.BeginPipeline()
-            .DrawSprite(
-                starGlowTexture,
-                starPosition - screenPos,
-                starColor,
-                null,
-                starRotation,
-                starGlowTexture.Size() * 0.5f,
-                new Vector2(NPC.scale * starScale))
-            .DrawSprite(
-                starTexture,
-                starPosition - screenPos,
-                Color.White,
-                null,
-                starRotation,
-                starTexture.Size() * 0.5f, 
-                new Vector2(NPC.scale * starScale))
-            .Schedule(RenderLayer.AfterNPCs);*/
 
         Texture2D jawsTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingJaw.Value;
         Texture2D bigJawsTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingJawBig.Value;

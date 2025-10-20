@@ -11,6 +11,15 @@ namespace SpaceEventMod.Core.Animation.Tweening;
 
 internal static partial class EasingFunctions
 {
+    // Quad = 2, Cubic = 3, Quart = 4, Quint = 5
+    public static float InPoly(float t, int order) => MathF.Pow(t, order);
+    public static float OutPoly(float t, int order) => 1 - InPoly(1 - t, order);
+    public static float InOutPoly(float t, int order)
+    {
+        if (t < 0.5) return InPoly(t * 2, order) * 0.5f;
+        return 1 - InPoly((1 - t) * 2, order) * 0.5f;
+    }
+
     public static float InQuad(float t) => t * t;
     public static float OutQuad(float t) => 1 - InQuad(1 - t);
     public static float InOutQuad(float t)
