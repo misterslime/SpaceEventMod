@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.NPCs.Droplings;
 using SpaceEventMod.Core.Animation.Splines;
 using SpaceEventMod.Core.Graphics;
 using System;

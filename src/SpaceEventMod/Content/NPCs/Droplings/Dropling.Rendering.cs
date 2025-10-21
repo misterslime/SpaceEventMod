@@ -60,10 +60,10 @@ internal partial class Dropling
         var midPoint = _tailRotation.AngleLerp(NPC.rotation + MathF.PI, 0.5f).ToRotationVector2() * (1 - bendiness) * NPC.height * 0.5f;
         drawPosition += midPoint;
 
-        headPosition *= NPC.width * 0.5f;
+        headPosition *= NPC.width * 0.5f * NPC.scale;
         headPosition = drawPosition + headPosition;
 
-        tailPosition *= NPC.width * 0.5f;
+        tailPosition *= NPC.width * 0.5f * NPC.scale;
         tailPosition = drawPosition - tailPosition;
 
         ReadOnlySpan<Vector2> controlPoints = new Vector2[] { headPosition, drawPosition, tailPosition };
@@ -96,7 +96,7 @@ internal partial class Dropling
         pipeline
             .DrawTrail(
                 trailPointsArray,
-                _ => NPC.height,
+                _ => NPC.height * NPC.scale,
                 _ => drawColor,
                 Assets.Assets.Shaders.Trail.BendyTexture.Value,
                 ("transformMatrix", Graphics.WorldTransformMatrix),
@@ -108,19 +108,21 @@ internal partial class Dropling
             DrawWings(in pipeline, in trailPointsArray, trailPoints[7], screenPos, drawColor, true);
         }
 
+        pipeline.Schedule(RenderLayer.AfterNPCs);
+
         Texture2D starTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingStar.Value;
         Texture2D starGlowTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingStar_Glow.Value;
 
         Vector2 starPositionDifferenceFromCenter = trailPoints[7] - drawPosition;
         starPositionDifferenceFromCenter *= 0.25f;
 
-        Vector2 starPosition = drawPosition + starPositionDifferenceFromCenter + new Vector2(4, 0).RotatedBy(NPC.rotation);
+        Vector2 starPosition = drawPosition + starPositionDifferenceFromCenter + new Vector2(4, 0).RotatedBy(NPC.rotation) * NPC.scale;
 
         float time = (NPC.whoAmI * 0.13f + Main.GlobalTimeWrappedHourly);
         float heartbeat = s_droplingHeartbeat.Evaluate(time, out bool completed);
 
         float starScale = 0.75f + 0.75f * heartbeat;
-        float starRotation = (trailPoints[7] - trailPoints[8]).ToRotation() * 0.5f;
+        float starRotation = (trailPoints[7] - trailPoints[8]).ToRotation();
 
         Color starColor = Color.Cyan;
         starColor.A = 0;
@@ -145,10 +147,54 @@ internal partial class Dropling
         else
             spriteBatch.Draw(jawsTexture, jawPosition, null, drawColor, jawRotation, jawTextureOrigins["jaw"], NPC.scale, 0, 0);
 
-        pipeline
-            .ApplyOutline(new Color(23, 23, 130))
-            .ApplyOutline(new Color(23, 23, 130))
-            .Schedule(RenderLayer.AfterNPCs);
+        if (Timer <= 60f || State != DroplingState.Biting || Timer > 85f)
+            return false;
+
+        Fade.Draw(0.5f, (in Pipeline pipeline) =>
+        {
+            if (HasAppendage(DroplingAppendage.Wings))
+            {
+                DrawWings(in pipeline, in trailPointsArray, trailPoints[7], screenPos, drawColor);
+            }
+
+            if (HasAppendage(DroplingAppendage.Flagellum))
+            {
+                _flagellum.Center = new(trailPoints[16]);
+
+                DrawTail(in pipeline, _flagellumTail1, 0, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+                DrawTail(in pipeline, _flagellumTail2, 1, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+                DrawTail(in pipeline, _flagellumTail3, 2, Assets.Assets.Textures.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+            }
+
+            pipeline
+                .DrawTrail(
+                    trailPointsArray,
+                    _ => NPC.height * NPC.scale,
+                    _ => drawColor,
+                    Assets.Assets.Shaders.Trail.BendyTexture.Value,
+                    ("transformMatrix", Graphics.WorldTransformMatrix),
+                    ("sampleTexture", texture),
+                    ("frame", new Vector4(0, (float)AppendageFrame(), 1, 4)));
+
+            if (HasAppendage(DroplingAppendage.Wings))
+            {
+                DrawWings(in pipeline, in trailPointsArray, trailPoints[7], screenPos, drawColor, true);
+            }
+
+            if (HasAppendage(DroplingAppendage.BigJaw))
+                pipeline.DrawSprite(bigJawsTexture, jawPosition, null, null, jawRotation, jawTextureOrigins["bigJaw"], new(NPC.scale), 0);
+            else
+                pipeline.DrawSprite(jawsTexture, jawPosition, null, null, jawRotation, jawTextureOrigins["jaw"], new(NPC.scale), 0);
+
+            float the = (Timer - 60) / 25f;
+
+            the = EasingFunctions.InQuart(Math.Clamp(the, 0.3f, 0.8f));
+
+            pipeline.ApplyEffect(
+                Assets.Assets.Shaders.Fragment.ChangeColor.Value,
+                ("color", drawColor.ToVector4() * Vector4.Lerp(Color.BlueViolet.ToVector4(), Color.Blue.ToVector4(), the)));
+        });
+
 
         return false;
     }
@@ -258,7 +304,7 @@ internal partial class Dropling
         Texture2D wingTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingWing.Value;
         Texture2D glowTexture = Assets.Assets.Textures.NPCs.Droplings.DroplingWing_Glow.Value;
 
-        Vector2 wingPosition = new Vector2(6, 26);
+        Vector2 wingPosition = new Vector2(6, 26) * NPC.scale;
 
         float wingRotation = MathHelper.WrapAngle((trailPoints[5] - trailPoints[4]).ToRotation());
 

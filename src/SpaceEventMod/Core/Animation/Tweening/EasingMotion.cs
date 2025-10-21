@@ -105,7 +105,7 @@ internal class EasingMotion()
     {
         completed = false;
 
-        if (time > _duration * _loops && _loops != -1)
+        if (time >= _duration * _loops && _loops != -1)
         {
             completed = true;
             return _endValue;

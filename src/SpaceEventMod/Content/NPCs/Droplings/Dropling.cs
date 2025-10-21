@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.NPCs;
 using SpaceEventMod.Common.NPCs.Attributes;
+using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Core.Animation.SecondOrderDynamics;
+using SpaceEventMod.Core.Animation.Tweening;
 using SpaceEventMod.Core.Physics;
 using SpaceEventMod.Core.Physics.Components.Animation;
 using SpaceEventMod.Core.Physics.Passes;
@@ -34,11 +36,19 @@ public enum DroplingState
 
 internal partial class Dropling : BaseStateNPC<DroplingState>
 {
-    private static readonly SecondOrderAnimation DroplingVelocity = new SecondOrderAnimation(1f / 85f, 0.6f, 0.2f);
+    private static readonly SecondOrderAnimation s_droplingVelocity = new SecondOrderAnimation(1f / 85f, 0.6f, 0.2f);
 
-    private static readonly SecondOrderAnimation DroplingDeccelerate = new SecondOrderAnimation(1f / 85f, 1f, 0f);
+    private static readonly SecondOrderAnimation s_droplingDeccelerate = new SecondOrderAnimation(1f / 85f, 1f, 0f);
 
-    private static readonly SecondOrderAnimation DroplingDash = new SecondOrderAnimation(1f / 85f, 1f, -1.5f);
+    private static readonly SecondOrderAnimation s_droplingDash = new SecondOrderAnimation(1f / 15f, 1f, 0);
+
+    private readonly static EasingMotion s_dashMotion = new EasingMotion()
+        .SetStart(1f)
+        .SetLoops(LoopType.Repeat, 1)
+        .ChainMotion(duration: 5f, endValue: 1.5f, Ease.OutSine)
+        .ChainMotion(duration: 15f, endValue: 0f, Ease.InBack)
+        .ChainMotion(duration: 10f, endValue: -1f, Ease.OutSine)
+        .DelayMotion(duration: 15f);
 
     private static PhysicsSolver s_droplingSolver;
 
@@ -48,6 +58,8 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
         set => NPC.ai[2] = (float)value;
     }
 
+    private Vector2 _dashDisplacement;
+    private Vector2 _dashTarget;
     private float _desiredRotation = 0;
     private float _tailRotation = 0;
 
@@ -82,7 +94,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
         NPC.lifeMax = 250;
         NPC.HitSound = SoundID.NPCHit1;
         NPC.DeathSound = SoundID.NPCDeath1;
-        NPC.knockBackResist = 0.5f;
+        NPC.knockBackResist = 0f;
         NPC.aiStyle = -1;
 
         NPC.noGravity = true;
@@ -91,6 +103,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
 
     public override void PostAI()
     {
+
         if (HasAppendage(DroplingAppendage.Flagellum))
         {
             s_droplingSolver.RunPhysicsPasses([_flagellum, _flagellumTail1, _flagellumTail2, _flagellumTail3]);
@@ -100,28 +113,55 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
     [StateProcess<DroplingState>(DroplingState.Biting)]
     public DroplingState Biting()
     {
-        NPC.velocity = Vector2.Zero;
-        NPC.oldVelocity = Vector2.Zero;
+        float delayBeforeDashing = 50;
+
+        if (Timer <= delayBeforeDashing)
+        {
+            TargetPosition = Main.player[NPC.target].Center + _dashDisplacement;
+            _dashTarget = Main.player[NPC.target].Center;
+            _dashDisplacement += NPC.velocity;
+            NPC.velocity = NPC.velocity.RotatedBy(MathHelper.PiOver4 * 0.1f * EasingFunctions.OutQuint(Timer / delayBeforeDashing));
+            NPC.velocity *= 0.94f;
+        }
+        else
+        {
+            float interpolant = s_dashMotion.Evaluate(Timer - delayBeforeDashing, out bool completed);
+
+            Vector2 dashVector = Vector2.Lerp(Vector2.Zero, _dashDisplacement, interpolant);
+
+            if (Timer >= 60f)
+            {
+                Vector2 dustPosition = Main.rand.NextVector2Circular(16f, 16f);
+                dustPosition += NPC.Center;
+
+                Vector2 dustVelocity = Main.rand.NextVector2Circular(2f, 2f) + (PreviousPosition - NPC.Center) / 60;
+
+                var dust = Dust.NewDustPerfect(dustPosition, ModContent.DustType<Pixel>(), dustVelocity);
+                dust.noGravity = true;
+                dust.color = Color.Lerp(Color.Cyan, Color.BlueViolet, Main.rand.NextFloat());
+                dust.fadeIn = 70f;
+            }
+
+            PreviousPosition = NPC.Center;
+            TargetPosition = dashVector + _dashTarget;
+
+            if (completed)
+            {
+                NPC.Center = TargetPosition;
+                VelocityPhysics = default;
+                return DroplingState.Moving;
+            }
+        }
 
         PhysicsObject physicsObject = new PhysicsObject(PositionPhysics);
-        physicsObject.AddComponent(new SecondOrderData(1, DroplingDash, TargetPosition));
+        physicsObject.AddComponent(new SecondOrderData(1, s_droplingDash, TargetPosition));
 
         SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
 
         PositionPhysics = physicsObject.Center;
 
-        //PositionKinematics = DroplingDash.Update(1, PositionKinematics, TargetPosition);
-        NPC.rotation = NPC.rotation.AngleLerp((TargetPosition - NPC.Center).ToRotation(), 0.075f);
-
-        if (!(Timer > 70f))
-        {
-            return DroplingState.Biting;
-        }
-
-        Timer = 0f;
-        NPC.knockBackResist = 1f;
-        NPC.damage = 0;
-        return DroplingState.Moving;
+        NPC.rotation = NPC.rotation.AngleLerp(_dashDisplacement.ToRotation() - MathF.PI, 0.1f);
+        return DroplingState.Biting;
 
     }
 
@@ -141,7 +181,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
 
         var separationRadius = 48f;
         var radius = 20f * 16f;
-        var maxBitingDistance = 7.5f * 16f;
+        var maxBitingDistance = 10f * 16f;
         var minBitingDistance = 4f * 16f;
         var distance = Vector2.Distance(Main.player[NPC.target].Center, NPC.Center);
 
@@ -178,7 +218,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
             }
 
             PhysicsObject physicsObject = new PhysicsObject(VelocityPhysics);
-            physicsObject.AddComponent(new SecondOrderData(1, DroplingVelocity, TargetVelocity));
+            physicsObject.AddComponent(new SecondOrderData(1, s_droplingVelocity, TargetVelocity));
 
             SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
 
@@ -189,7 +229,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
         else
         {
             PhysicsObject physicsObject = new PhysicsObject(VelocityPhysics);
-            physicsObject.AddComponent(new SecondOrderData(1, DroplingDeccelerate, TargetVelocity));
+            physicsObject.AddComponent(new SecondOrderData(1, s_droplingDeccelerate, TargetVelocity));
 
             SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
 
@@ -219,8 +259,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
 
         NPC.knockBackResist = 0f;
         PreviousPosition = NPC.Center - NPC.velocity;
-        TargetPosition = Main.player[NPC.target].Center + target * 16f * 1.5f;
-        Timer = 0;
+        _dashDisplacement = NPC.Center - Main.player[NPC.target].Center;
         NPC.damage = 10;
         return DroplingState.Biting;
 

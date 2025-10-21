@@ -44,7 +44,7 @@ internal abstract class BaseStateNPC<TState> : ModNPC where TState : Enum
 
     protected Vector2 TargetVelocity { get; set; }
 
-    protected PhysicsPoint VelocityPhysics
+    public PhysicsPoint VelocityPhysics
     {
         get => new PhysicsPoint(NPC.velocity)
         {
@@ -57,7 +57,7 @@ internal abstract class BaseStateNPC<TState> : ModNPC where TState : Enum
         }
     }
 
-    protected PhysicsPoint PositionPhysics
+    public PhysicsPoint PositionPhysics
     {
         get => new PhysicsPoint(NPC.Center)
         {
