@@ -14,6 +14,14 @@ internal static partial class EasingFunctions
         return curve switch
         {
             Ease.Delay => 0f,
+            Ease.Linear => Linear(interpolant),
+
+            Ease.Stepped1 => Stepped(interpolant, 1),
+            Ease.Stepped2 => Stepped(interpolant, 2),
+            Ease.Stepped3 => Stepped(interpolant, 3),
+            Ease.Stepped4 => Stepped(interpolant, 4),
+            Ease.Stepped5 => Stepped(interpolant, 5),
+            Ease.Stepped10 => Stepped(interpolant, 10),
 
             Ease.InQuad => InQuad(interpolant),
             Ease.OutQuad => OutQuad(interpolant),
@@ -30,6 +38,10 @@ internal static partial class EasingFunctions
             Ease.InQuint => InQuint(interpolant),
             Ease.OutQuint => OutQuint(interpolant),
             Ease.InOutQuint => InOutQuint(interpolant),
+
+            Ease.InSextic => InPoly(interpolant, 6),
+            Ease.OutSextic => OutPoly(interpolant, 6),
+            Ease.InOutSextic => InOutPoly(interpolant, 6),
 
             Ease.InSine => InSine(interpolant),
             Ease.OutSine => OutSine(interpolant),
@@ -55,7 +67,7 @@ internal static partial class EasingFunctions
             Ease.OutBounce => OutBounce(interpolant),
             Ease.InOutBounce => InOutBounce(interpolant),
 
-            _ => interpolant,
+            _ => throw new Exception(String.Format("Unrecognized easing function: {0}", curve.ToString())),
         };
     }
 }

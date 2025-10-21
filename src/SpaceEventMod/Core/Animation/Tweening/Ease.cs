@@ -11,6 +11,13 @@ public enum Ease : Byte
     Delay,
     Linear,
 
+    Stepped1,
+    Stepped2,
+    Stepped3,
+    Stepped4,
+    Stepped5,
+    Stepped10,
+
     InQuad,
     OutQuad,
     InOutQuad,
@@ -26,6 +33,10 @@ public enum Ease : Byte
     InQuint,
     OutQuint,
     InOutQuint,
+
+    InSextic,
+    OutSextic,
+    InOutSextic,
 
     InSine,
     OutSine,
