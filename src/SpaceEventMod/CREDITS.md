@@ -27,3 +27,7 @@ http://www.xnadevelopment.com/tutorials/rotatedrectanglecollisions/rotatedrectan
 
 the easing functions from EasingFunctions are from this gist.
 https://gist.github.com/Kryzarel/bba64622057f21a1d6d44879f9cd7bd4 
+
+Metaball impl based on math2's from all beginnings, with help from Inigo Quilez's website
+https://github.com/mayli4/AllBeginningsMod/blob/main/src/AllBeginningsMod/Content/Bosses/_Nightgaunt/_Visuals/NightgauntMetaballRenderer.cs 
+https://iquilezles.org/articles/distgradfunctions2d/
