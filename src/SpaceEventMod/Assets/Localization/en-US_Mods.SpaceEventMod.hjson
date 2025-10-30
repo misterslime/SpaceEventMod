@@ -19,6 +19,7 @@ NPCs: {
 	SoftBodyExperiment.DisplayName: Soft Body Experiment
 	PhysicsJellyfish.DisplayName: Physics Jellyfish
 	Sackterium.DisplayName: Sackterium
+	Amoerpha.DisplayName: Amoerpha
 }
 
 Projectiles: {
