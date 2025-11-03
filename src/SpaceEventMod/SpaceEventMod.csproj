@@ -11,6 +11,7 @@
     <!-- analyzers -->
     <ItemGroup>
         <ProjectReference Include="..\SourceGeneration\SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<PackageReference Include="ComputeSharp" Version="3.2.0" />
     </ItemGroup>
 
     <PropertyGroup>

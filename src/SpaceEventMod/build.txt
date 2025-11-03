@@ -1,3 +1,4 @@
 displayName = Cosmostone Showers
 author = users
 version = 0.1
+dllReferences = ComputeSharp, ComputeSharp.Core, ComputeSharp.SourceGenerators, ComputeSharp.CodeFixers

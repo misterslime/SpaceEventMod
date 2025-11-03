@@ -1,5 +1,11 @@
 # Credits
 
+Sebastian Lague for this fluid simulation video.
+https://www.youtube.com/watch?v=rSKMYc1CQHE
+
+ComputeSharp for enabling me to add fluid simulation. This is entirely too much power.
+https://github.com/Sergio0694/ComputeSharp
+
 FastNoiseLite is used in this project, credits to them.
 https://github.com/Auburn/FastNoiseLite
 
