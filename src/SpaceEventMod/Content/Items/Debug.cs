@@ -30,7 +30,7 @@ internal class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        FluidSimulation.Activate(Main.MouseWorld);
+        FluidSimulation.Activate();
 
         return true;
 
