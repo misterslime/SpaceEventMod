@@ -1,16 +1,11 @@
-using ComputeSharp;
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.Mechanics.FluidSimulation.Compute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
-
-using Vector2 = System.Numerics.Vector2;
 
 namespace SpaceEventMod.Common.Mechanics.FluidSimulation;
 
@@ -32,46 +27,46 @@ internal partial class FluidSimulation
         new Point(1, -1)
     };
 
-    private static ReadWriteBuffer<uint3> spatialLookupBuffer;
-    private static ReadWriteBuffer<int> startIndicesBuffer;
-
-    private int NextPowerOfTwo(int v)
+    [StructLayout(LayoutKind.Explicit, Size = 8)]
+    private struct Entry(int index, uint cellKey) : IComparable<Entry>
     {
-        v--;
-        v |= v >> 1;
-        v |= v >> 2;
-        v |= v >> 4;
-        v |= v >> 8;
-        v |= v >> 16;
-        v++;
+        [FieldOffset(0)]
+        public readonly int Index = index;
 
-        return v;
+        [FieldOffset(4)]
+        public readonly uint CellKey = cellKey;
+
+        public int CompareTo(Entry other) => CellKey.CompareTo(other.CellKey);
     }
 
-    private void Sort()
-    {
-        // Launch each step of the sorting algorithm (once the previous step is complete)
-        // Number of steps = [log2(n) * (log2(n) + 1)] / 2
-        // where n = nearest power of 2 that is greater or equal to the number of inputs
-        int numStages = (int)Math.Log(NextPowerOfTwo(s_numParticles), 2);
+    private static Entry[] s_spatialLookup;
+    private static int[] s_startIndices;
 
-        for (int stageIndex = 0; stageIndex < numStages; stageIndex++)
+    private void UpdateSpatialLookup(float radius)
+    {
+        Parallel.For(0, s_predictedPositions.Length, i =>
         {
-            for (int stepIndex = 0; stepIndex < stageIndex + 1; stepIndex++)
+            Point cellCoords = PositionToCellCoord(s_predictedPositions[i], radius);
+            uint cellKey = GetKeyFromHash(HashCell(cellCoords.X, cellCoords.Y));
+            s_spatialLookup[i] = new Entry(i, cellKey);
+            s_startIndices[i] = int.MaxValue;
+        });
+
+        Array.Sort(s_spatialLookup);
+
+        Parallel.For(0, s_predictedPositions.Length, i =>
+        {
+            int key = (int)s_spatialLookup[i].CellKey;
+            uint keyPrev = i == 0 ? uint.MaxValue : s_spatialLookup[i - 1].CellKey;
+
+            if (keyPrev != key)
             {
-                // Calculate some pattern stuff
-                int groupWidth = 1 << (stageIndex - stepIndex);
-                int groupHeight = 2 * groupWidth - 1;
-
-                GraphicsDevice.GetDefault().For(NextPowerOfTwo(s_numParticles) / 2, new BitonicMergeSort(spatialLookupBuffer, s_numParticles, (uint)groupWidth, (uint)groupHeight, (uint)stepIndex));
+                s_startIndices[key] = i;
             }
-        }
-
-        GraphicsDevice.GetDefault().For(s_numParticles, new CalculateOffsets(spatialLookupBuffer, startIndicesBuffer, s_numParticles));
-
+        });
     }
 
-    /*private Point PositionToCellCoord(Vector2 point, float radius)
+    private Point PositionToCellCoord(Vector2 point, float radius)
     {
         int cellX = (int)(point.X / radius);
         int cellY = (int)(point.Y / radius);
@@ -102,9 +97,9 @@ internal partial class FluidSimulation
 
             for (int i = cellStartIndex; i < s_spatialLookup.Length; i++)
             {
-                if (s_spatialLookup[i].Z != cellKey) break;
+                if (s_spatialLookup[i].CellKey != cellKey) break;
 
-                int particleIndex = (int)s_spatialLookup[i].X;
+                int particleIndex = s_spatialLookup[i].Index;
                 Vector2 offset = s_predictedPositions[particleIndex] - point;
                 float squareDistance = Vector2.Dot(offset, offset);
 
@@ -114,5 +109,5 @@ internal partial class FluidSimulation
                 }
             }
         }
-    }*/
+    }
 }
