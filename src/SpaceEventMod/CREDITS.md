@@ -1,5 +1,8 @@
 # Credits
 
+Sebastian Lague for this fluid simulation video.
+https://www.youtube.com/watch?v=rSKMYc1CQHE
+
 FastNoiseLite is used in this project, credits to them.
 https://github.com/Auburn/FastNoiseLite
 
