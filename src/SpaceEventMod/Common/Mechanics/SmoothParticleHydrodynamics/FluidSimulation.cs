@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Common.Mechanics.FluidSimulation;
+namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
 
 internal partial class FluidSimulation : ModSystem
 {
@@ -53,7 +53,10 @@ internal partial class FluidSimulation : ModSystem
             s_velocities[i] += InteractionForce((mouseScreen - middle) / 40, 6f, strength, i) * deltaTime;
         });
 
-        SimulationStep(deltaTime);
+        for (int i = 0; i < 2; i++)
+        {
+            SimulationStep(deltaTime / 2);
+        }
 
         Main.NewText(s_neighbours.Sum((p) => p.Count));
     }
