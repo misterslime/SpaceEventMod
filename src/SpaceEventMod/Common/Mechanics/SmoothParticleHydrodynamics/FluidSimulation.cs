@@ -13,6 +13,8 @@ namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
 
 internal partial class FluidSimulation : ModSystem
 {
+    private const float SCALE = 30f;
+
     private static Vector2 s_halfBoundsSize;
 
     public static bool Active { get; set; }
@@ -21,44 +23,9 @@ internal partial class FluidSimulation : ModSystem
         if (!Active)
             return;
 
-        float deltaTime = 1 / 60f;
+        float deltaTime = 1 / 120f;
 
-        Vector2 InteractionForce(Vector2 input, float radius, float strength, int index)
-        {
-            Vector2 interactionForce = Vector2.Zero;
-            Vector2 offset = input - s_positions[index];
-            float squareDistance = Vector2.Dot(offset, offset);
-
-            if (squareDistance < radius * radius)
-            {
-                float distance = MathF.Sqrt(squareDistance);
-                Vector2 dirToInputPoint = distance <= float.Epsilon ? Vector2.Zero : offset / distance;
-
-                float centreT = 1 - distance / radius;
-
-                interactionForce += (dirToInputPoint * strength - s_velocities[index]) * centreT;
-            }
-
-            return interactionForce;
-        }
-
-        float strength = Main.mouseRight ? 25 : 0;
-        strength += Main.mouseLeft ? -25 : 0;
-
-        Parallel.For(0, s_numParticles, i =>
-        {
-            Vector2 middle = new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
-            Vector2 mouseScreen = new Vector2(Main.MouseScreen.X, Main.MouseScreen.Y);
-
-            s_velocities[i] += InteractionForce((mouseScreen - middle) / 40, 6f, strength, i) * deltaTime;
-        });
-
-        for (int i = 0; i < 2; i++)
-        {
-            SimulationStep(deltaTime / 2);
-        }
-
-        Main.NewText(s_neighbours.Sum((p) => p.Count));
+        SimulationStep(deltaTime);
     }
     public static void Activate(Vector2 mouseWorld)
     {
@@ -67,12 +34,15 @@ internal partial class FluidSimulation : ModSystem
         if (!Active)
             return;
 
-        const int numParticles = 5000;
+        Vector2 circleCenter = Main.LocalPlayer.Center / SCALE;
+        circleCenter.Y = 0;
+
+        const int numParticles = 1200;
         const float particleSize = 0.07f;
         const float particleSpacing = 0.07f;
 
-        s_halfBoundsSize = new Vector2(16, 9);
-        s_gravity = 10;
+        s_halfBoundsSize = new Vector2(32, 9);
+        s_gravity = 0;
 
         s_numParticles = numParticles;
         s_densities = new float[numParticles];
@@ -92,7 +62,7 @@ internal partial class FluidSimulation : ModSystem
         {
             float x = (i % particlesPerRow - particlesPerRow / 2f + 0.5f) * spacing;
             float y = (i / particlesPerCol - particlesPerCol / 2f + 0.5f) * spacing;
-            s_positions[i] = new Vector2(x, y);
+            s_positions[i] = new Vector2(x, y) + circleCenter;
             s_velocities[i] = Vector2.Zero;
         }
     }

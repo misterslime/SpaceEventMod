@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Content.Events.Space;
 using SteelSeries.GameSense;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -60,25 +62,44 @@ internal partial class FluidSimulation
         Parallel.For(0, s_numParticles, i =>
         {
             s_positions[i] += s_velocities[i] * deltaTime;
-            ResolveCollisions(ref s_positions[i], ref s_velocities[i]);
+            ResolveCollisions(ref s_positions[i], ref s_velocities[i], deltaTime);
         });
     }
 
-    private void ResolveCollisions(ref Vector2 position, ref Vector2 velocity)
+    private void ResolveCollisions(ref Vector2 position, ref Vector2 velocity, float deltaTime)
     {
         float collisionDamping = 0.95f;
+        Vector2 player = SpaceEvent.WorldToSeaCoordinates(Main.LocalPlayer.Center) / SCALE;
+        Vector2 playerVelocity = Main.LocalPlayer.velocity / SCALE;
+        float width = Main.LocalPlayer.width / SCALE;
 
-        if (MathF.Abs(position.X) > s_halfBoundsSize.X)
+        Vector2 toPlayer = player - position;
+        float distance = toPlayer.Length();
+
+        if (position.Y != 0)
         {
-            position.X = s_halfBoundsSize.X * MathF.Sign(position.X);
-            velocity.X *= -1 * collisionDamping;
+
+            //Vector2 normal = toCenter / dist;
+            //position.Y = position.Y - normal.Y * (dist - 12f);
+            velocity.Y -= 0.02f * position.Y;
         }
 
-        if (MathF.Abs(position.Y) > s_halfBoundsSize.Y)
+        if (MathF.Abs(toPlayer.X) > s_halfBoundsSize.X)
         {
-            position.Y = s_halfBoundsSize.Y * MathF.Sign(position.Y);
-            velocity.Y *= -1 * collisionDamping;
+            position.X = player.X + s_halfBoundsSize.X * MathF.Sign(toPlayer.X);
         }
+
+        if (distance < width * 1.5f)
+        {
+            Vector2 normal = toPlayer.SafeNormalize(Vector2.Zero);
+            float delta = width * 1.5f - distance;
+            position -= delta * normal;
+            //velocity *= -1;
+            velocity += playerVelocity * deltaTime * 1.5f;
+
+        }
+
+        return;
     }
 
     private (float Density, float NearDensity) CalculateDensity(int index)

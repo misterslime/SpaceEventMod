@@ -19,7 +19,7 @@ public class SeaForeground : ILoadable
 
     private void DrawSeaForeground(On_Main.orig_DrawInfernoRings orig, Main self)
     {
-        if (SeaTargets.SeaRenderTarget is not null && Sea.Springs is not null && Sea.Active)
+        if (SeaTargets.SeaRenderTarget is not null && Sea.Springs is not null && Sea.Active && false)
         {
             // round position to prevent artifacts
             var screenPosition = SpaceEvent.WorldToSeaCoordinates(Main.screenPosition);
