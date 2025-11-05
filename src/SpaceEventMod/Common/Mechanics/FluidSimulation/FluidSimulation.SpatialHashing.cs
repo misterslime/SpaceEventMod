@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,43 +29,99 @@ internal partial class FluidSimulation
         new Point(1, -1)
     };
 
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
-    private struct Entry(int index, uint cellKey) : IComparable<Entry>
+    [StructLayout(LayoutKind.Explicit, Size = 12, Pack = 4)]
+    private struct Entry(int index, uint cellKey, uint hash) : IComparable<Entry>
     {
         [FieldOffset(0)]
         public readonly int Index = index;
 
         [FieldOffset(4)]
-        public readonly uint CellKey = cellKey;
+        public readonly uint Key = cellKey;
 
-        public int CompareTo(Entry other) => CellKey.CompareTo(other.CellKey);
+        [FieldOffset(8)]
+        public readonly uint Hash = hash;
+
+        public int CompareTo(Entry other) => Key.CompareTo(other.Key);
     }
 
+    [StructLayout(LayoutKind.Explicit, Size = 16)]
+    private struct Neighbour(int index, float squareDistance, Vector2 offset)
+    {
+        [FieldOffset(0)]
+        public readonly int Index = index;
+
+        [FieldOffset(4)]
+        public readonly float SquareDistance = squareDistance;
+
+        [FieldOffset(8)]
+        public readonly Vector2 Offset = offset;
+    }
+
+    private static List<Neighbour>[] s_neighbours;
     private static Entry[] s_spatialLookup;
     private static int[] s_startIndices;
 
-    private void UpdateSpatialLookup(float radius)
+    private void UpdateSpatialHash(int i, float size)
     {
-        Parallel.For(0, s_predictedPositions.Length, i =>
-        {
-            Point cellCoords = PositionToCellCoord(s_predictedPositions[i], radius);
-            uint cellKey = GetKeyFromHash(HashCell(cellCoords.X, cellCoords.Y));
-            s_spatialLookup[i] = new Entry(i, cellKey);
-            s_startIndices[i] = int.MaxValue;
-        });
+        Point cellCoords = PositionToCellCoord(s_predictedPositions[i], size);
+        uint hash = HashCell(cellCoords.X, cellCoords.Y);
+        uint cellKey = GetKeyFromHash(hash);
+        s_spatialLookup[i] = new Entry(i, cellKey, hash);
+        s_startIndices[i] = int.MaxValue;
+    }
 
+    private void SortAndCalculateOffsets()
+    {
         Array.Sort(s_spatialLookup);
 
         Parallel.For(0, s_predictedPositions.Length, i =>
         {
-            int key = (int)s_spatialLookup[i].CellKey;
-            uint keyPrev = i == 0 ? uint.MaxValue : s_spatialLookup[i - 1].CellKey;
+            int key = (int)s_spatialLookup[i].Key;
+            uint keyPrev = i == 0 ? uint.MaxValue : s_spatialLookup[i - 1].Key;
 
             if (keyPrev != key)
             {
                 s_startIndices[key] = i;
             }
         });
+
+        Parallel.For(0, s_predictedPositions.Length, GetNeighbours);
+    }
+
+    private void GetNeighbours(int i)
+    {
+        if (s_neighbours[i] is null)
+            s_neighbours[i] = new List<Neighbour>(10);
+        else
+            s_neighbours[i].Clear();
+
+        Vector2 point = s_predictedPositions[i];
+        Point coords = PositionToCellCoord(point, SMOOTHING_RADIUS);
+        float squareRadius = SMOOTHING_RADIUS * SMOOTHING_RADIUS;
+
+        foreach (var cell in s_cellOffsets)
+        {
+            Point coord = coords + cell;
+
+            uint hash = HashCell(coord.X, coord.Y);
+            int cellKey = (int)GetKeyFromHash(hash);
+            int cellStartIndex = s_startIndices[cellKey];
+
+            for (int j = cellStartIndex; j < s_spatialLookup.Length; j++)
+            {
+                if (s_spatialLookup[j].Key != cellKey) break;
+
+                if (s_spatialLookup[j].Hash != hash) continue;
+
+                int particleIndex = s_spatialLookup[j].Index;
+                Vector2 offset = s_predictedPositions[particleIndex] - point;
+                float squareDistance = Vector2.Dot(offset, offset);
+
+                if (squareDistance > squareRadius) continue;
+
+                s_neighbours[i].Add(new Neighbour(particleIndex, squareDistance, offset));
+            }
+        }
     }
 
     private Point PositionToCellCoord(Vector2 point, float radius)
@@ -81,33 +139,4 @@ internal partial class FluidSimulation
     }
 
     private uint GetKeyFromHash(uint hash) => hash % (uint)s_spatialLookup.Length;
-
-
-    private void ForeachPointInRadius(Vector2 point, Action<Vector2, float, int> action)
-    {
-        Point coords = PositionToCellCoord(point, SMOOTHING_RADIUS);
-        float squareRadius = SMOOTHING_RADIUS * SMOOTHING_RADIUS;
-
-        foreach (var cell in s_cellOffsets)
-        {
-            Point coord = coords + cell;
-
-            int cellKey = (int)GetKeyFromHash(HashCell(coord.X, coord.Y));
-            int cellStartIndex = s_startIndices[cellKey];
-
-            for (int i = cellStartIndex; i < s_spatialLookup.Length; i++)
-            {
-                if (s_spatialLookup[i].CellKey != cellKey) break;
-
-                int particleIndex = s_spatialLookup[i].Index;
-                Vector2 offset = s_predictedPositions[particleIndex] - point;
-                float squareDistance = Vector2.Dot(offset, offset);
-
-                if (squareDistance <= squareRadius)
-                {
-                    action(offset, squareDistance, particleIndex);
-                }
-            }
-        }
-    }
 }
