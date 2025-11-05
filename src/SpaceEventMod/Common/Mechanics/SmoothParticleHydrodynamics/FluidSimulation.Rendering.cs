@@ -7,24 +7,22 @@ using Terraria;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
-internal partial class FluidSimulation : ModSystem
+
+internal partial class FluidSimulation
 {
-    public override void PostDrawTiles()
+    public void Draw(SpriteBatch spriteBatch)
     {
-        if (!Active)
-            return;
+        Texture2D tex = Assets.Assets.Textures.WhitePixel.Value;
 
-        Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
-
-        Texture2D tex = Assets.Assets.Textures.Glow.Value;
+        Vector2 center = Position;
+        Vector2 mouse = Main.MouseWorld / SCALE;
 
         for (int i = 0; i < s_positions.Length; i++)
         {
-            Main.spriteBatch.Draw(tex, SpaceEvent.SeaToWorldCoordinates(s_positions[i] * SCALE) - Main.screenPosition, null, Color.White, 0f, tex.Size() * 0.5f, Vector2.One * 0.5f, 0, 0);
+            Vector3 sdg = SmoothDistanceGradientSegment(s_positions[i], center, mouse, 0f);
+
+            Color color = Color.Lerp(Color.Orange, Color.BlueViolet, MathHelper.Clamp(sdg.X / 2, 0, 1));
+            spriteBatch.Draw(tex, s_positions[i] * SCALE - Main.screenPosition, null, color, 0f, tex.Size() * 0.5f, 2f, 0, 0);
         }
-
-        Main.spriteBatch.End();
-
-        return;
     }
 }

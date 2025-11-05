@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
@@ -16,12 +17,7 @@ namespace SpaceEventMod.Content.NPCs.Amoerphas;
 
 internal class Amoerpha : ModNPC
 {
-
-    private List<Vector2> _arms = new List<Vector2>();
-    private List<Vector2> _points = new List<Vector2>();
-
-    private const int MAX_POINTS = 20;
-    private const float MAX_SKELETON_LENGTH = 320f;
+    private FluidSimulation _simulation;
 
     private ref float Timer => ref NPC.ai[1];
 
@@ -43,49 +39,43 @@ internal class Amoerpha : ModNPC
 
     public override void OnSpawn(IEntitySource source)
     {
-        _points = new List<Vector2>();
+        _simulation = new FluidSimulation();
 
-        _points.Add(NPC.Center);
+        _simulation.Activate(NPC.Center);
     }
 
     public override bool PreAI()
     {
         Timer++;
 
-        NPC.Center = _points.Last();
-
-        NPC.TargetClosest();
-
-        float distanceMove = 24f;
-
-        if (Timer % 12 == 0)
-        {
-            Vector2 newPoint = _points.Last();
-            newPoint += (Main.player[NPC.target].Center - newPoint).RotatedByRandom(MathHelper.PiOver4 * 0.5f).SafeNormalize(Vector2.Zero) * distanceMove;
-
-            _points.Add(newPoint);
-        }
-
-        if (_points.Count > MAX_POINTS && _points.Count != 0)
-            _points.RemoveAt(0);
+        _simulation.Update();
 
         return false;
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        var texture = TextureAssets.Npc[Type].Value;
+        var texture = TextureAssets.Item[ItemID.FallenStar].Value;
 
-        int num = _points.Count;
+        Vector2 toMouse = Main.MouseWorld - NPC.Center;
+        toMouse = toMouse.SafeNormalize(Vector2.Zero);
 
-        if (num <= 2)
+        float startLength = texture.Width * 1.2f;
+
+        Vector2 start = NPC.Center + startLength * toMouse - Main.screenPosition;
+        Vector2 end = Main.MouseWorld - startLength * toMouse - Main.screenPosition;
+
+        Rectangle frame = texture.Frame(1, 8, 0, 0);
+        Vector2 origin = new Vector2(texture.Width, texture.Height / 8) * 0.5f;
+
+        spriteBatch.Draw(texture, NPC.Center - Main.screenPosition, frame, Color.White, 0f, origin, 1f, 0, 0);
+        spriteBatch.Draw(texture, Main.MouseWorld - Main.screenPosition, frame, Color.White, 0f, origin, 0.75f, 0, 0);
+        spriteBatch.DrawLine(start, end, Color.Yellow, 2);
+
+        if (_simulation is null)
             return false;
 
-        for (int i = 0, j = 0; i < num; j = i, i++)
-        {
-            spriteBatch.DrawLine(_points[i] - Main.screenPosition, _points[j] - Main.screenPosition, Color.White, 2);
-            spriteBatch.Draw(texture, _points[i] - Main.screenPosition, null, Color.White, 0f, texture.Size() * 0.5f, NPC.scale, 0, 0);
-        }
+        _simulation.Draw(spriteBatch);
 
         return false;
     }

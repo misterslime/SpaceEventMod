@@ -12,25 +12,25 @@ namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
 
 internal partial class FluidSimulation
 {
-    private const float SMOOTHING_RADIUS = 0.35f;
-    private const float TARGET_DENSITY = 1.2f;
-    private const float PRESSURE_MULTIPLIER = 90f;
-    private const float NEAR_PRESSURE_MULTIPLIER = 8f;
+    private const float SMOOTHING_RADIUS = 1.2f;
+    private const float TARGET_DENSITY = 12.75f;
+    private const float PRESSURE_MULTIPLIER = 60f;
+    private const float NEAR_PRESSURE_MULTIPLIER = 5f;
     private const float VISCOSITY = 0.075f;
 
-    private static float s_gravity;
-    private static int s_numParticles;
-    private static Vector2[] s_positions;
-    private static Vector2[] s_predictedPositions;
-    private static Vector2[] s_velocities;
-    private static float[] s_densities;
-    private static float[] s_nearDensities;
+    private float s_gravity;
+    private int s_numParticles;
+    private Vector2[] s_positions;
+    private Vector2[] s_predictedPositions;
+    private Vector2[] s_velocities;
+    private float[] s_densities;
+    private float[] s_nearDensities;
 
     private void SimulationStep(float deltaTime)
     {
         Parallel.For(0, s_numParticles, i =>
         {
-            s_velocities[i] += Vector2.UnitY * s_gravity * deltaTime;
+            //s_velocities[i] += Vector2.UnitY * s_gravity * deltaTime;
             s_predictedPositions[i] = s_positions[i] + s_velocities[i] * deltaTime;
 
             UpdateSpatialHash(i, SMOOTHING_RADIUS);
@@ -68,36 +68,21 @@ internal partial class FluidSimulation
 
     private void ResolveCollisions(ref Vector2 position, ref Vector2 velocity, float deltaTime)
     {
-        float collisionDamping = 0.95f;
-        Vector2 player = SpaceEvent.WorldToSeaCoordinates(Main.LocalPlayer.Center) / SCALE;
-        Vector2 playerVelocity = Main.LocalPlayer.velocity / SCALE;
-        float width = Main.LocalPlayer.width / SCALE;
+        Vector2 center = Position;
+        Vector2 mouse = Main.MouseWorld / SCALE;
 
-        Vector2 toPlayer = player - position;
-        float distance = toPlayer.Length();
+        Vector2 toCenter = center - position;
+        float distance = toCenter.Length();
 
-        if (position.Y != 0)
+        if (distance > 0)
         {
+            Vector3 sdg = SmoothDistanceGradientSegment(position, center, mouse, 0f);
 
-            //Vector2 normal = toCenter / dist;
-            //position.Y = position.Y - normal.Y * (dist - 12f);
-            velocity.Y -= 0.02f * position.Y;
+            Vector2 normal = new(sdg.Y, sdg.Z);
+            velocity -= normal * deltaTime * s_gravity;
         }
 
-        if (MathF.Abs(toPlayer.X) > s_halfBoundsSize.X)
-        {
-            position.X = player.X + s_halfBoundsSize.X * MathF.Sign(toPlayer.X);
-        }
-
-        if (distance < width * 1.5f)
-        {
-            Vector2 normal = toPlayer.SafeNormalize(Vector2.Zero);
-            float delta = width * 1.5f - distance;
-            position -= delta * normal;
-            //velocity *= -1;
-            velocity += playerVelocity * deltaTime * 1.5f;
-
-        }
+        velocity *= 0.995f;
 
         return;
     }

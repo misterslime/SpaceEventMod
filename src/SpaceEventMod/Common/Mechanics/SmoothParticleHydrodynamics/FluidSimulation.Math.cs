@@ -1,3 +1,4 @@
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,5 +48,16 @@ internal partial class FluidSimulation
         if (distance > radius) return 0;
         float value = radius - distance;
         return -value * SPIKY_POW_2_DERIVATIVE;
+    }
+
+
+    private Vector3 SmoothDistanceGradientSegment(Vector2 p, Vector2 a, Vector2 b, float r)
+    {
+        Vector2 ba = b - a, pa = p - a;
+        float h = MathHelper.Clamp(Vector2.Dot(pa, ba) / Vector2.Dot(ba, ba), 0.0f, 1.0f);
+        Vector2 q = pa - h * ba;
+        float d = q.Length();
+        Vector2 g = q / d;
+        return new Vector3(d - r, g.X, g.Y);
     }
 }

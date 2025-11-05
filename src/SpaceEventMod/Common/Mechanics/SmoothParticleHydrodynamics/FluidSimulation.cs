@@ -11,38 +11,34 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
 
-internal partial class FluidSimulation : ModSystem
+internal partial class FluidSimulation
 {
-    private const float SCALE = 30f;
+    public const float SCALE = 30f;
 
-    private static Vector2 s_halfBoundsSize;
+    public bool Active { get; set; }
 
-    public static bool Active { get; set; }
-    public override void PostUpdateNPCs()
+    public Vector2 Position { get; set; }
+
+    public void Update()
     {
         if (!Active)
             return;
 
-        float deltaTime = 1 / 120f;
+        float deltaTime = 1 / 60f;
 
         SimulationStep(deltaTime);
     }
-    public static void Activate(Vector2 mouseWorld)
+    public void Activate(Vector2 position)
     {
-        Active = !Active;
+        Active = true;
 
-        if (!Active)
-            return;
+        Position = position / SCALE;
 
-        Vector2 circleCenter = Main.LocalPlayer.Center / SCALE;
-        circleCenter.Y = 0;
-
-        const int numParticles = 1200;
+        const int numParticles = 400;
         const float particleSize = 0.07f;
         const float particleSpacing = 0.07f;
 
-        s_halfBoundsSize = new Vector2(32, 9);
-        s_gravity = 0;
+        s_gravity = 10;
 
         s_numParticles = numParticles;
         s_densities = new float[numParticles];
@@ -62,7 +58,7 @@ internal partial class FluidSimulation : ModSystem
         {
             float x = (i % particlesPerRow - particlesPerRow / 2f + 0.5f) * spacing;
             float y = (i / particlesPerCol - particlesPerCol / 2f + 0.5f) * spacing;
-            s_positions[i] = new Vector2(x, y) + circleCenter;
+            s_positions[i] = new Vector2(x, y) + Position;
             s_velocities[i] = Vector2.Zero;
         }
     }

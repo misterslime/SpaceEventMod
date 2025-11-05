@@ -57,9 +57,9 @@ internal partial class FluidSimulation
         public readonly Vector2 Offset = offset;
     }
 
-    private static List<Neighbour>[] s_neighbours;
-    private static Entry[] s_spatialLookup;
-    private static int[] s_startIndices;
+    private List<Neighbour>[] s_neighbours;
+    private Entry[] s_spatialLookup;
+    private int[] s_startIndices;
 
     private void UpdateSpatialHash(int i, float size)
     {

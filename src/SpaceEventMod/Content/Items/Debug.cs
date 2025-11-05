@@ -30,14 +30,9 @@ internal class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
-        FluidSimulation.Activate(Main.MouseWorld);
+        Vector2 dustVelocity = Main.rand.NextVector2Circular(1, 1) * 60;
 
-        //return true;
-
-
-        //Vector2 dustVelocity = Main.rand.NextVector2Circular(1, 1) * 60;
-
-        //AmoerphaMetaballRenderer.New(Main.MouseWorld, Main.rand.NextFloat(32, 128), 7, Vector2.Zero);
+        AmoerphaMetaballRenderer.New(Main.MouseWorld, Main.rand.NextFloat(32, 128), 7, Vector2.Zero);
 
         //return true;
 
