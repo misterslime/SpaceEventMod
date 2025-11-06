@@ -12,64 +12,49 @@ namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
 
 internal partial class FluidSimulation
 {
-    private const float SMOOTHING_RADIUS = 1.2f;
-    private const float TARGET_DENSITY = 12.75f;
-    private const float PRESSURE_MULTIPLIER = 60f;
-    private const float NEAR_PRESSURE_MULTIPLIER = 5f;
-    private const float VISCOSITY = 0.075f;
-
-    private float s_gravity;
-    private int s_numParticles;
-    private Vector2[] s_positions;
-    private Vector2[] s_predictedPositions;
-    private Vector2[] s_velocities;
-    private float[] s_densities;
-    private float[] s_nearDensities;
-
     private void SimulationStep(float deltaTime)
     {
-        Parallel.For(0, s_numParticles, i =>
+        Parallel.For(0, _particles, i =>
         {
-            //s_velocities[i] += Vector2.UnitY * s_gravity * deltaTime;
-            s_predictedPositions[i] = s_positions[i] + s_velocities[i] * deltaTime;
+            _predictedPositions[i] = _positions[i] + _velocities[i] * deltaTime;
 
-            UpdateSpatialHash(i, SMOOTHING_RADIUS);
+            UpdateSpatialHash(i, _smoothingRadius);
         });
 
         SortAndCalculateOffsets();
 
-        Parallel.For(0, s_numParticles, i =>
+        Parallel.For(0, _particles, i =>
         {
             (float Density, float NearDensity) densitites = CalculateDensity(i);
 
-            s_densities[i] = densitites.Density;
-            s_nearDensities[i] = densitites.NearDensity;
+            _densities[i] = densitites.Density;
+            _nearDensities[i] = densitites.NearDensity;
         });
 
-        Parallel.For(0, s_numParticles, i =>
+        Parallel.For(0, _particles, i =>
         {
             Vector2 pressure = CalculatePressureGradient(i);
-            Vector2 acceleration = pressure / s_densities[i];
-            s_velocities[i] += acceleration * deltaTime;
-        });
+            Vector2 acceleration = pressure / _densities[i];
+            _velocities[i] += acceleration * deltaTime;
+        }); 
 
-        Parallel.For(0, s_numParticles, i =>
+        Parallel.For(0, _particles, i =>
         {
             Vector2 viscosity = CalculateViscosityForce(i);
-            s_velocities[i] += viscosity * deltaTime;
+            _velocities[i] += viscosity * deltaTime;
         });
 
-        Parallel.For(0, s_numParticles, i =>
+        Parallel.For(0, _particles, i =>
         {
-            s_positions[i] += s_velocities[i] * deltaTime;
-            ResolveCollisions(ref s_positions[i], ref s_velocities[i], deltaTime);
+            _positions[i] += _velocities[i] * deltaTime;
+            ResolveCollisions(ref _positions[i], ref _velocities[i], deltaTime);
         });
     }
 
     private void ResolveCollisions(ref Vector2 position, ref Vector2 velocity, float deltaTime)
     {
         Vector2 center = Position;
-        Vector2 mouse = Main.MouseWorld / SCALE;
+        Vector2 mouse = Main.MouseWorld / _scale;
 
         Vector2 toCenter = center - position;
         float distance = toCenter.Length();
@@ -79,7 +64,7 @@ internal partial class FluidSimulation
             Vector3 sdg = SmoothDistanceGradientSegment(position, center, mouse, 0f);
 
             Vector2 normal = new(sdg.Y, sdg.Z);
-            velocity -= normal * deltaTime * s_gravity;
+            velocity -= normal * deltaTime * _gravity;
         }
 
         velocity *= 0.995f;
@@ -89,7 +74,7 @@ internal partial class FluidSimulation
 
     private (float Density, float NearDensity) CalculateDensity(int index)
     {
-        Vector2 position = s_predictedPositions[index];
+        Vector2 position = _predictedPositions[index];
 
         float density = 0;
         float nearDensity = 0;
@@ -97,8 +82,8 @@ internal partial class FluidSimulation
         for (int i = 0; i < s_neighbours[index].Count; i++)
         {
             float distance = MathF.Sqrt(s_neighbours[index][i].SquareDistance);
-            density += SpikyKernelPow2(SMOOTHING_RADIUS, distance);
-            nearDensity += SpikyKernelPow3(SMOOTHING_RADIUS, distance);
+            density += SpikyKernelPow2(_smoothingRadius, distance);
+            nearDensity += SpikyKernelPow3(_smoothingRadius, distance);
         }
 
         return (density, nearDensity);
@@ -108,8 +93,8 @@ internal partial class FluidSimulation
     {
         Vector2 gradient = Vector2.Zero;
 
-        float density = s_densities[index];
-        float densityNear = s_nearDensities[index];
+        float density = _densities[index];
+        float densityNear = _nearDensities[index];
         float pressure = ConvertDensityToPressure(density);
         float nearPressure = ConvertNearDensityToNearPressure(densityNear);
 
@@ -123,16 +108,16 @@ internal partial class FluidSimulation
 
             Vector2 direction = distance == 0 ? Vector2.Zero : neighbour.Offset / distance;
 
-            float neighbourDensity = s_densities[neighbour.Index];
-            float neighbourNearDensity = s_nearDensities[neighbour.Index];
+            float neighbourDensity = _densities[neighbour.Index];
+            float neighbourNearDensity = _nearDensities[neighbour.Index];
             float neighbourPressure = ConvertDensityToPressure(neighbourDensity);
             float neighbourNearPressure = ConvertNearDensityToNearPressure(neighbourNearDensity);
 
             float sharedPressure = (pressure + neighbourPressure) * 0.5f;
             float sharedNearPressure = (nearPressure + neighbourNearPressure) * 0.5f;
 
-            float slope = DerivativeSpikyPow2(SMOOTHING_RADIUS, distance);
-            float nearSlope = DerivativeSpikyPow3(SMOOTHING_RADIUS, distance);
+            float slope = DerivativeSpikyPow2(_smoothingRadius, distance);
+            float nearSlope = DerivativeSpikyPow3(_smoothingRadius, distance);
 
             gradient += direction * sharedPressure * slope / neighbourDensity;
             gradient += direction * sharedNearPressure * slope / neighbourNearDensity;
@@ -144,29 +129,29 @@ internal partial class FluidSimulation
 
     private float ConvertNearDensityToNearPressure(float nearDensity)
     {
-        float nearPressure = nearDensity * NEAR_PRESSURE_MULTIPLIER;
+        float nearPressure = nearDensity * _nearPressureMultiplier;
         return nearPressure;
     }
 
     private float ConvertDensityToPressure(float density)
     {
-        float densityError = density - TARGET_DENSITY;
-        float pressure = densityError * PRESSURE_MULTIPLIER;
+        float densityError = density - _targetDensity;
+        float pressure = densityError * _pressureMultiplier;
         return pressure;
     }
 
     private Vector2 CalculateViscosityForce(int index)
     {
         Vector2 force = Vector2.Zero;
-        Vector2 position = s_predictedPositions[index];
+        Vector2 position = _predictedPositions[index];
 
         for (int i = 0; i < s_neighbours[index].Count; i++)
         {
             Neighbour neighbour = s_neighbours[index][i];
-            float influence = SmoothingKernelPoly6(SMOOTHING_RADIUS, MathF.Sqrt(neighbour.SquareDistance));
-            force += (s_velocities[neighbour.Index] - s_velocities[index]) * influence;
+            float influence = SmoothingKernelPoly6(_smoothingRadius, MathF.Sqrt(neighbour.SquareDistance));
+            force += (_velocities[neighbour.Index] - _velocities[index]) * influence;
         }
 
-        return force * VISCOSITY;
+        return force * _viscosity;
     }
 }

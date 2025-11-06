@@ -12,6 +12,7 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static Terraria.GameContent.Animations.IL_Actions.Sprites;
 
 namespace SpaceEventMod.Content.NPCs.Amoerphas;
 
@@ -39,9 +40,9 @@ internal class Amoerpha : ModNPC
 
     public override void OnSpawn(IEntitySource source)
     {
-        _simulation = new FluidSimulation();
+        _simulation = new FluidSimulation(30f, 1.2f, 12.75f, 60f, 5f, 0.075f, 10);
 
-        _simulation.Activate(NPC.Center);
+        _simulation.Fill(NPC.Center, 5000, 0.07f, 0.07f);
     }
 
     public override bool PreAI()
@@ -75,7 +76,16 @@ internal class Amoerpha : ModNPC
         if (_simulation is null)
             return false;
 
-        _simulation.Draw(spriteBatch);
+        Texture2D tex = Assets.Assets.Textures.WhitePixel.Value;
+
+        _simulation.Draw(spriteBatch, (
+            in SpriteBatch sb, 
+            in Vector2 position, 
+            in Vector2 velocity, 
+            in float density) =>
+        {
+            spriteBatch.Draw(tex, position - Main.screenPosition, null, Color.BlueViolet, 0f, tex.Size() * 0.5f, 2f, 0, 0);
+        });
 
         return false;
     }

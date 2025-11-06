@@ -63,7 +63,7 @@ internal partial class FluidSimulation
 
     private void UpdateSpatialHash(int i, float size)
     {
-        Point cellCoords = PositionToCellCoord(s_predictedPositions[i], size);
+        Point cellCoords = PositionToCellCoord(_predictedPositions[i], size);
         uint hash = HashCell(cellCoords.X, cellCoords.Y);
         uint cellKey = GetKeyFromHash(hash);
         s_spatialLookup[i] = new Entry(i, cellKey, hash);
@@ -74,7 +74,7 @@ internal partial class FluidSimulation
     {
         Array.Sort(s_spatialLookup);
 
-        Parallel.For(0, s_predictedPositions.Length, i =>
+        Parallel.For(0, _predictedPositions.Length, i =>
         {
             int key = (int)s_spatialLookup[i].Key;
             uint keyPrev = i == 0 ? uint.MaxValue : s_spatialLookup[i - 1].Key;
@@ -85,7 +85,7 @@ internal partial class FluidSimulation
             }
         });
 
-        Parallel.For(0, s_predictedPositions.Length, GetNeighbours);
+        Parallel.For(0, _predictedPositions.Length, GetNeighbours);
     }
 
     private void GetNeighbours(int i)
@@ -95,9 +95,9 @@ internal partial class FluidSimulation
         else
             s_neighbours[i].Clear();
 
-        Vector2 point = s_predictedPositions[i];
-        Point coords = PositionToCellCoord(point, SMOOTHING_RADIUS);
-        float squareRadius = SMOOTHING_RADIUS * SMOOTHING_RADIUS;
+        Vector2 point = _predictedPositions[i];
+        Point coords = PositionToCellCoord(point, _smoothingRadius);
+        float squareRadius = _smoothingRadius * _smoothingRadius;
 
         foreach (var cell in s_cellOffsets)
         {
@@ -114,7 +114,7 @@ internal partial class FluidSimulation
                 if (s_spatialLookup[j].Hash != hash) continue;
 
                 int particleIndex = s_spatialLookup[j].Index;
-                Vector2 offset = s_predictedPositions[particleIndex] - point;
+                Vector2 offset = _predictedPositions[particleIndex] - point;
                 float squareDistance = Vector2.Dot(offset, offset);
 
                 if (squareDistance > squareRadius) continue;
