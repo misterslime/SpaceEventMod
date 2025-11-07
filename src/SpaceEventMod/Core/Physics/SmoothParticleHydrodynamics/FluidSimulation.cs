@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
+namespace SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 
 internal partial class FluidSimulation(
     float scale, 

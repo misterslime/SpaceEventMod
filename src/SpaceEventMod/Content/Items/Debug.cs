@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Mechanics.Astralysis;
-using SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
 using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Content.Events.Space;
 using SpaceEventMod.Content.Events.Space.LevelElements;

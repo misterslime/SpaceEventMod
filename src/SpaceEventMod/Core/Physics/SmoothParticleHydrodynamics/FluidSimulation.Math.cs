@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
+namespace SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 
 internal partial class FluidSimulation
 {

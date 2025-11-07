@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Terraria;
 
-namespace SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
+namespace SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 
 internal partial class FluidSimulation
 {

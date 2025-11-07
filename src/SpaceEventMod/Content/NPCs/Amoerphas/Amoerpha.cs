@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Common.Mechanics.SmoothParticleHydrodynamics;
+using SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ internal class Amoerpha : ModNPC
 
     public override void OnSpawn(IEntitySource source)
     {
-        _simulation = new FluidSimulation(30f, 1.2f, 12.75f, 60f, 5f, 0.075f, 10);
+        _simulation = new FluidSimulation(30f, 0.35f, 1.2f, 60f, 5f, 0.075f, 10);
 
         _simulation.Fill(NPC.Center, 5000, 0.07f, 0.07f);
     }
