@@ -2,14 +2,18 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SpaceEventMod.Core.Graphics;
+using SpaceEventMod.Core.Utilities.Extensions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Terraria;
-using Terraria.ID;
 using Terraria.GameContent;
 using Terraria.Graphics.Effects;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.WorldBuilding;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Content.NPCs.Amoerphas;
 
@@ -20,38 +24,40 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
     {
         [FieldOffset(0)] public Vector2 Position;
         [FieldOffset(8)] public float Radius;
-        [FieldOffset(12)] public Vector2 Velocity;
-        [FieldOffset(20)] public float TimeLeft;
-        [FieldOffset(24)] public float MaxTime;
-        [FieldOffset(28)] public float InitialRadius;
     }
 
-    private static Metaball[] _metaballs;
-    private static int _activeMetaballCount;
+    private struct MetaballSet(Metaball[] balls, int count)
+    {
+        public Metaball[] Balls = balls;
+        public int Count = count;
+    }
+
+    private const int MAX_METABALLS = 64;
+
+    private static Stack<MetaballSet> _metaballs;
 
     private static Vector4[] _metaballData;
-    private const int max_metaballs = 64;
+    private static int _activeMetaballCount;
 
-    private static Vector2[] _vertexData;
-    private static int _vertices;
-
-    private static RenderTarget2D _screenBuffer;
+    private static RenderTarget2D _outlineTarget;
+    private static RenderTarget2D _fractalNoiseTarget;
+    private static RenderTarget2D _metaballBufferA;
+    private static RenderTarget2D _metaballBufferB;
 
     public override void Load()
     {
-        _metaballs = new Metaball[max_metaballs];
-        _metaballData = new Vector4[max_metaballs];
-        _vertexData = new Vector2[max_metaballs];
-
-        _activeMetaballCount = 0;
-        _vertices = 0;
+        _metaballs = new Stack<MetaballSet>();
+        _metaballData = new Vector4[MAX_METABALLS];
 
         Main.QueueMainThreadAction(() =>
         {
             Main.graphics.GraphicsDevice.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
             Main.graphics.ApplyChanges();
 
-            _screenBuffer = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+            _outlineTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
+            _fractalNoiseTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
+            _metaballBufferA = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
+            _metaballBufferB = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
 
             Main.OnResolutionChanged += ReinitTargets;
         });
@@ -64,63 +70,171 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
     static void ReinitTargets(Vector2 size)
     {
-        _screenBuffer = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X, (int)size.Y);
-    }
-
-    public override void PostUpdateEverything()
-    {
-        if (!Main.hasFocus) return;
-
-        var dt = 1f / 60f;
-
-        var balls = _metaballs.AsSpan(0, _activeMetaballCount);
-
-        for (var i = balls.Length - 1; i >= 0; i--)
-        {
-            ref var ball = ref balls[i];
-
-            ball.TimeLeft -= dt;
-
-            if (ball.TimeLeft <= 0)
-            {
-                ball = balls[_activeMetaballCount - 1];
-                _activeMetaballCount--;
-                continue;
-            }
-
-            ball.Position += ball.Velocity * dt;
-            var lifeProgress = ball.TimeLeft / ball.MaxTime;
-            ball.Radius = ball.InitialRadius * lifeProgress;
-        }
+        _outlineTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
+        _fractalNoiseTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
+        _metaballBufferA = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
+        _metaballBufferB = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
     }
 
     public override void PostDrawTiles()
     {
-        if (_activeMetaballCount == 0 && _vertices == 0)
-        {
-            AmoerphaScreenShaderManager.Deactivate();
-            return;
-        }
+        if (_metaballs.Count == 0) return;
 
         var sb = Main.spriteBatch;
         var gd = Main.instance.GraphicsDevice;
-        var effect = Assets.Assets.Shaders.NPCs.AmoerphaMetaballs.Value;
         ApplyToBindings(gd.GetRenderTargets());
         var rts = gd.GetRenderTargets();
         ApplyToBindings(rts);
 
-        gd.SetRenderTarget(_screenBuffer);
+        gd.SetRenderTarget(_fractalNoiseTarget);
+        gd.Clear(Color.Black);
+
+        DrawFractalNoise(in sb);
+
+        gd.SetRenderTarget(_metaballBufferA);
         gd.Clear(Color.Transparent);
 
-        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, effect, Matrix.Identity);
+        DrawMetaballs(in sb, in gd, out RenderTarget2D sdfBuffer, out RenderTarget2D normalBuffer);
 
-        var src = _metaballs.AsSpan(0, _activeMetaballCount);
-        var dst = _metaballData.AsSpan(0, _activeMetaballCount);
+        gd.SetRenderTarget(normalBuffer);
+        gd.Clear(Color.Transparent);
+
+        Effect normal = Assets.Assets.Shaders.Metaballs.MetaballNormals.Value;
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, normal, Matrix.Identity);
+        sb.Draw(sdfBuffer, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.End();
+
+        gd.SetRenderTarget(_outlineTarget);
+        gd.Clear(Color.Transparent);
+
+        DrawOutline(in sb, in sdfBuffer, in normalBuffer);
+
+        gd.SetRenderTargets(rts);
+
+        /*Graphics.BeginPipeline(0.5f)
+            .DrawSprite(_outlineTarget, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White)
+            .Schedule(RenderLayer.AfterPlayers);*/
+
+        Graphics.BeginPipeline(0.5f)
+            .DrawSprite(normalBuffer, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White)
+            .ApplyEffect(
+                Assets.Assets.Shaders.NPCs.AmoebaBody.Value,
+                ("noiseTarget", _fractalNoiseTarget),
+                ("outlineTarget", _outlineTarget),
+                ("pixelSize", (Vector2.One) / (new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f)),
+                ("displacement", 25f),
+                ("minAlpha", 0.5f))
+            .Schedule(RenderLayer.AfterPlayers);
+    }
+
+    private void DrawMetaballs(in SpriteBatch sb, in GraphicsDevice gd, out RenderTarget2D sdfBuffer, out RenderTarget2D normalBuffer)
+    {
+        DrawMetaballs(in sb, _metaballs.Pop());
+
+        bool useB = true;
+        sdfBuffer = _metaballBufferA;
+        normalBuffer = _metaballBufferB;
+
+        while (_metaballs.Count > 0)
+        {
+            MetaballSet chunk = _metaballs.Pop();
+
+            var sdfTemp = sdfBuffer;
+            var normalTemp = normalBuffer;
+
+            sdfBuffer = normalTemp;
+            normalBuffer = sdfTemp;
+
+            gd.SetRenderTarget(sdfBuffer);
+            gd.Clear(Color.Transparent);
+            DrawMetaballs(in sb, in normalBuffer, in chunk);
+
+            useB = !useB;
+        }
+
+        //_metaballs.Clear();
+    }
+
+    private void DrawMetaballs(in SpriteBatch sb, in MetaballSet balls)
+    {
+        var effect = Assets.Assets.Shaders.Metaballs.FirstPassMetaballs.Value;
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, GetMetaballShader(effect, in balls), Matrix.Identity);
+        sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.End();
+    }
+
+    private void DrawMetaballs(in SpriteBatch sb, in RenderTarget2D buffer, in MetaballSet balls)
+    {
+        var effect = Assets.Assets.Shaders.Metaballs.TargetPassMetaballs.Value;
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, GetMetaballShader(effect, in balls), Matrix.Identity);
+        sb.Draw(buffer, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.End();
+    }
+
+    private void DrawOutline(in SpriteBatch sb, in RenderTarget2D glowTarget, in RenderTarget2D normalTarget)
+    {
+        Effect glow = Assets.Assets.Shaders.NPCs.AmoebaGlow.Value;
+
+        glow.Parameters["dropoff"].SetValue(4f);
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, glow, Matrix.Identity);
+        sb.Draw(glowTarget, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.Blue);
+        sb.End();
+
+        Effect outline = Assets.Assets.Shaders.NPCs.AmoebaOutline.Value;
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, outline, Matrix.Identity);
+        sb.Draw(normalTarget, new Rectangle(-1, -1, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.Draw(normalTarget, new Rectangle(2, 2, Main.screenWidth / 2, Main.screenHeight / 2), Color.Black);
+        sb.End();
+    }
+
+    private void DrawFractalNoise(in SpriteBatch sb)
+    {
+        var screenCenter = Main.screenPosition + new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+        var worldViewDimensions = new Vector2(Main.screenWidth, Main.screenHeight);
+        var correctScreenTopLeft = screenCenter - worldViewDimensions / 2;
+
+        var fractalNoise = Assets.Assets.Shaders.Noise.FractalNoise.Value;
+
+        fractalNoise.Parameters["zoom"].SetValue(8f / Main.screenWidth);
+        fractalNoise.Parameters["time"].SetValue(Main.GlobalTimeWrappedHourly * 0.2f);
+        fractalNoise.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
+
+        fractalNoise.Parameters["displacementA"].SetValue(Vector2.UnitY * 0.025f);
+        fractalNoise.Parameters["displacementB"].SetValue(Vector2.UnitX * 0.05f);
+
+        fractalNoise.Parameters["backgroundColor"].SetValue(Color.Black.ToVector4());
+        fractalNoise.Parameters["lowColor"].SetValue(Color.Blue.ToVector4());
+        fractalNoise.Parameters["middleColor"].SetValue(Color.BlueViolet.ToVector4());
+        fractalNoise.Parameters["highColor"].SetValue(Color.Magenta.ToVector4());
+
+        fractalNoise.Parameters["gradientPixelation"].SetValue(0.2f);
+        fractalNoise.Parameters["backgroundThreshold"].SetValue(0f);
+        fractalNoise.Parameters["lowColorThreshold"].SetValue(0.24f);
+        fractalNoise.Parameters["midColorThreshold"].SetValue(0.48f);
+
+        fractalNoise.Parameters["screenPos"].SetValue(correctScreenTopLeft);
+        fractalNoise.Parameters["worldViewDimensions"].SetValue(worldViewDimensions);
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, fractalNoise, Matrix.Identity);
+        sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.End();
+    }
+
+    private Effect GetMetaballShader(Effect effect, in MetaballSet balls)
+    {
+        int count = balls.Balls.Length;
+
+        var src = balls.Balls.AsSpan(0, count);
+        var dst = _metaballData.AsSpan(0, MAX_METABALLS);
 
         fixed (Metaball* sourcePtr = src)
         fixed (Vector4* destPtr = dst)
         {
-            for (var i = 0; i < _activeMetaballCount; i++)
+            for (var i = 0; i < count; i++)
             {
                 var sourceBall = sourcePtr + i;
                 var destVec = destPtr + i;
@@ -137,47 +251,36 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         var correctScreenTopLeft = screenCenter - worldViewDimensions / 2f;
 
         effect.Parameters["metaballData"].SetValue(_metaballData);
-        effect.Parameters["metaballCount"].SetValue(_activeMetaballCount);
-        effect.Parameters["smoothness"].SetValue(1.75f);
+        effect.Parameters["metaballCount"].SetValue(count);
+        effect.Parameters["smoothness"].SetValue(0.25f);
         effect.Parameters["screenPos"].SetValue(correctScreenTopLeft);
         effect.Parameters["worldViewDimensions"].SetValue(worldViewDimensions);
 
-        /*effect.Parameters["vertexData"].SetValue(_vertexData);
-        effect.Parameters["vertexCount"].SetValue(_vertices);
-        effect.Parameters["smoothness"].SetValue(1.75f);
-        effect.Parameters["radius"].SetValue(32f);
-        effect.Parameters["roundness"].SetValue(64f);
-        effect.Parameters["screenPos"].SetValue(correctScreenTopLeft);
-        effect.Parameters["worldViewDimensions"].SetValue(worldViewDimensions);*/
-
-        sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White);
-        sb.End();
-
-        gd.SetRenderTargets(rts);
-
-        AmoerphaScreenShaderManager.Update(in _screenBuffer);
+        return effect;
     }
-
-    public static void AddVertexData(Vector2[] vertices, int numVertices)
+    
+    public static void AddMetaballData(in Vector2[] positions, float radius, float scale)
     {
-        _vertexData = vertices;
-        _vertices = numVertices;
-    }
+        var sets = positions.Chunk(MAX_METABALLS);
 
-    public static void New(Vector2 pos, float radius, float lifetime, Vector2 velocity = default)
-    {
-        if (_activeMetaballCount < max_metaballs)
+        foreach( var set in sets )
         {
-            ref var newBall = ref _metaballs[_activeMetaballCount];
-            newBall.Position = pos;
-            newBall.Radius = radius;
-            newBall.Velocity = velocity;
-            newBall.InitialRadius = radius;
-            newBall.MaxTime = lifetime;
-            newBall.TimeLeft = lifetime;
+            Metaball[] metaballs = new Metaball[set.Length];
 
-            _activeMetaballCount++;
+            for (int i = 0; i < set.Length; i++)
+            {
+                Metaball metaball = new Metaball();
+
+                metaball.Position = positions[i] * scale;
+                metaball.Radius = radius;
+
+                metaballs[i] = metaball;
+            }
+
+            _metaballs.Push(new MetaballSet(metaballs, set.Length));
         }
+
+        Main.NewText(_metaballs.Count);
     }
 
     public static void ApplyToBindings(RenderTargetBinding[] bindings)

@@ -39,6 +39,10 @@ internal partial class FluidSimulation(
 
     public Vector2 Position { get; set; }
 
+    public Vector2[] Positions { get => _positions; }
+
+    public float Scale { get => _scale; }
+
     public void Update()
     {
         float deltaTime = 1 / 60f;
@@ -48,12 +52,6 @@ internal partial class FluidSimulation(
     public void Fill(Vector2 position, int particles, float particleSize, float particleSpacing)
     {
         Position = position / _scale;
-
-        //const int numParticles = 400;
-        //const float particleSize = 0.07f;
-        //const float particleSpacing = 0.07f;
-
-        //_gravity = 10;
 
         _particles = particles;
         _densities = new float[particles];
@@ -76,11 +74,5 @@ internal partial class FluidSimulation(
             _positions[i] = new Vector2(x, y) + Position;
             _velocities[i] = Vector2.Zero;
         }
-    }
-
-    public void Draw(SpriteBatch spriteBatch, FluidDrawAction drawAction)
-    {
-        for (int i = 0; i < _positions.Length; i++)
-            drawAction(in spriteBatch, _positions[i] * _scale, in _velocities[i], in _densities[i]);
     }
 }
