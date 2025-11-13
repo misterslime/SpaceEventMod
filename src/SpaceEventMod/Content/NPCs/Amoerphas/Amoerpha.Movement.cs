@@ -20,7 +20,7 @@ internal partial class Amoerpha
         [FieldOffset(4)] public Vector2 Direction = direction;
     }
 
-    private const float MAX_EDGE_LENGTH = 128;
+    private const float MAX_EDGE_LENGTH = 64;
     private const float MAX_BODY_LENGTH = 1024;
 
     public float BodyLength => _edges.Sum(e => e.Length);

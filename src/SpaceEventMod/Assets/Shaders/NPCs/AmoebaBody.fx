@@ -7,13 +7,6 @@ sampler noiseSampler = sampler_state
     Filter = MIN_MAG_MIP_POINT;
 };
 
-texture outlineTarget;
-sampler outlineSampler = sampler_state
-{
-    Texture = (outlineTarget);
-    Filter = MIN_MAG_MIP_POINT;
-};
-
 float2 pixelSize;
 float displacement;
 float minAlpha;
@@ -29,10 +22,10 @@ float4 PixelShaderFunction(float4 color : COLOR0, float2 coords : TEXCOORD0) : C
 
     displace *= sample.a * pixelSize * displacement;
 
-    float4 noiseSample = tex2D(noiseSampler, displace + coords * 2.0);
+    float4 noiseSample = tex2D(noiseSampler, displace + coords);
 	noiseSample.a = lerp(1.0, minAlpha, (sample.b - 0.5) * 2.0);
 
-    return (sample.a > 0.) ? noiseSample : tex2D(outlineSampler, coords * 2.0);
+    return (sample.a > 0.) ? noiseSample : float4(0.0, 0.0, 0.0, 0.0);
 }
 
 technique Technique1 {

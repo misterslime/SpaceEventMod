@@ -4,6 +4,7 @@ using SpaceEventMod.Common.NPCs;
 using SpaceEventMod.Common.NPCs.Attributes;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Content.NPCs.Droplings;
+using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
@@ -18,6 +19,7 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static System.Net.Mime.MediaTypeNames;
+using static Terraria.GameContent.Skies.StardustSky;
 
 namespace SpaceEventMod.Content.NPCs.Amoerphas;
 
@@ -39,7 +41,7 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
         NPC.height = 42;
         NPC.damage = 50;
         NPC.defense = 16;
-        NPC.lifeMax = 250;
+        NPC.lifeMax = 500;
         NPC.HitSound = SoundID.NPCHit1;
         NPC.DeathSound = SoundID.NPCDeath1;
         NPC.knockBackResist = 0f;
@@ -51,8 +53,7 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
 
     public override void OnSpawn(IEntitySource source)
     {
-        _simulation = new FluidSimulation(50f, 0.35f, 5f, 20f, 2f, 0.075f, 10);
-
+        _simulation = new FluidSimulation(50f, 0.35f, 0.8f, 60f, 8f, 0.075f, 7);
         _simulation.Fill(NPC.Center, 64, 0.07f, 0.07f);
 
         Init();
@@ -82,9 +83,38 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
             total += peeb.Centrality;
         }
 
-        position = Vector2.Lerp(position, _nodes[centrality.Last().Node], 0.5f);
+        position = Vector2.Lerp(position, _nodes[centrality.Last().Node], 0.25f);
+
+        Vector2 fluidCenter = NPC.Center;
+
+        foreach (var peeb in _simulation.Positions)
+        {
+            fluidCenter += peeb * _simulation.Scale;
+        }
+
+        fluidCenter /= _simulation.Positions.Length;
+        fluidCenter -= _simulation.Position / _simulation.Scale;
 
         NPC.Center = Vector2.Lerp(NPC.Center, position, 0.01f);
+
+        _simulation.Update();
+
+        List<Line> lines = new List<Line>();
+
+        foreach (var edge in _edges)
+        {
+            if (edge.Length <= 0)
+                continue;
+
+            Vector2 pointA = _nodes[edge.From];
+            Vector2 pointB = _nodes[edge.To];
+
+            lines.Add(new Line(pointA, pointB));
+            //lines.Add(_nodes[edge.From]);
+            //lines.Add(_nodes[edge.To]);
+        }
+
+        _simulation.AttractToSkeleton(lines, 1 / 120f, 6f);
 
         return true;
     }
@@ -98,22 +128,20 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
 
         NearestData selectedNode = GetNearestNodeToTarget(target);
 
-        GrowNode(selectedNode, target, 1f);
+        GrowNode(selectedNode, target, 0.5f);
 
         foreach (int key in _nodes.Keys.ToArray())
         {
             if (_adjacencyMap[key].Count > 0)
                 continue;
 
-            Main.NewText($"killed {key}");
-
             _nodes.Remove(key);
             _adjacencyMap.Remove(key);
         }
 
-        if (BodyLength > 500)
+        if (BodyLength > 250)
         {
-            ShrinkEdges(MathHelper.Lerp(BodyLength, 500, 0.98f) - 500, selectedNode.Index);
+            ShrinkEdges(BodyLength - 250, selectedNode.Index);
         }
 
         return AmoerphaState.Debug;
@@ -127,8 +155,20 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
         Rectangle frame = texture.Frame(1, 8, 0, 0);
         Vector2 origin = new Vector2(texture.Width, texture.Height / 8) * 0.5f;
 
-        spriteBatch.Draw(texture, NPC.Center - Main.screenPosition, frame, Color.LightBlue, 0f, origin, 2f, 0, 0);
+        float rotation = MathF.Sin((Main.GameUpdateCount + NPC.whoAmI) / 160f) * (MathF.PI / 180f) * 10f;
 
+        Vector2 displacement = Vector2.Zero;
+        displacement.Y += MathF.Sin((Main.GameUpdateCount + NPC.whoAmI) / 40f) * 8f;
+
+        spriteBatch.Draw(texture, NPC.Center - Main.screenPosition + displacement, frame, Color.White, rotation, origin, 1.75f, 0f, 0);
+
+
+        if (_simulation is null)
+            return false;
+
+        AmoerphaMetaballRenderer.AddMetaballData(_simulation.Positions, 16f, _simulation.Scale);
+
+        return false;
 
         if (_edges is null || _nodes is null || _adjacencyMap is null)
             return false;
@@ -170,14 +210,6 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
             spriteBatch.DrawLine(_nodes[edge.From] - Main.screenPosition, _nodes[edge.To] - Main.screenPosition, Color.White, 2);
 
         }
-
-
-        if (_simulation is null)
-            return false;
-
-        //FluidParticleTarget.AddParticles(_simulation.Positions, _simulation.Scale);
-
-        //AmoerphaMetaballRenderer.AddMetaballData(_simulation.Positions, 16f, _simulation.Scale);
 
         return false;
     }

@@ -1,12 +1,16 @@
 using Microsoft.Xna.Framework;
+using SDL2;
 using SpaceEventMod.Content.Events.Space;
+using SpaceEventMod.Core.Geometry;
 using SteelSeries.GameSense;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Terraria;
+using static SpaceEventMod.Assets.Assets.Shaders;
 
 namespace SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 
@@ -47,27 +51,33 @@ internal partial class FluidSimulation
         Parallel.For(0, _particles, i =>
         {
             _positions[i] += _velocities[i] * deltaTime;
-            ResolveCollisions(ref _positions[i], ref _velocities[i], deltaTime);
         });
     }
 
-    private void ResolveCollisions(ref Vector2 position, ref Vector2 velocity, float deltaTime)
+    public void AttractToSkeleton(List<Line> lines, float deltaTime, float smoothness)
     {
-        Vector2 center = Position;
-        Vector2 mouse = Main.MouseWorld / _scale;
-
-        Vector2 toCenter = center - position;
-        float distance = toCenter.Length();
-
-        if (distance > 0)
+        Parallel.For(0, _particles, i =>
         {
-            Vector3 sdg = SmoothDistanceGradientSegment(position, center, mouse, 0f);
+            _positions[i] += _velocities[i] * deltaTime;
 
-            Vector2 normal = new(sdg.Y, sdg.Z);
-            velocity -= normal * deltaTime * _gravity;
-        }
+            Vector2 total = Vector2.Zero;
 
-        velocity *= 0.995f;
+            for (int j = 0; j < lines.Count; j++)
+            {
+                Vector2 pointA = lines[j].Point1 / _scale;
+                Vector2 pointB = lines[j].Point2 / _scale;
+
+                Vector3 dist = SignedDistanceGradientSegment(_positions[i], pointA, pointB, 0f);
+
+                total += new Vector2(dist.Y, dist.Z) / (dist.X + 0.1f);
+            }
+
+            total = total.SafeNormalize(Vector2.Zero);
+
+            //Vector2 normal = new(total.Y, total.Z);
+            _velocities[i] -= total * deltaTime * _gravity;
+            _velocities[i] *= 0.995f;
+        });
 
         return;
     }

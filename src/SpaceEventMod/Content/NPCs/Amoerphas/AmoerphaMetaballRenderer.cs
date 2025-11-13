@@ -40,7 +40,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
     private static int _activeMetaballCount;
 
     private static RenderTarget2D _outlineTarget;
-    private static RenderTarget2D _fractalNoiseTarget;
+    private static RenderTarget2D _colorTarget;
     private static RenderTarget2D _metaballBufferA;
     private static RenderTarget2D _metaballBufferB;
 
@@ -55,7 +55,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
             Main.graphics.ApplyChanges();
 
             _outlineTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
-            _fractalNoiseTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
+            _colorTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
             _metaballBufferA = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
             _metaballBufferB = new RenderTarget2D(Main.graphics.GraphicsDevice, Main.screenWidth / 2, Main.screenHeight / 2);
 
@@ -71,7 +71,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
     static void ReinitTargets(Vector2 size)
     {
         _outlineTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
-        _fractalNoiseTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
+        _colorTarget = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
         _metaballBufferA = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
         _metaballBufferB = new RenderTarget2D(Main.graphics.GraphicsDevice, (int)size.X / 2, (int)size.Y / 2);
     }
@@ -85,11 +85,6 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         ApplyToBindings(gd.GetRenderTargets());
         var rts = gd.GetRenderTargets();
         ApplyToBindings(rts);
-
-        gd.SetRenderTarget(_fractalNoiseTarget);
-        gd.Clear(Color.Black);
-
-        DrawFractalNoise(in sb);
 
         gd.SetRenderTarget(_metaballBufferA);
         gd.Clear(Color.Transparent);
@@ -109,21 +104,45 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         DrawOutline(in sb, in sdfBuffer, in normalBuffer);
 
+        gd.SetRenderTarget(_colorTarget);
+        gd.Clear(Color.Black);
+
+        DrawFractalNoise(in sb);
+
+        gd.SetRenderTarget(sdfBuffer);
+        gd.Clear(Color.Transparent);
+
+        /*DrawLighting(in sb, in normalBuffer);
+
+        Graphics.BeginPipeline(0.5f)
+            .DrawSprite(sdfBuffer, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White)
+            .Schedule(RenderLayer.AfterPlayers);*/
+
+        DrawBody(in sb, in normalBuffer);
+
         gd.SetRenderTargets(rts);
 
-        /*Graphics.BeginPipeline(0.5f)
-            .DrawSprite(_outlineTarget, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White)
-            .Schedule(RenderLayer.AfterPlayers);*/
+
+        Vector3 lightDirection = (Main.MouseWorld - Main.LocalPlayer.Center).ToVector3(64f);
+
+        lightDirection = new Vector3(-0.4f, -0.7f, 0.4f);
+        lightDirection.Normalize();
+
+        Color shadow = Color.Black;
+
+        shadow.A = 127;
 
         Graphics.BeginPipeline(0.5f)
             .DrawSprite(normalBuffer, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White)
             .ApplyEffect(
-                Assets.Assets.Shaders.NPCs.AmoebaBody.Value,
-                ("noiseTarget", _fractalNoiseTarget),
-                ("outlineTarget", _outlineTarget),
-                ("pixelSize", (Vector2.One) / (new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f)),
-                ("displacement", 25f),
-                ("minAlpha", 0.5f))
+                Assets.Assets.Shaders.NPCs.AmoebaLighting.Value,
+                ("incomingLight", lightDirection),
+                ("shininess", 12f),
+                ("shadowColor", shadow.ToVector4()),
+                ("shadowThreshold", 0.1f),
+                ("pixelation", 0.4f),
+                ("bodyTarget", sdfBuffer),
+                ("outlineTarget", _outlineTarget))
             .Schedule(RenderLayer.AfterPlayers);
     }
 
@@ -173,6 +192,20 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         sb.End();
     }
 
+    private void DrawBody(in SpriteBatch sb, in RenderTarget2D normalTarget)
+    {
+        Effect glow = Assets.Assets.Shaders.NPCs.AmoebaBody.Value;
+
+        glow.Parameters["noiseTarget"].SetValue(_colorTarget);
+        glow.Parameters["pixelSize"].SetValue((Vector2.One) / (new Vector2(Main.screenWidth, Main.screenHeight)));
+        glow.Parameters["displacement"].SetValue(25f);
+        glow.Parameters["minAlpha"].SetValue(0.5f);
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, glow, Matrix.Identity);
+        sb.Draw(normalTarget, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.Blue);
+        sb.End();
+    }
+
     private void DrawOutline(in SpriteBatch sb, in RenderTarget2D glowTarget, in RenderTarget2D normalTarget)
     {
         Effect glow = Assets.Assets.Shaders.NPCs.AmoebaGlow.Value;
@@ -199,8 +232,8 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         var fractalNoise = Assets.Assets.Shaders.Noise.FractalNoise.Value;
 
-        fractalNoise.Parameters["zoom"].SetValue(8f / Main.screenWidth);
-        fractalNoise.Parameters["time"].SetValue(Main.GlobalTimeWrappedHourly * 0.2f);
+        fractalNoise.Parameters["zoom"].SetValue(16f / Main.screenWidth);
+        fractalNoise.Parameters["time"].SetValue(Main.GlobalTimeWrappedHourly * 0.5f);
         fractalNoise.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
 
         fractalNoise.Parameters["displacementA"].SetValue(Vector2.UnitY * 0.025f);
@@ -252,7 +285,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         effect.Parameters["metaballData"].SetValue(_metaballData);
         effect.Parameters["metaballCount"].SetValue(count);
-        effect.Parameters["smoothness"].SetValue(0.25f);
+        effect.Parameters["smoothness"].SetValue(0.35f);
         effect.Parameters["screenPos"].SetValue(correctScreenTopLeft);
         effect.Parameters["worldViewDimensions"].SetValue(worldViewDimensions);
 
@@ -279,8 +312,6 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
             _metaballs.Push(new MetaballSet(metaballs, set.Length));
         }
-
-        Main.NewText(_metaballs.Count);
     }
 
     public static void ApplyToBindings(RenderTargetBinding[] bindings)
