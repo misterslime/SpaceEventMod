@@ -1,6 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.NPCs;
+using SpaceEventMod.Common.NPCs.Attributes;
 using SpaceEventMod.Content.Events.Space.LevelElements;
+using SpaceEventMod.Content.NPCs.Droplings;
 using SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
@@ -18,7 +21,13 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace SpaceEventMod.Content.NPCs.Amoerphas;
 
-internal partial class Amoerpha : ModNPC
+internal enum AmoerphaState : byte
+{
+    Debug,
+    Idle
+}
+
+internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
 {
     private FluidSimulation _simulation;
 
@@ -46,113 +55,68 @@ internal partial class Amoerpha : ModNPC
 
         _simulation.Fill(NPC.Center, 64, 0.07f, 0.07f);
 
-        Init(64);
-
-        Vector2 the = NPC.Center + Main.rand.NextVector2CircularEdge(128, 128);
-
-        AddEdge(NPC.Center, the);
-        AddEdge(0, NPC.Center + Main.rand.NextVector2CircularEdge(128, 128));
-        //AddEdge(2, NPC.Center + Main.rand.NextVector2CircularEdge(128, 128));
-        //AddEdge(3, NPC.Center + Main.rand.NextVector2CircularEdge(128, 128));
+        Init();
+        
+        Edge edgeA = AddEdge(NPC.Center, NPC.Center + Main.rand.NextVector2CircularEdge(MAX_EDGE_LENGTH, MAX_EDGE_LENGTH));
+        Edge edgeB = AddEdge(edgeA.From, NPC.Center + Main.rand.NextVector2CircularEdge(MAX_EDGE_LENGTH, MAX_EDGE_LENGTH));
+        Edge edgeC = AddEdge(edgeA.From, NPC.Center + Main.rand.NextVector2CircularEdge(MAX_EDGE_LENGTH, MAX_EDGE_LENGTH));
     }
 
     public override bool PreAI()
     {
-        Timer++;
-
-        return false;
-    }
-
-    private int DrawNearestNode(Vector2 target, SpriteBatch spriteBatch)
-    {
-        float smallestHypot = 999999999999f;
-        int node = -1;
-        bool found = false;
-
-        Vector2 direction = Vector2.Zero;
-
-        foreach (int toCheck in _edgesMap.Keys)
+        if (_edges.Count == 0)
         {
-            (Vector2 dir, bool rightAngle, float hypot) test = TestNode(toCheck, target);
-
-            if (test.rightAngle && smallestHypot > test.hypot)
-            {
-                smallestHypot = test.hypot;
-                node = toCheck;
-                direction = test.dir;
-                found = true;
-            }
-
-            spriteBatch.DrawLine(_nodes[toCheck] - Main.screenPosition, _nodes[toCheck] + test.dir * 64f - Main.screenPosition, Color.Cyan, 2);
+            return false;
         }
 
+        var centrality = GetDegreeCentrality();
 
-        if (found)
+        centrality.Sort();
+
+        Vector2 position = NPC.Center;
+        float total = 0f;
+
+        foreach (var peeb in centrality)
         {
-            Vector2 the = target - _nodes[node];
-            float hypot = the.Length();
-            the = the.SafeNormalize(Vector2.Zero);
-
-            spriteBatch.DrawLine(_nodes[node] - Main.screenPosition, target - Main.screenPosition, Color.Blue, 2);
-
-            float angleBetween = MathF.Atan2(
-                direction.X * the.Y - direction.Y * the.X,
-                direction.X * the.X + direction.Y * the.Y);
-
-            float opposite = hypot * MathF.Sin(angleBetween);
-            float adjacent = hypot * MathF.Cos(angleBetween);
-
-            Vector2 adjacentPosition = direction * adjacent;
-
-            Vector2 oppositePosition = new Vector2(-direction.Y, direction.X) * opposite;
-
-            spriteBatch.DrawLine(_nodes[node] - Main.screenPosition, _nodes[node] + adjacentPosition - Main.screenPosition, Color.Cyan, 2);
-            spriteBatch.DrawLine(_nodes[node] + adjacentPosition - Main.screenPosition, _nodes[node] + adjacentPosition + oppositePosition - Main.screenPosition, Color.Green, 2);
+            position += (_nodes[peeb.Node] - NPC.Center) * peeb.Centrality;
+            total += peeb.Centrality;
         }
 
-        return node;
+        position = Vector2.Lerp(position, _nodes[centrality.Last().Node], 0.5f);
+
+        NPC.Center = Vector2.Lerp(NPC.Center, position, 0.01f);
+
+        return true;
     }
 
-    // used for nodes with only 1 connected edge
-    private (Vector2, bool, float) TestNode(int node, Vector2 target)
+    [StateProcess<AmoerphaState>(AmoerphaState.Debug)]
+    public AmoerphaState Debug()
     {
-        Vector2 position = _nodes[node];
+        NPC.TargetClosest();
 
-        Vector2 toTarget = target - position;
-        float hypotenuse = toTarget.Length();
-        toTarget = toTarget.SafeNormalize(Vector2.Zero);
+        Vector2 target = Main.player[NPC.target].Center;
 
-        Vector2 direction = _edgesMap[node].Count switch
+        NearestData selectedNode = GetNearestNodeToTarget(target);
+
+        GrowNode(selectedNode, target, 1f);
+
+        foreach (int key in _nodes.Keys.ToArray())
         {
-            1 => SingleEdgeDirection(node, in position),
-            2 => DoubleEdgeDirection(node, in position),
-            _ => Vector2.Zero
-        };
+            if (_adjacencyMap[key].Count > 0)
+                continue;
 
-        bool rightAngle = Vector2.Dot(toTarget, direction) > 0f;
+            Main.NewText($"killed {key}");
 
-        return (direction, rightAngle, hypotenuse);
-    }
+            _nodes.Remove(key);
+            _adjacencyMap.Remove(key);
+        }
 
-    private Vector2 SingleEdgeDirection(int node, in Vector2 position)
-    {
-        Vector2 otherPosition = _nodes[_edgesMap[node][0].Other(node)];
-        Vector2 direction = (position - otherPosition).SafeNormalize(Vector2.Zero);
-        return direction;
-    }
+        if (BodyLength > 500)
+        {
+            ShrinkEdges(MathHelper.Lerp(BodyLength, 500, 0.98f) - 500, selectedNode.Index);
+        }
 
-    private Vector2 DoubleEdgeDirection(int node, in Vector2 position)
-    {
-        Vector2[] directions = GetNodeDirections(node);
-
-        if (directions.Length != 2)
-            throw new Exception($"WHY NOT 2 WTF!!!!!!!! Was instead {directions.Length}.");
-
-        Vector2 direction = Vector2.Lerp(directions[0], directions[1], 0.5f);
-        direction = direction.SafeNormalize(Vector2.Zero);
-        direction *= -1;
-
-        return direction;
+        return AmoerphaState.Debug;
     }
 
 
@@ -166,22 +130,45 @@ internal partial class Amoerpha : ModNPC
         spriteBatch.Draw(texture, NPC.Center - Main.screenPosition, frame, Color.LightBlue, 0f, origin, 2f, 0, 0);
 
 
-        if (_edges is null || _nodes is null || _edgesMap is null)
+        if (_edges is null || _nodes is null || _adjacencyMap is null)
             return false;
 
-        Vector2 targetPosition = Main.MouseWorld;
+        Vector2 targetPosition = Main.player[NPC.target].Center;
 
-        DrawNearestNode(targetPosition, spriteBatch);
+        var selected = GetNearestNodeToTarget(targetPosition);
+
+        Vector2 the = targetPosition - _nodes[selected.Index];
+        float hypot = the.Length();
+        the = the.SafeNormalize(Vector2.Zero);
+
+        spriteBatch.DrawLine(_nodes[selected.Index] - Main.screenPosition, targetPosition - Main.screenPosition, Color.Blue, 2);
+
+        float angleBetween = MathF.Atan2(
+            selected.Direction.X * the.Y - selected.Direction.Y * the.X,
+            selected.Direction.X * the.X + selected.Direction.Y * the.Y);
+
+        float opposite = hypot * MathF.Sin(angleBetween);
+        float adjacent = hypot * MathF.Cos(angleBetween);
+
+        Vector2 adjacentPosition = selected.Direction * adjacent;
+
+        Vector2 oppositePosition = new Vector2(-selected.Direction.Y, selected.Direction.X) * opposite;
+
+        spriteBatch.DrawLine(_nodes[selected.Index] - Main.screenPosition, _nodes[selected.Index] + adjacentPosition - Main.screenPosition, Color.Cyan, 2);
+        spriteBatch.DrawLine(_nodes[selected.Index] + adjacentPosition - Main.screenPosition, _nodes[selected.Index] + adjacentPosition + oppositePosition - Main.screenPosition, Color.Green, 2);
 
         foreach (Edge edge in _edges)
         {
-            //bool selected = i == selectedArm.arm && j <= selectedArm.armlet;
-            //float scale = selected ? 1.5f : 1;
-            //Color color = selected ? Color.Red : Color.White;
+            float fromScale = edge.From == selected.Index ? 1.5f : 1;
+            Color fromColor = edge.From == selected.Index ? Color.Red : Color.White;
 
-            spriteBatch.Draw(texture, _nodes[edge.To] - Main.screenPosition, frame, Color.White, 0f, origin, 1f, 0, 0);
-            spriteBatch.Draw(texture, _nodes[edge.From] - Main.screenPosition, frame, Color.White, 0f, origin, 1f, 0, 0);
+            float toScale = edge.To == selected.Index ? 1.5f : 1;
+            Color toColor = edge.To == selected.Index ? Color.Red : Color.White;
+
+            spriteBatch.Draw(texture, _nodes[edge.To] - Main.screenPosition, frame, toColor, 0f, origin, toScale, 0, 0);
+            spriteBatch.Draw(texture, _nodes[edge.From] - Main.screenPosition, frame, fromColor, 0f, origin, fromScale, 0, 0);
             spriteBatch.DrawLine(_nodes[edge.From] - Main.screenPosition, _nodes[edge.To] - Main.screenPosition, Color.White, 2);
+
         }
 
 

@@ -148,6 +148,9 @@ internal abstract class BaseStateNPC<TState> : ModNPC where TState : Enum
     {
         Timer++;
 
+        if (!s_stateBehaviors.ContainsKey(State))
+            return;
+
         TState newState = State;
 
         newState = (TState)s_stateBehaviors[State].Invoke(this, null);
