@@ -24,6 +24,7 @@ float4 PixelShaderFunction(float4 color : COLOR0, float2 coords : TEXCOORD0) : C
 
     float4 noiseSample = tex2D(noiseSampler, displace + coords);
 	noiseSample.a = lerp(1.0, minAlpha, (sample.b - 0.5) * 2.0);
+    //noiseSample.rgb *= noiseSample.a;
 
     return (sample.a > 0.) ? noiseSample : float4(0.0, 0.0, 0.0, 0.0);
 }

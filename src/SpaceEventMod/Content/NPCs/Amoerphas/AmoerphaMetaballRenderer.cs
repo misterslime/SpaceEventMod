@@ -120,8 +120,8 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         DrawBody(in sb, in normalBuffer);
 
-        gd.SetRenderTargets(rts);
-
+        gd.SetRenderTarget(_colorTarget);
+        gd.Clear(Color.Transparent);
 
         Vector3 lightDirection = (Main.MouseWorld - Main.LocalPlayer.Center).ToVector3(64f);
 
@@ -132,17 +132,37 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         shadow.A = 127;
 
-        Graphics.BeginPipeline(0.5f)
-            .DrawSprite(normalBuffer, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White)
+
+        var effect = Assets.Assets.Shaders.NPCs.AmoebaLighting.Value;
+
+        effect.Parameters["incomingLight"].SetValue(lightDirection);
+        effect.Parameters["shininess"].SetValue(16f);
+        effect.Parameters["shadowColor"].SetValue(shadow.ToVector4());
+        effect.Parameters["shadowThreshold"].SetValue(0.1f);
+        effect.Parameters["pixelation"].SetValue(0.5f);
+        effect.Parameters["bodyTarget"].SetValue(sdfBuffer);
+        effect.Parameters["outlineTarget"].SetValue(_outlineTarget);
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, effect, Matrix.Identity);
+        sb.Draw(normalBuffer, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.End();
+
+        gd.SetRenderTargets(rts);
+
+        var screenCenter = Main.screenPosition + new Vector2(Main.screenWidth / 2f, Main.screenHeight / 2f);
+        var worldViewDimensions = new Vector2(Main.screenWidth, Main.screenHeight);
+        var correctScreenTopLeft = screenCenter - worldViewDimensions / 2f;
+
+        Graphics.BeginPipeline(1f)
+            .DrawSprite(_colorTarget, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White)
             .ApplyEffect(
-                Assets.Assets.Shaders.NPCs.AmoebaLighting.Value,
-                ("incomingLight", lightDirection),
-                ("shininess", 12f),
-                ("shadowColor", shadow.ToVector4()),
-                ("shadowThreshold", 0.1f),
-                ("pixelation", 0.4f),
-                ("bodyTarget", sdfBuffer),
-                ("outlineTarget", _outlineTarget))
+                Assets.Assets.Shaders.NPCs.AmoebaCore.Value,
+                ("flowmap", Assets.Assets.Textures.Noise.Flowmap.Value),
+                ("flowDisplacement", Main.GlobalTimeWrappedHourly * 0.1f * Vector2.One),
+                ("scale", 0.010f),
+                ("strength", 0.004f),
+                ("worldViewDimensions", new Vector2(Main.screenWidth, Main.screenHeight)),
+                ("screenPosition", Main.screenPosition))
             .Schedule(RenderLayer.AfterPlayers);
     }
 
@@ -198,7 +218,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         glow.Parameters["noiseTarget"].SetValue(_colorTarget);
         glow.Parameters["pixelSize"].SetValue((Vector2.One) / (new Vector2(Main.screenWidth, Main.screenHeight)));
-        glow.Parameters["displacement"].SetValue(25f);
+        glow.Parameters["displacement"].SetValue(50f);
         glow.Parameters["minAlpha"].SetValue(0.5f);
 
         sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, glow, Matrix.Identity);
@@ -213,9 +233,9 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         glow.Parameters["dropoff"].SetValue(4f);
 
         sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, glow, Matrix.Identity);
-        sb.Draw(glowTarget, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.Blue);
+        sb.Draw(glowTarget, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.MidnightBlue);
         sb.End();
-
+        return;
         Effect outline = Assets.Assets.Shaders.NPCs.AmoebaOutline.Value;
 
         sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, outline, Matrix.Identity);
@@ -240,11 +260,11 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         fractalNoise.Parameters["displacementB"].SetValue(Vector2.UnitX * 0.05f);
 
         fractalNoise.Parameters["backgroundColor"].SetValue(Color.Black.ToVector4());
-        fractalNoise.Parameters["lowColor"].SetValue(Color.Blue.ToVector4());
+        fractalNoise.Parameters["lowColor"].SetValue(Color.MidnightBlue.ToVector4());
         fractalNoise.Parameters["middleColor"].SetValue(Color.BlueViolet.ToVector4());
         fractalNoise.Parameters["highColor"].SetValue(Color.Magenta.ToVector4());
 
-        fractalNoise.Parameters["gradientPixelation"].SetValue(0.2f);
+        fractalNoise.Parameters["gradientPixelation"].SetValue(0.25f);
         fractalNoise.Parameters["backgroundThreshold"].SetValue(0f);
         fractalNoise.Parameters["lowColorThreshold"].SetValue(0.24f);
         fractalNoise.Parameters["midColorThreshold"].SetValue(0.48f);
@@ -254,6 +274,37 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, fractalNoise, Matrix.Identity);
         sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.End();
+
+        Matrix matrix = Main.GameViewMatrix.TransformationMatrix
+            * Matrix.CreateScale(0.5f / Main.GameViewMatrix.Zoom.X, 0.5f / Main.GameViewMatrix.Zoom.Y, 1f)
+            * Matrix.CreateTranslation(Main.GameViewMatrix.Translation.X * 0.5f, Main.GameViewMatrix.Translation.Y * 0.5f, 0f);
+
+        var distortion = Assets.Assets.Shaders.NPCs.AmoebaCore.Value;
+
+        distortion.Parameters["flowmap"].SetValue(Assets.Assets.Textures.Noise.Flowmap.Value);
+        distortion.Parameters["flowDisplacement"].SetValue(Main.GlobalTimeWrappedHourly * 0.1f * Vector2.One);
+        distortion.Parameters["scale"].SetValue(0.2f);
+        distortion.Parameters["strength"].SetValue(0.1f);
+
+        sb.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+
+        foreach (NPC npc in Main.npc.Where(n => n.active && n.type == ModContent.NPCType<Amoerpha>()))
+        {
+            var texture = Assets.Assets.Textures.NPCs.Amoerphas.AmoebaCenter.Value;
+
+
+            Rectangle frame = texture.Frame(1, 8, 0, 0);
+            Vector2 origin = new Vector2(texture.Width, texture.Height) * 0.5f;
+
+            float rotation = MathF.Sin((Main.GameUpdateCount + npc.whoAmI) / 160f) * (MathF.PI / 180f) * 10f;
+
+            Vector2 displacement = Vector2.Zero;
+            displacement.Y += MathF.Sin((Main.GameUpdateCount + npc.whoAmI) / 40f) * 8f;
+
+            sb.Draw(texture, npc.Center - Main.screenPosition + displacement, null, Color.White, rotation, origin, 1f, 0f, 0);
+            //sb.End();
+        }
         sb.End();
     }
 

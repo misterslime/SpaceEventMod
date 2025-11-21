@@ -150,17 +150,19 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        var texture = TextureAssets.Item[ItemID.FallenStar].Value;
+        //var texture = TextureAssets.Item[ItemID.FallenStar].Value;
+        var texture = Assets.Assets.Textures.NPCs.Amoerphas.AmoebaCenter.Value;
+
 
         Rectangle frame = texture.Frame(1, 8, 0, 0);
-        Vector2 origin = new Vector2(texture.Width, texture.Height / 8) * 0.5f;
+        Vector2 origin = new Vector2(texture.Width, texture.Height) * 0.5f;
 
         float rotation = MathF.Sin((Main.GameUpdateCount + NPC.whoAmI) / 160f) * (MathF.PI / 180f) * 10f;
 
         Vector2 displacement = Vector2.Zero;
         displacement.Y += MathF.Sin((Main.GameUpdateCount + NPC.whoAmI) / 40f) * 8f;
 
-        spriteBatch.Draw(texture, NPC.Center - Main.screenPosition + displacement, frame, Color.White, rotation, origin, 1.75f, 0f, 0);
+        //spriteBatch.Draw(texture, NPC.Center - Main.screenPosition + displacement, null, Color.White, rotation, origin, 1f, 0f, 0);
 
 
         if (_simulation is null)

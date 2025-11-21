@@ -40,7 +40,7 @@ PSOutput PixelShaderFunction(PSInput input)
     PSOutput output;
 
     float4 sample = tex2D(normals, input.Coords);
-    float4 surfaceColor = tex2D(bodySampler, input.Coords * 2.0);
+    float4 surfaceColor = tex2D(bodySampler, input.Coords);
 
     float3 normal = (sample.rgb - 0.5) * 2.;
     float3 half = normalize(incomingLight + VIEW_DIRECTION);
@@ -51,7 +51,7 @@ PSOutput PixelShaderFunction(PSInput input)
     float4 outputColor = (shadow * shadow.a) + ((surfaceColor + specular) * (1.0 - shadow.a));
     outputColor *= step(0.5, sample.a);
 
-    float4 outlineColor = tex2D(outlineSampler, input.Coords * 2.0) * (1. - step(0.5, sample.a));
+    float4 outlineColor = tex2D(outlineSampler, input.Coords) * (1. - step(0.5, sample.a));
 
     output.Color = outputColor + outlineColor;
 
