@@ -38,6 +38,9 @@ public class SpaceEventMapLayer : ModMapLayer
                 new Vector2(4, 1.5f),
                 new Vector2(4, 2),
                 new Vector2(4, 3),
+                new Vector2(6, 3),
+                new Vector2(9, 4.5f),
+                new Vector2(11, 7),
             ];
 
             return dimensions[variant];

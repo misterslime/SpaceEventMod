@@ -85,7 +85,13 @@ public class SpaceEvent : ModSystem
         if (!Main.rand.NextBool(300))
             return;
 
-        Stars.List.Add(new Events.Space.LevelElements.Star(randomPosition));
+        int frameX = Main.rand.Next(0, 3);
+        int frameY = Main.rand.Next(0, 2);
+
+        Texture2D texture = Assets.Assets.Textures.Props.Star.Value;
+        Rectangle frame = texture.Frame(3, 2, frameX, frameY);
+
+        Stars.List.Add(new LevelElements.Star(randomPosition, frame));
 
     }
 
@@ -118,7 +124,7 @@ public class SpaceEvent : ModSystem
             }
         }
 
-        var asteroidType = Main.rand.Next(6);
+        var asteroidType = Main.rand.Next(9);
 
         Point GetDimensions(int variant)
         {
@@ -129,6 +135,9 @@ public class SpaceEvent : ModSystem
                 new Point(64, 24),
                 new Point(64, 32),
                 new Point(64, 48),
+                new Point(96, 44),
+                new Point(144, 74),
+                new Point(176, 110),
             ];
 
             return dimensions[variant];

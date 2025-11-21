@@ -22,9 +22,9 @@ public class StarDrawing : ILoadable
         {
             var star = Stars.List[i];
 
-            var texture = ModContent.Request<Texture2D>(star.TexturePath).Value;
+            var texture = Assets.Assets.Textures.Props.Star.Value;
             var drawPosition = star.GetCenter() - Main.screenPosition;
-            var origin = texture.Size() * 0.5f;
+            var origin = star.Frame.Center.ToVector2();
 
             var wave = MathF.Pow(MathF.Sin(Main.GameUpdateCount * 0.1f), 2);
             var lifeRatio = star.Durability / 1000f;
@@ -32,7 +32,7 @@ public class StarDrawing : ILoadable
 
             var shakeVector = MathF.Sin(Main.GameUpdateCount) * 2f * (star.ShakeTime / 20f) * star.ShakeDirection;
 
-            Main.EntitySpriteDraw(texture, drawPosition + star.SpriteDisplacement + shakeVector, texture.Frame(), drawColor, star.Rotation, origin, 1f, star.Effects);
+            Main.EntitySpriteDraw(texture, drawPosition + star.SpriteDisplacement + shakeVector, star.Frame, drawColor, star.Rotation, origin, 1f, star.Effects);
         }
 
         Main.spriteBatch.End();

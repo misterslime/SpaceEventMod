@@ -50,6 +50,9 @@ public class AsteroidDrawing : ILoadable
             Assets.Assets.Textures.Props.Asteroid4Small.Value,
             Assets.Assets.Textures.Props.Asteroid4Medium.Value,
             Assets.Assets.Textures.Props.Asteroid4Large.Value,
+            Assets.Assets.Textures.Props.Asteroid6.Value,
+            Assets.Assets.Textures.Props.Asteroid9.Value,
+            Assets.Assets.Textures.Props.Asteroid11.Value
         ];
 
         return textures[variant];
