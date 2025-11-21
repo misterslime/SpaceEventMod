@@ -172,7 +172,7 @@ internal partial class Amoerpha
         {
             1 => SingleEdgeDirection(node, in position),
             2 => DoubleEdgeDirection(node, in position),
-            _ => default
+            _ => ManyEdgeDirection(node, in position)
         };
 
         return direction * hypotenuse;
@@ -197,6 +197,20 @@ internal partial class Amoerpha
         direction *= -1;
 
         return direction;
+    }
+
+    private Vector2 ManyEdgeDirection(int node, in Vector2 position)
+    {
+        Vector2[] directions = GetNodeDirections(node);
+
+        Vector2 sum = Vector2.Zero;
+
+        foreach (var direction in directions)
+            sum += direction;
+
+        sum = sum.SafeNormalize(Vector2.Zero);
+
+        return sum;
     }
 
     /// <summary>
