@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.NPCs;
 using SpaceEventMod.Common.NPCs.Attributes;
 using SpaceEventMod.Content.Dusts;
+using SpaceEventMod.Content.Items;
 using SpaceEventMod.Core.Animation.SecondOrderDynamics;
 using SpaceEventMod.Core.Animation.Tweening;
 using SpaceEventMod.Core.Physics;
@@ -14,6 +15,7 @@ using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Linq;
 using Terraria;
+using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -263,5 +265,10 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
         NPC.damage = 10;
         return DroplingState.Biting;
 
+    }
+
+    public override void ModifyNPCLoot(NPCLoot npcLoot)
+    {
+        npcLoot.Add(ItemDropRule.Common(ModContent.ItemType<Jumpjaw>(), chanceDenominator: 8));
     }
 }

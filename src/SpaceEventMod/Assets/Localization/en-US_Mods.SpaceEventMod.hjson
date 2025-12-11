@@ -8,6 +8,11 @@ Items: {
 		DisplayName: Starsap
 		Tooltip: ""
 	}
+
+	Jumpjaw: {
+		DisplayName: Jumpjaw
+		Tooltip: Allows you to pogo off enemies if hit below you.
+	}
 }
 
 NPCs: {
@@ -26,4 +31,5 @@ Projectiles: {
 	ManaCloud.DisplayName: Mana Cloud
 	InkSpit.DisplayName: Ink Spit
 	StarsapProjectile.DisplayName: Starsap Projectile
+	JumpjawProjectile.DisplayName: Jumpjaw Projectile
 }
