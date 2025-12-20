@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Graphics;
 using System;
 using System.Collections.Generic;
@@ -35,12 +36,16 @@ public class Pixel : ModDust
 
         position = (position * 0.5f).Floor() * 2f;
 
+        Color color = Color.Lerp(Color.Transparent, dust.color, dust.fadeIn / 30);
+        Vector2 scale = Vector2.One * 2f;
+        color.A = 0;
+
         Graphics.BeginPipeline(0.5f)
             .DrawSprite(
                 Assets.Assets.Textures.WhitePixel.Value,
                 position,
-                Color.Lerp(Color.Transparent, dust.color, dust.fadeIn / 30),
-                scale: Vector2.One * 2f)
+                color,
+                scale: scale)
             .Schedule(RenderLayer.BeforeNPCs);
 
         return false;

@@ -13,6 +13,16 @@ Items: {
 		DisplayName: Jumpjaw
 		Tooltip: Allows you to pogo off enemies if hit below you.
 	}
+
+	StonePolisher: {
+		DisplayName: Stone Polisher
+		Tooltip: "Click to polish stones into their polished forms, and back again."
+	}
+
+	EnchantedToolGloves: {
+		DisplayName: Enchanted Tool Gloves
+		Tooltip: "Greatly increases the use speed of tools by channelling the Player's mana."
+	}
 }
 
 NPCs: {
