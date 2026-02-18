@@ -16,12 +16,34 @@ Items: {
 
 	StonePolisher: {
 		DisplayName: Stone Polisher
-		Tooltip: "Click to polish stones into their polished forms, and back again."
+		Tooltip: Click to polish stones into their polished forms, and back again.
 	}
 
 	EnchantedToolGloves: {
 		DisplayName: Enchanted Tool Gloves
-		Tooltip: "Greatly increases the use speed of tools by channelling the Player's mana."
+		Tooltip: Greatly increases the use speed of tools by channelling the Player's mana.
+	}
+
+	AmoebicHelmet: {
+		SetBonus:
+			'''
+			Double tap down to encase yourself in a regenerative cocoon.
+			The cocoon will take damage from enemies.
+			Jump to leave the cocoon.
+			When the cocoon is destroyed it breaks into chunks that can be eaten.
+			'''
+		DisplayName: Amoebic Helmet
+		Tooltip: Increased life regeneration
+	}
+
+	AmoebicBreastplate: {
+		DisplayName: Amoebic Breastplate
+		Tooltip: +5% damage
+	}
+
+	AmoebicLeggings: {
+		DisplayName: Amoebic Leggings
+		Tooltip: +5% crit chance
 	}
 }
 
@@ -35,6 +57,21 @@ NPCs: {
 	PhysicsJellyfish.DisplayName: Physics Jellyfish
 	Sackterium.DisplayName: Sackterium
 	Amoerpha.DisplayName: Amoerpha
+
+	Cocoon: {
+		DisplayName: Cocoon
+
+		TownNPCMood: {
+			Content: I am content.
+			NoHome: I hate not having a home.
+			FarFromHome: I am too far from home.
+			LoveSpace: I love having so much space.
+			DislikeCrowded: I dislike how crowded I am.
+			HateCrowded: I hate how crowded I am.
+			LikeNPC_Princess: I like {NPCName}.
+			Princess_LovesNPC: I like {NPCName}.
+		}
+	}
 }
 
 Projectiles: {
@@ -42,4 +79,26 @@ Projectiles: {
 	InkSpit.DisplayName: Ink Spit
 	StarsapProjectile.DisplayName: Starsap Projectile
 	JumpjawProjectile.DisplayName: Jumpjaw Projectile
+
+	CocoonChunk: {
+		DisplayName: Cocoon Chunk
+		BuffText: Eat me!
+	}
+}
+
+Buffs: {
+	CocoonCooldown: {
+		DisplayName: Cocoon Cooldown
+		Description: Cannot cocoon yourself right now.
+	}
+
+	Cocooned: {
+		DisplayName: Cocooned
+		Description: Massively increased life and mana regen, immunity to damage, cannot move.
+	}
+
+	DigestiveEnzymes: {
+		DisplayName: Digestive Enzymes
+		Description: Increased defense and movement speed.
+	}
 }

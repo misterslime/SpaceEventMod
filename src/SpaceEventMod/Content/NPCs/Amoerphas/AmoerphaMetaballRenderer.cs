@@ -160,7 +160,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
                 ("flowmap", Assets.Assets.Textures.Noise.Flowmap.Value),
                 ("flowDisplacement", Main.GlobalTimeWrappedHourly * 0.1f * Vector2.One),
                 ("scale", 0.010f),
-                ("strength", 0.004f),
+                ("strength", 0f),
                 ("worldViewDimensions", new Vector2(Main.screenWidth, Main.screenHeight)),
                 ("screenPosition", Main.screenPosition))
             .Schedule(RenderLayer.AfterPlayers);
@@ -259,12 +259,12 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         fractalNoise.Parameters["displacementA"].SetValue(Vector2.UnitY * 0.025f);
         fractalNoise.Parameters["displacementB"].SetValue(Vector2.UnitX * 0.05f);
 
-        fractalNoise.Parameters["backgroundColor"].SetValue(Color.Black.ToVector4());
-        fractalNoise.Parameters["lowColor"].SetValue(Color.MidnightBlue.ToVector4());
-        fractalNoise.Parameters["middleColor"].SetValue(Color.BlueViolet.ToVector4());
-        fractalNoise.Parameters["highColor"].SetValue(Color.Magenta.ToVector4());
+        fractalNoise.Parameters["backgroundColor"].SetValue(Color.DarkRed.ToVector4());
+        fractalNoise.Parameters["lowColor"].SetValue(new Color(130, 27, 66).ToVector4());
+        fractalNoise.Parameters["middleColor"].SetValue(new Color(171, 2, 48).ToVector4());
+        fractalNoise.Parameters["highColor"].SetValue(new Color(102, 3, 22).ToVector4());
 
-        fractalNoise.Parameters["gradientPixelation"].SetValue(0.25f);
+        fractalNoise.Parameters["gradientPixelation"].SetValue(0.2f);
         fractalNoise.Parameters["backgroundThreshold"].SetValue(0f);
         fractalNoise.Parameters["lowColorThreshold"].SetValue(0.24f);
         fractalNoise.Parameters["midColorThreshold"].SetValue(0.48f);
