@@ -1,7 +1,13 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Core.Geometry;
+using SpaceEventMod.Core.Utilities.Extensions;
+using System;
+using System.Collections;
+using System.Linq;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;

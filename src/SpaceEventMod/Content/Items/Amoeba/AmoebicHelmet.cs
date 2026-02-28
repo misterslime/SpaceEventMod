@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using Terraria.Localization;
@@ -33,7 +38,7 @@ internal class AmoebicHelmet : ModItem
 
     public override void UpdateArmorSet(Player player)
     {
-        var cocoonPlayer = player.GetModPlayer<CocoonPlayer>();
+        CocoonPlayer cocoonPlayer = player.GetModPlayer<CocoonPlayer>();
 
         player.setBonus = SetBonusText.Value;
         cocoonPlayer.AmoebicSet = true;

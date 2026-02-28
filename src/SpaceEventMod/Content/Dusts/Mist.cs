@@ -1,6 +1,9 @@
+using Microsoft.Build.Utilities;
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Core.Animation.Tweening;
 using SpaceEventMod.Core.Graphics;
 using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -67,9 +70,9 @@ public class Mist : ModDust
 
         var frame = new Rectangle(0, 34 * mistData.FrameVariant, 32, 34);
 
-        var pixelPosition = dust.rotation.ToRotationVector2() * 8f * dust.scale;
+        Vector2 pixelPosition = dust.rotation.ToRotationVector2() * 8f * dust.scale;
 
-        var pipeline = Graphics.BeginPipeline(0.5f);
+        Pipeline pipeline = Graphics.BeginPipeline(0.5f);
 
         pipeline.DrawSprite(
             inkTexture,

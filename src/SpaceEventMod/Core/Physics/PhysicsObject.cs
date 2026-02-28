@@ -1,33 +1,41 @@
+using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Physics.Attributes;
 using SpaceEventMod.Core.Physics.Components;
 using SpaceEventMod.Core.Physics.Interfaces;
+using SpaceEventMod.Core.Physics.Joints;
 using SpaceEventMod.Core.Utilities.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
+using Terraria.ModLoader;
+using static Terraria.Localization.NetworkText;
 
 namespace SpaceEventMod.Core.Physics;
 
 internal class PhysicsObject(PhysicsPoint position)
 {
+    private readonly List<IComponent> _components = new List<IComponent>();
+
     public PhysicsPoint Center { get; set; } = position;
-    public List<IComponent> Components { get; } = new List<IComponent>();
+    public List<IComponent> Components { get => _components; }
 
     public void AddComponent<T>(T component) where T : struct, IComponent
     {
         if (CanAddComponent<T>())
-            Components.Add(component);
+            _components.Add(component);
     }
 
-    public bool HasComponent<T>() where T : struct, IComponent => (from component in Components
+    public bool HasComponent<T>() where T : struct, IComponent => (from component in _components
                                                                    where component is T
                                                                    select component).Any();
 
-    public IEnumerable<T> GetInstancedComponents<T>() where T : struct, IComponent, IInstancedComponent => (from component in Components
+    public IEnumerable<T> GetInstancedComponents<T>() where T : struct, IComponent, IInstancedComponent => (from component in _components
                                                                                                             where component is T
                                                                                                             select (T)component);
 
-    public T GetInstancedComponent<T>(int index) where T : struct, IComponent, IInstancedComponent => (T)(from component in Components
+    public T GetInstancedComponent<T>(int index) where T : struct, IComponent, IInstancedComponent => (T)(from component in _components
                                                                                                           where component is T
                                                                                                           select component).ElementAt(index);
 
@@ -36,7 +44,7 @@ internal class PhysicsObject(PhysicsPoint position)
         if (typeof(T) is IInstancedComponent)
             throw new InvalidTypeParameterException("Tried to run GetComponent with an instanced component type.");
 
-        return (T)(from component in Components
+        return (T)(from component in _components
                    where component is T
                    select component).First();
     }
@@ -46,7 +54,7 @@ internal class PhysicsObject(PhysicsPoint position)
         if (typeof(T) is IInstancedComponent)
             throw new InvalidTypeParameterException("Tried to run RemoveComponent with an instanced component type.");
 
-        Components.Remove(GetComponent<T>());
+        _components.Remove(GetComponent<T>());
     }
 
     public void AddChild(PhysicsObject child)
@@ -69,7 +77,7 @@ internal class PhysicsObject(PhysicsPoint position)
 
         if (rejects.Any())
         {
-            if (Components.Any((component) => rejects.Contains(component.GetType())))
+            if (_components.Any((component) => rejects.Contains(component.GetType())))
                 return false;
         }
 
@@ -80,7 +88,7 @@ internal class PhysicsObject(PhysicsPoint position)
 
         if (needs.Any())
         {
-            var componentTypes = from component in Components
+            var componentTypes = from component in _components
                                  select component.GetType();
 
             if (!needs.All(componentTypes.Contains))

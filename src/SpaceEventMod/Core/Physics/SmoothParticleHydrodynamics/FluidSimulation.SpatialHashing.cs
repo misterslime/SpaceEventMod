@@ -1,8 +1,13 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
+using Terraria;
 
 namespace SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 
@@ -58,9 +63,9 @@ internal partial class FluidSimulation
 
     private void UpdateSpatialHash(int i, float size)
     {
-        var cellCoords = PositionToCellCoord(_predictedPositions[i], size);
-        var hash = HashCell(cellCoords.X, cellCoords.Y);
-        var cellKey = GetKeyFromHash(hash);
+        Point cellCoords = PositionToCellCoord(_predictedPositions[i], size);
+        uint hash = HashCell(cellCoords.X, cellCoords.Y);
+        uint cellKey = GetKeyFromHash(hash);
         s_spatialLookup[i] = new Entry(i, cellKey, hash);
         s_startIndices[i] = int.MaxValue;
     }
@@ -71,8 +76,8 @@ internal partial class FluidSimulation
 
         Parallel.For(0, _predictedPositions.Length, i =>
         {
-            var key = (int)s_spatialLookup[i].Key;
-            var keyPrev = i == 0 ? uint.MaxValue : s_spatialLookup[i - 1].Key;
+            int key = (int)s_spatialLookup[i].Key;
+            uint keyPrev = i == 0 ? uint.MaxValue : s_spatialLookup[i - 1].Key;
 
             if (keyPrev != key)
             {
@@ -90,27 +95,27 @@ internal partial class FluidSimulation
         else
             s_neighbours[i].Clear();
 
-        var point = _predictedPositions[i];
-        var coords = PositionToCellCoord(point, _smoothingRadius);
-        var squareRadius = _smoothingRadius * _smoothingRadius;
+        Vector2 point = _predictedPositions[i];
+        Point coords = PositionToCellCoord(point, _smoothingRadius);
+        float squareRadius = _smoothingRadius * _smoothingRadius;
 
         foreach (var cell in s_cellOffsets)
         {
-            var coord = coords + cell;
+            Point coord = coords + cell;
 
-            var hash = HashCell(coord.X, coord.Y);
-            var cellKey = (int)GetKeyFromHash(hash);
-            var cellStartIndex = s_startIndices[cellKey];
+            uint hash = HashCell(coord.X, coord.Y);
+            int cellKey = (int)GetKeyFromHash(hash);
+            int cellStartIndex = s_startIndices[cellKey];
 
-            for (var j = cellStartIndex; j < s_spatialLookup.Length; j++)
+            for (int j = cellStartIndex; j < s_spatialLookup.Length; j++)
             {
                 if (s_spatialLookup[j].Key != cellKey) break;
 
                 if (s_spatialLookup[j].Hash != hash) continue;
 
-                var particleIndex = s_spatialLookup[j].Index;
-                var offset = _predictedPositions[particleIndex] - point;
-                var squareDistance = Vector2.Dot(offset, offset);
+                int particleIndex = s_spatialLookup[j].Index;
+                Vector2 offset = _predictedPositions[particleIndex] - point;
+                float squareDistance = Vector2.Dot(offset, offset);
 
                 if (squareDistance > squareRadius) continue;
 
@@ -121,15 +126,15 @@ internal partial class FluidSimulation
 
     private Point PositionToCellCoord(Vector2 point, float radius)
     {
-        var cellX = (int)(point.X / radius);
-        var cellY = (int)(point.Y / radius);
+        int cellX = (int)(point.X / radius);
+        int cellY = (int)(point.Y / radius);
         return new Point(cellX, cellY);
     }
 
     private uint HashCell(int cellX, int cellY)
     {
-        var a = (uint)cellX * HASH_KEY_X;
-        var b = (uint)cellY * HASH_KEY_Y;
+        uint a = (uint)cellX * HASH_KEY_X;
+        uint b = (uint)cellY * HASH_KEY_Y;
         return a + b;
     }
 

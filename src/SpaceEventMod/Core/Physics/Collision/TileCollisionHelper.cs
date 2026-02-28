@@ -1,7 +1,12 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Geometry;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Core.Physics.Collision;
 
@@ -9,27 +14,27 @@ internal static class TileCollisionHelper
 {
     public static PhysicsPoint CheckPoint(PhysicsPoint point, int sampleSize, float pointRadius)
     {
-        var newPoint = point;
+        PhysicsPoint newPoint = point;
 
-        var topLeft = point.Position - 8 * new Vector2(sampleSize);
-        var topLeftTiles = topLeft.ToTileCoordinates();
+        Vector2 topLeft = point.Position - 8 * new Vector2(sampleSize);
+        Point topLeftTiles = topLeft.ToTileCoordinates();
 
-        for (var i = 0; i < sampleSize; i++)
+        for (int i = 0; i < sampleSize; i++)
         {
-            for (var j = 0; j < sampleSize; j++)
+            for (int j = 0; j < sampleSize; j++)
             {
-                var tile = Framing.GetTileSafely(topLeftTiles.X + i, topLeftTiles.Y + j);
+                Tile tile = Framing.GetTileSafely(topLeftTiles.X + i, topLeftTiles.Y + j);
                 if (!tile.active() || !Main.tileSolid[tile.type])
                     continue;
 
-                var tilePosition = new Vector2(topLeftTiles.X + i, topLeftTiles.Y + j) * 16;
+                Vector2 tilePosition = new Vector2(topLeftTiles.X + i, topLeftTiles.Y + j) * 16;
 
-                var tileRectangle = new Rectangle((int)tilePosition.X, (int)tilePosition.Y, 16, 16);
+                Rectangle tileRectangle = new Rectangle((int)tilePosition.X, (int)tilePosition.Y, 16, 16);
 
                 if (!tileRectangle.Contains(point.Position.ToPoint()))
                     continue;
 
-                var circle = new Circle(point.Position, pointRadius, point.GetVelocity(1f));
+                Circle circle = new Circle(point.Position, pointRadius, point.GetVelocity(1f));
 
                 circle = RectangleCircle(tileRectangle, circle);
 
@@ -44,10 +49,10 @@ internal static class TileCollisionHelper
 
     public static Circle RectangleCircle(Rectangle rectangle, Circle circle)
     {
-        var nearestX = MathF.Max(rectangle.X, MathF.Min(circle.Center.X, rectangle.X + rectangle.Width));
-        var nearestY = MathF.Max(rectangle.Y, MathF.Min(circle.Center.Y, rectangle.Y + rectangle.Height));
+        float nearestX = MathF.Max(rectangle.X, MathF.Min(circle.Center.X, rectangle.X + rectangle.Width));
+        float nearestY = MathF.Max(rectangle.Y, MathF.Min(circle.Center.Y, rectangle.Y + rectangle.Height));
 
-        var distance = new Vector2(circle.Center.X - nearestX, circle.Center.Y - nearestY);
+        Vector2 distance = new Vector2(circle.Center.X - nearestX, circle.Center.Y - nearestY);
 
         if (Vector2.Dot(circle.Velocity, distance) < 0)
         {
@@ -55,8 +60,8 @@ internal static class TileCollisionHelper
             circle.Velocity = circle.Velocity - new Vector2(tangentVelocity * 2);
         }
 
-        var penetrationDepth = circle.Radius - distance.Length();
-        var penetrationVector = distance.SafeNormalize(Vector2.Zero) * penetrationDepth;
+        float penetrationDepth = circle.Radius - distance.Length();
+        Vector2 penetrationVector = distance.SafeNormalize(Vector2.Zero) * penetrationDepth;
         circle.Center = circle.Center - penetrationVector;
 
         return circle;

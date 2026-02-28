@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SpaceEventMod.Core.Animation.Tweening;
@@ -76,16 +77,16 @@ internal class EasingMotion()
         _endValue = endValue;
         _duration += duration;
 
-        var segment = new MotionSegment(_duration, endValue, curve);
+        MotionSegment segment = new MotionSegment(_duration, endValue, curve);
 
         if (_segments.Length == 0)
         {
-            _segments = [segment];
+            _segments = [ segment ];
 
             return this;
         }
 
-        var segments = _segments.ToList();
+        List<MotionSegment> segments = _segments.ToList();
 
         segments.Add(segment);
 
@@ -111,14 +112,14 @@ internal class EasingMotion()
         }
 
         // loop time
-        var timeLooped = _loopType switch
+        float timeLooped = _loopType switch
         {
             LoopType.Repeat => time % _duration,
             LoopType.Yoyo => MathF.Abs((time % (2f * _duration)) - _duration)
         };
 
-        var previousEndTime = 0f;
-        var previousEndValue = _startValue;
+        float previousEndTime = 0f;
+        float previousEndValue = _startValue;
         foreach (var segment in _segments)
         {
             if (timeLooped > segment.EndTime)
@@ -128,9 +129,9 @@ internal class EasingMotion()
                 continue;
             }
 
-            var normalized = (timeLooped - previousEndTime) / (segment.EndTime - previousEndTime);
+            float normalized = (timeLooped - previousEndTime) / (segment.EndTime - previousEndTime);
 
-            var easing = segment.Curve.Evaluate(normalized);
+            float easing = segment.Curve.Evaluate(normalized);
 
             return MathHelper.Lerp(previousEndValue, segment.EndValue, easing);
         }

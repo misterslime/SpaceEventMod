@@ -24,10 +24,10 @@ internal static partial class EasingFunctions
         if (t >= 1) return 1;
         if (t <= 0) return 0;
 
-        var splits = steps - 1;
+        float splits = steps - 1;
         if (splits <= 0) return (float)Math.Floor(t);
 
-        var currentStep = (float)Math.Floor(t * steps) / splits;
+        float currentStep = (float)Math.Floor(t * steps) / splits;
         return currentStep;
     }
 
@@ -138,7 +138,7 @@ internal static partial class EasingFunctions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float OutElastic(float t)
     {
-        var p = 0.3f;
+        float p = 0.3f;
         return (float)Math.Pow(2, -10 * t) * (float)Math.Sin((t - p / 4) * (2 * Math.PI) / p) + 1;
     }
 
@@ -152,7 +152,7 @@ internal static partial class EasingFunctions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float InBack(float t)
     {
-        var s = 1.70158f;
+        float s = 1.70158f;
         return t * t * ((s + 1) * t - s);
     }
 
@@ -172,8 +172,8 @@ internal static partial class EasingFunctions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float OutBounce(float t)
     {
-        var div = 2.75f;
-        var mult = 7.5625f;
+        float div = 2.75f;
+        float mult = 7.5625f;
 
         if (t < 1 / div)
         {

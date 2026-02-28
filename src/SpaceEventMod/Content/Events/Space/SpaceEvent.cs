@@ -4,6 +4,8 @@ using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using Terraria;
+using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Events.Space;
@@ -83,11 +85,11 @@ public class SpaceEvent : ModSystem
         if (!Main.rand.NextBool(300))
             return;
 
-        var frameX = Main.rand.Next(0, 3);
-        var frameY = Main.rand.Next(0, 2);
+        int frameX = Main.rand.Next(0, 3);
+        int frameY = Main.rand.Next(0, 2);
 
-        var texture = Assets.Assets.Textures.Props.Star.Value;
-        var frame = texture.Frame(3, 2, frameX, frameY);
+        Texture2D texture = Assets.Assets.Textures.Props.Star.Value;
+        Rectangle frame = texture.Frame(3, 2, frameX, frameY);
 
         Stars.List.Add(new LevelElements.Star(randomPosition, frame));
 

@@ -1,10 +1,21 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using SpaceEventMod.Assets;
 using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Graphics;
+using SpaceEventMod.Core.Utilities.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.Graphics.Effects;
+using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.WorldBuilding;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Content.NPCs.Amoerphas;
 
@@ -76,7 +87,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         effect.Parameters["zoom"].SetValue(100f);
 
         sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, effect, Matrix.Identity);
-        sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight / 2), Color.White);
+        sb.Draw(TextureAssets.MagicPixel.Value, new Rectangle(0, 0, Main.screenWidth / 2, Main.screenHeight/ 2), Color.White);
         sb.End();
 
         gd.SetRenderTargets(rts);

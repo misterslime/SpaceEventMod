@@ -19,7 +19,7 @@ internal class PhysicsSolver
 
         foreach (var pass in _passes)
         {
-            for (var i = 0; i < physicsObjects.Count; i++)
+            for (int i = 0; i < physicsObjects.Count; i++)
             {
                 if (CanRunPass(pass, physicsObjects[i]))
                     pass.Pass(physicsObjects[i]);
@@ -57,7 +57,7 @@ internal class PhysicsSolver
         {
             var componentTypes = from component in physicsObject.Components
                                  select component.GetType();
-
+            
             if (!needs.All(componentTypes.Contains))
                 return false;
         }

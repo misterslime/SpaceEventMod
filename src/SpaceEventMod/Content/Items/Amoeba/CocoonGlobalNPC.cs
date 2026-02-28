@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -9,13 +14,13 @@ internal class CocoonGlobalNPC : GlobalNPC
     {
         if (target.type == ModContent.NPCType<Cocoon>())
         {
-            var player = Main.player[target.target];
+            Player player = Main.player[target.target];
 
-            var direction = -1;
+            int direction = -1;
             if (npc.position.X + (float)(npc.width / 2) < player.position.X + (float)(player.width / 2))
                 direction = 1;
 
-            var damage = Main.DamageVar(hit.Damage, 0f - player.luck);
+            int damage = Main.DamageVar(hit.Damage, 0f - player.luck);
             if (damage > 1000)
                 damage = 1000;
 

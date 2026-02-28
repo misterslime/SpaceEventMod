@@ -1,9 +1,16 @@
 using Microsoft.Xna.Framework;
+using SDL2;
+using SpaceEventMod.Content.Events.Space;
 using SpaceEventMod.Core.Geometry;
+using SteelSeries.GameSense;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Terraria;
+using static SpaceEventMod.Assets.Assets.Shaders;
 
 namespace SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 
@@ -22,7 +29,7 @@ internal partial class FluidSimulation
 
         Parallel.For(0, _particles, i =>
         {
-            var densitites = CalculateDensity(i);
+            (float Density, float NearDensity) densitites = CalculateDensity(i);
 
             _densities[i] = densitites.Density;
             _nearDensities[i] = densitites.NearDensity;
@@ -30,14 +37,14 @@ internal partial class FluidSimulation
 
         Parallel.For(0, _particles, i =>
         {
-            var pressure = CalculatePressureGradient(i);
-            var acceleration = pressure / _densities[i];
+            Vector2 pressure = CalculatePressureGradient(i);
+            Vector2 acceleration = pressure / _densities[i];
             _velocities[i] += acceleration * deltaTime;
-        });
+        }); 
 
         Parallel.For(0, _particles, i =>
         {
-            var viscosity = CalculateViscosityForce(i);
+            Vector2 viscosity = CalculateViscosityForce(i);
             _velocities[i] += viscosity * deltaTime;
         });
 
@@ -53,14 +60,14 @@ internal partial class FluidSimulation
         {
             _positions[i] += _velocities[i] * deltaTime;
 
-            var total = Vector2.Zero;
+            Vector2 total = Vector2.Zero;
 
-            for (var j = 0; j < lines.Count; j++)
+            for (int j = 0; j < lines.Count; j++)
             {
-                var pointA = lines[j].Point1 / _scale;
-                var pointB = lines[j].Point2 / _scale;
+                Vector2 pointA = lines[j].Point1 / _scale;
+                Vector2 pointB = lines[j].Point2 / _scale;
 
-                var dist = SignedDistanceGradientSegment(_positions[i], pointA, pointB, 0f);
+                Vector3 dist = SignedDistanceGradientSegment(_positions[i], pointA, pointB, 0f);
 
                 total += new Vector2(dist.Y, dist.Z) / (dist.X + 0.1f);
             }
@@ -77,14 +84,14 @@ internal partial class FluidSimulation
 
     private (float Density, float NearDensity) CalculateDensity(int index)
     {
-        var position = _predictedPositions[index];
+        Vector2 position = _predictedPositions[index];
 
         float density = 0;
         float nearDensity = 0;
 
-        for (var i = 0; i < s_neighbours[index].Count; i++)
+        for (int i = 0; i < s_neighbours[index].Count; i++)
         {
-            var distance = MathF.Sqrt(s_neighbours[index][i].SquareDistance);
+            float distance = MathF.Sqrt(s_neighbours[index][i].SquareDistance);
             density += SpikyKernelPow2(_smoothingRadius, distance);
             nearDensity += SpikyKernelPow3(_smoothingRadius, distance);
         }
@@ -94,33 +101,33 @@ internal partial class FluidSimulation
 
     private Vector2 CalculatePressureGradient(int index)
     {
-        var gradient = Vector2.Zero;
+        Vector2 gradient = Vector2.Zero;
 
-        var density = _densities[index];
-        var densityNear = _nearDensities[index];
-        var pressure = ConvertDensityToPressure(density);
-        var nearPressure = ConvertNearDensityToNearPressure(densityNear);
+        float density = _densities[index];
+        float densityNear = _nearDensities[index];
+        float pressure = ConvertDensityToPressure(density);
+        float nearPressure = ConvertNearDensityToNearPressure(densityNear);
 
-        for (var i = 0; i < s_neighbours[index].Count; i++)
+        for (int i = 0; i < s_neighbours[index].Count; i++)
         {
-            var neighbour = s_neighbours[index][i];
+            Neighbour neighbour = s_neighbours[index][i];
 
             if (neighbour.Index == index) continue;
 
-            var distance = MathF.Sqrt(neighbour.SquareDistance);
+            float distance = MathF.Sqrt(neighbour.SquareDistance);
 
-            var direction = distance == 0 ? Vector2.Zero : neighbour.Offset / distance;
+            Vector2 direction = distance == 0 ? Vector2.Zero : neighbour.Offset / distance;
 
-            var neighbourDensity = _densities[neighbour.Index];
-            var neighbourNearDensity = _nearDensities[neighbour.Index];
-            var neighbourPressure = ConvertDensityToPressure(neighbourDensity);
-            var neighbourNearPressure = ConvertNearDensityToNearPressure(neighbourNearDensity);
+            float neighbourDensity = _densities[neighbour.Index];
+            float neighbourNearDensity = _nearDensities[neighbour.Index];
+            float neighbourPressure = ConvertDensityToPressure(neighbourDensity);
+            float neighbourNearPressure = ConvertNearDensityToNearPressure(neighbourNearDensity);
 
-            var sharedPressure = (pressure + neighbourPressure) * 0.5f;
-            var sharedNearPressure = (nearPressure + neighbourNearPressure) * 0.5f;
+            float sharedPressure = (pressure + neighbourPressure) * 0.5f;
+            float sharedNearPressure = (nearPressure + neighbourNearPressure) * 0.5f;
 
-            var slope = DerivativeSpikyPow2(_smoothingRadius, distance);
-            var nearSlope = DerivativeSpikyPow3(_smoothingRadius, distance);
+            float slope = DerivativeSpikyPow2(_smoothingRadius, distance);
+            float nearSlope = DerivativeSpikyPow3(_smoothingRadius, distance);
 
             gradient += direction * sharedPressure * slope / neighbourDensity;
             gradient += direction * sharedNearPressure * slope / neighbourNearDensity;
@@ -132,26 +139,26 @@ internal partial class FluidSimulation
 
     private float ConvertNearDensityToNearPressure(float nearDensity)
     {
-        var nearPressure = nearDensity * _nearPressureMultiplier;
+        float nearPressure = nearDensity * _nearPressureMultiplier;
         return nearPressure;
     }
 
     private float ConvertDensityToPressure(float density)
     {
-        var densityError = density - _targetDensity;
-        var pressure = densityError * _pressureMultiplier;
+        float densityError = density - _targetDensity;
+        float pressure = densityError * _pressureMultiplier;
         return pressure;
     }
 
     private Vector2 CalculateViscosityForce(int index)
     {
-        var force = Vector2.Zero;
-        var position = _predictedPositions[index];
+        Vector2 force = Vector2.Zero;
+        Vector2 position = _predictedPositions[index];
 
-        for (var i = 0; i < s_neighbours[index].Count; i++)
+        for (int i = 0; i < s_neighbours[index].Count; i++)
         {
-            var neighbour = s_neighbours[index][i];
-            var influence = SmoothingKernelPoly6(_smoothingRadius, MathF.Sqrt(neighbour.SquareDistance));
+            Neighbour neighbour = s_neighbours[index][i];
+            float influence = SmoothingKernelPoly6(_smoothingRadius, MathF.Sqrt(neighbour.SquareDistance));
             force += (_velocities[neighbour.Index] - _velocities[index]) * influence;
         }
 

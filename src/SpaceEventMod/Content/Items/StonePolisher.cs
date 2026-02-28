@@ -1,6 +1,12 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Content.Events.Space;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Terraria;
+using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -28,7 +34,7 @@ internal class StonePolisher : ModItem
 
     public override bool? UseItem(Player player)
     {
-        var mousePos = (Main.MouseWorld / 16).ToPoint();
+        Point mousePos = (Main.MouseWorld / 16).ToPoint();
         Item.autoReuse = true;
         var convert = new Dictionary<ushort, ushort>
         {

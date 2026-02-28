@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Core.Graphics;
 using System;
 using Terraria;
