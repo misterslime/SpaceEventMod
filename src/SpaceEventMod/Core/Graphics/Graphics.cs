@@ -346,9 +346,9 @@ public class Graphics : ModSystem
             {
                 pass.Apply();
                 GraphicsDevice.DrawUserPrimitives(
-                    primitiveType: meshData.PrimitiveType, 
-                    vertexData: meshVertices.ToArray(), 
-                    vertexOffset: 0, 
+                    primitiveType: meshData.PrimitiveType,
+                    vertexData: meshVertices.ToArray(),
+                    vertexOffset: 0,
                     primitiveCount: primitiveCount);
             }
         }

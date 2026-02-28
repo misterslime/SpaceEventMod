@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content.Sources;
-using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Utilities;
 using Terraria;
 using Terraria.ID;

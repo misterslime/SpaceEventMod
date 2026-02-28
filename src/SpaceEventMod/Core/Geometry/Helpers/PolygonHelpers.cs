@@ -1,10 +1,3 @@
-using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Geometry.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-
 namespace SpaceEventMod.Core.Geometry.Helpers;
 
 internal static class PolygonHelpers

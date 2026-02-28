@@ -1,11 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.Events.Space.LevelElements;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -38,19 +33,19 @@ internal class TitanSpawn : ModNPC
     {
         NPC.TargetClosest(false);
 
-        float speed = 0.5f + MathF.Pow(MathF.Sin(Timer / 30f), 2) * 0.5f;
+        var speed = 0.5f + MathF.Pow(MathF.Sin(Timer / 30f), 2) * 0.5f;
         speed *= 3f + (1f - NPC.scale) * 2f;
 
-        Vector2 vector = Main.player[NPC.target].Center - NPC.Center;
+        var vector = Main.player[NPC.target].Center - NPC.Center;
 
         NPC.velocity = vector.SafeNormalize(Vector2.Zero) * speed;
         NPC.scale = ((float)NPC.life / (float)NPC.lifeMax);
 
-        Vector3 lightColor = Lighting.GetSubLight(NPC.Center);
+        var lightColor = Lighting.GetSubLight(NPC.Center);
 
         if (lightColor.LengthSquared() > 0.10f && Timer % 20 == 0)
         {
-            int damage = (int)(lightColor.LengthSquared() * 20);
+            var damage = (int)(lightColor.LengthSquared() * 20);
 
             NPC.StrikeNPC(damage, 0, 0);
             NPC.life -= damage;
@@ -62,12 +57,12 @@ internal class TitanSpawn : ModNPC
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        int frame = (int)MathF.Floor(Timer / 10) % 8;
+        var frame = (int)MathF.Floor(Timer / 10) % 8;
 
         var texture = TextureAssets.Npc[Type].Value;
         var drawPosition = NPC.Center - screenPos;
 
-        Rectangle rectangle = texture.Frame(1, 8, 0, frame);
+        var rectangle = texture.Frame(1, 8, 0, frame);
 
         spriteBatch.Draw(texture, drawPosition, texture.Frame(1, 8, 0, frame), Color.White, 0f, rectangle.Size() * 0.5f, NPC.scale, 0, 0);
 

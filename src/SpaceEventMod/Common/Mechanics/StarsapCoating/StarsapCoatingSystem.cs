@@ -1,11 +1,5 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Graphics;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -17,22 +11,22 @@ internal class StarsapCoatingSystem : ModSystem
     public static void CoatTile(int i, int j, bool coated)
     {
         var tile = Framing.GetTileSafely(i, j);
-        ref StarsapTileData tileData = ref tile.Get<StarsapTileData>();
+        ref var tileData = ref tile.Get<StarsapTileData>();
 
         tileData.Coated = coated;
     }
 
     public override void SaveWorldData(TagCompound tag)
     {
-        List<Point> points = new List<Point>();
-        List<byte> datas = new List<byte>();
+        var points = new List<Point>();
+        var datas = new List<byte>();
 
-        for (int i = 0; i < Main.maxTilesX; i++)
+        for (var i = 0; i < Main.maxTilesX; i++)
         {
-            for (int j = 0; j < Main.maxTilesX; j++)
+            for (var j = 0; j < Main.maxTilesX; j++)
             {
-                Point point = new Point(i, j);
-                ref StarsapTileData tileData = ref Framing.GetTileSafely(i, j).Get<StarsapTileData>();
+                var point = new Point(i, j);
+                ref var tileData = ref Framing.GetTileSafely(i, j).Get<StarsapTileData>();
 
                 if (tileData.Coated)
                 {
@@ -54,13 +48,13 @@ internal class StarsapCoatingSystem : ModSystem
         if (!tag.ContainsKey("starsapPoints") || !tag.ContainsKey("starsapDatas"))
             return;
 
-        List<Point> points = tag.Get<List<Point>>("starsapPoints");
-        List<byte> datas = tag.Get<List<byte>>("starsapDatas");
+        var points = tag.Get<List<Point>>("starsapPoints");
+        var datas = tag.Get<List<byte>>("starsapDatas");
 
-        for (int i = 0; i < points.Count; i++)
+        for (var i = 0; i < points.Count; i++)
         {
-            Point point = points[i];
-            ref StarsapTileData tileData = ref Framing.GetTileSafely(point.X, point.Y).Get<StarsapTileData>();
+            var point = points[i];
+            ref var tileData = ref Framing.GetTileSafely(point.X, point.Y).Get<StarsapTileData>();
 
             tileData.Types = (StarsapTypes)datas[i];
         }

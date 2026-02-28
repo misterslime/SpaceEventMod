@@ -1,12 +1,5 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Geometry.Interfaces;
 using SpaceEventMod.Core.Physics.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria.ModLoader;
 
 namespace SpaceEventMod.Core.Physics.Components;
 
@@ -26,7 +19,7 @@ internal struct PhysicsShape(PhysicsPoint[] points, bool closed = false) : IComp
     {
         for (var i = 0; i < Points.Length; i++)
         {
-            PhysicsPoint point = Points[i];
+            var point = Points[i];
             point.Position += amount;
             Points[i] = point;
         }
@@ -36,16 +29,16 @@ internal struct PhysicsShape(PhysicsPoint[] points, bool closed = false) : IComp
     {
         float area = 0;
 
-        for (int i = 0; i < Points.Length; i++)
+        for (var i = 0; i < Points.Length; i++)
         {
             //int leftIndex = (i - 1 + physicsPoints.Length) % physicsPoints.Length;
-            int rightIndex = (i + 1) % Points.Length;
+            var rightIndex = (i + 1) % Points.Length;
 
-            Vector2 point1 = Points[i].Position;
-            Vector2 point2 = Points[rightIndex].Position;
+            var point1 = Points[i].Position;
+            var point2 = Points[rightIndex].Position;
 
-            float width = point2.X - point1.X;
-            float length = (point1.Y + point2.Y) * 0.5f;
+            var width = point2.X - point1.X;
+            var length = (point1.Y + point2.Y) * 0.5f;
 
             area += width * length;
         }

@@ -52,9 +52,9 @@ public class Asteroids : ModSystem
 
         newAsteroid.SpriteDisplacement = MathF.Sin((Main.GameUpdateCount + asteroid.RandomTimeDisplacement) / 60f) * 4 * Vector2.UnitY;
 
-        Vector2 target = asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 24f : asteroid.RestPosition;
+        var target = asteroid.BeingStoodOn ? asteroid.RestPosition + Vector2.UnitY * 24f : asteroid.RestPosition;
 
-        PhysicsObject physicsObject = new PhysicsObject(newAsteroid.Transform);
+        var physicsObject = new PhysicsObject(newAsteroid.Transform);
         physicsObject.AddComponent(new SecondOrderData(1, AsteroidMovement, target));
 
         SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);

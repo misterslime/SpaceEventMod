@@ -1,11 +1,5 @@
-using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.Mechanics.Astralysis;
-using SpaceEventMod.Content.Dusts;
 using SpaceEventMod.Content.Events.Space;
 using SpaceEventMod.Content.Events.Space.LevelElements;
-using SpaceEventMod.Content.NPCs.Amoerphas;
-using SpaceEventMod.Core;
-using System.Linq;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;

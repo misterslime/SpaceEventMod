@@ -29,7 +29,7 @@ internal struct RotatedRectangle(Rectangle rectangle, float rotation)
     /// <param name="rectangle">Rectangle to check.</param>
     public bool Intersects(RotatedRectangle rectangle)
     {
-        Vector2[] axises = 
+        Vector2[] axises =
         [
             TopRight() - TopLeft(),
             TopRight() - BottomRight(),
@@ -37,7 +37,7 @@ internal struct RotatedRectangle(Rectangle rectangle, float rotation)
             rectangle.TopLeft() - rectangle.TopRight()
         ];
 
-        foreach (Vector2 axis in axises)
+        foreach (var axis in axises)
         {
             if (!IsAxisCollision(rectangle, axis))
                 return false;
@@ -71,10 +71,10 @@ internal struct RotatedRectangle(Rectangle rectangle, float rotation)
             GenerateScalar(BottomRight(), axis)
         ];
 
-        int aRectangleAMinimum = rectangleAScalars.Min();
-        int aRectangleAMaximum = rectangleAScalars.Max();
-        int aRectangleBMinimum = rectangleBScalars.Min();
-        int aRectangleBMaximum = rectangleBScalars.Max();
+        var aRectangleAMinimum = rectangleAScalars.Min();
+        var aRectangleAMaximum = rectangleAScalars.Max();
+        var aRectangleBMinimum = rectangleBScalars.Min();
+        var aRectangleBMaximum = rectangleBScalars.Max();
 
         if (aRectangleBMinimum <= aRectangleAMaximum && aRectangleBMaximum >= aRectangleAMaximum)
             return true;
@@ -93,35 +93,35 @@ internal struct RotatedRectangle(Rectangle rectangle, float rotation)
     /// <returns></returns>
     private int GenerateScalar(Vector2 corner, Vector2 axis)
     {
-        float numerator = (corner.X * axis.X) + (corner.Y * axis.Y);
-        float denominator = (axis.X * axis.X) + (axis.Y * axis.Y);
-        float result = numerator / denominator;
-        Vector2 projection = new Vector2(result * axis.X, result * axis.Y);
+        var numerator = (corner.X * axis.X) + (corner.Y * axis.Y);
+        var denominator = (axis.X * axis.X) + (axis.Y * axis.Y);
+        var result = numerator / denominator;
+        var projection = new Vector2(result * axis.X, result * axis.Y);
 
         return (int)((axis.X * projection.X) + (axis.Y * projection.Y));
     }
 
     public Vector2 TopLeft()
     {
-        Vector2 topLeft = new Vector2(Rectangle.Left, Rectangle.Top);
+        var topLeft = new Vector2(Rectangle.Left, Rectangle.Top);
         return topLeft.RotatedBy(Rotation, topLeft + Origin);
     }
 
     public Vector2 TopRight()
     {
-        Vector2 topRight = new Vector2(Rectangle.Right, Rectangle.Top);
+        var topRight = new Vector2(Rectangle.Right, Rectangle.Top);
         return topRight.RotatedBy(Rotation, topRight + new Vector2(-Origin.X, Origin.Y));
     }
 
     public Vector2 BottomLeft()
     {
-        Vector2 bottomLeft = new Vector2(Rectangle.Left, Rectangle.Bottom);
+        var bottomLeft = new Vector2(Rectangle.Left, Rectangle.Bottom);
         return bottomLeft.RotatedBy(Rotation, bottomLeft + new Vector2(Origin.X, -Origin.Y));
     }
 
     public Vector2 BottomRight()
     {
-        Vector2 bottomRight = new Vector2(Rectangle.Right, Rectangle.Bottom);
+        var bottomRight = new Vector2(Rectangle.Right, Rectangle.Bottom);
         return bottomRight.RotatedBy(Rotation, bottomRight + new Vector2(-Origin.X, -Origin.Y));
     }
 

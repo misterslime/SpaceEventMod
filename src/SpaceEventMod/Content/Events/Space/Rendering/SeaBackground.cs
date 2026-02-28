@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.Graphics;
-using System;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -46,7 +45,7 @@ public class SeaBackground : ILoadable
         var rectangle = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
 
         // sea bubbles
-        Matrix pixelationMatrix = Main.GameViewMatrix.TransformationMatrix
+        var pixelationMatrix = Main.GameViewMatrix.TransformationMatrix
             * Matrix.CreateScale(0.5f / Main.GameViewMatrix.Zoom.X, 0.5f / Main.GameViewMatrix.Zoom.Y, 1f)
             * Matrix.CreateTranslation(Main.GameViewMatrix.Translation.X * 0.5f, Main.GameViewMatrix.Translation.Y * 0.5f, 0f);
 

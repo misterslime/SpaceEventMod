@@ -1,10 +1,3 @@
-using SpaceEventMod.Core.Physics.Joints;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace SpaceEventMod.Core.Physics.Interfaces;
 
 internal enum IndexType : byte

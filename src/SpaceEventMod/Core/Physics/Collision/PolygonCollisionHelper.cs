@@ -7,7 +7,7 @@ namespace SpaceEventMod.Core.Physics.Collision;
 internal static class PolygonCollisionHelper
 {
     internal struct SATCollisionData(
-        Polygon polygon1, 
+        Polygon polygon1,
         Vector2 polygon1Position,
         Polygon polygon2,
         Vector2 polygon2Position)

@@ -1,10 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -31,7 +27,7 @@ internal class Cocoon : ModNPC
     {
         NPC.ai[0] += 1f / 60f;
 
-        Player player = Main.player[NPC.target];
+        var player = Main.player[NPC.target];
 
         if (player.dead || !player.active)
             NPC.StrikeNPC(new NPC.HitInfo() { Damage = int.MaxValue });
@@ -53,7 +49,7 @@ internal class Cocoon : ModNPC
 
         Lighting.AddLight(NPC.Center, Color.Red.ToVector3());
 
-        Vector2 playerPos = NPC.getRect().Bottom();
+        var playerPos = NPC.getRect().Bottom();
         playerPos -= new Vector2(0, NPC.height * 0.5f * NPC.ai[2]);
 
         player.Center = playerPos;
@@ -69,17 +65,17 @@ internal class Cocoon : ModNPC
 
     public override bool PreKill()
     {
-        Player player = Main.player[NPC.target];
+        var player = Main.player[NPC.target];
         player.GetModPlayer<CocoonPlayer>().Cocooned = false;
         player.ClearBuff(ModContent.BuffType<Cocooned>());
         player.AddBuff(ModContent.BuffType<CocoonCooldown>(), 3600);
 
-        int type = ModContent.ProjectileType<CocoonChunk>();
+        var type = ModContent.ProjectileType<CocoonChunk>();
 
-        int numChunks = Main.rand.Next(3, 4);
-        for (int i = 0; i < numChunks; i++)
+        var numChunks = Main.rand.Next(3, 4);
+        for (var i = 0; i < numChunks; i++)
         {
-            Vector2 blobVelocity = Main.rand.NextVector2CircularEdge(1f, 1f);
+            var blobVelocity = Main.rand.NextVector2CircularEdge(1f, 1f);
             blobVelocity.Y = -MathF.Abs(blobVelocity.Y);
             blobVelocity *= Main.rand.Next(400, 801) * 0.01f;
 
@@ -92,15 +88,15 @@ internal class Cocoon : ModNPC
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        SpriteEffects effects = NPC.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+        var effects = NPC.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
 
-        Texture2D texture = TextureAssets.Npc[Type].Value;
+        var texture = TextureAssets.Npc[Type].Value;
 
-        
 
-        Vector2 scale = new Vector2(NPC.ai[1], NPC.ai[2]) * (1f/4f);
 
-        Vector2 origin = texture.Size();
+        var scale = new Vector2(NPC.ai[1], NPC.ai[2]) * (1f / 4f);
+
+        var origin = texture.Size();
         origin.X *= 0.5f;
 
         spriteBatch.Draw(

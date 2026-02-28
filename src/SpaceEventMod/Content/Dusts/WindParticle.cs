@@ -1,6 +1,4 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.NPCs.Droplings;
 using SpaceEventMod.Core.Animation.Splines;
 using SpaceEventMod.Core.Graphics;
 using System;
@@ -13,10 +11,10 @@ namespace SpaceEventMod.Content.Dusts;
 
 internal struct WindParticleData(
     int npc,
-    Color secondColor, 
+    Color secondColor,
     int maxOldPositions,
     Point direction,
-    float curveAmount, 
+    float curveAmount,
     float width)
 {
     public int NPC { get; } = npc;
@@ -39,7 +37,7 @@ internal class WindParticle : ModDust
             return false;
         }
 
-        float curveAmount = (dust.fadeIn <= 60) ? data.CurveAmount * data.Direction.X : 0.02f * data.Direction.Y;
+        var curveAmount = (dust.fadeIn <= 60) ? data.CurveAmount * data.Direction.X : 0.02f * data.Direction.Y;
 
         dust.velocity *= 0.985f;
         dust.velocity = dust.velocity.RotatedBy(curveAmount).RotatedByRandom(curveAmount);
@@ -66,7 +64,7 @@ internal class WindParticle : ModDust
         if (data.OldPositions.Length <= 2)
             return data;
 
-        WindParticleData newData = data;
+        var newData = data;
 
         var positions = newData.OldPositions;
 
@@ -82,9 +80,9 @@ internal class WindParticle : ModDust
         if (data.OldPositions.Length < 2)
             return data;
 
-        WindParticleData newData = data;
+        var newData = data;
 
-        for (int i = data.OldPositions.Length - 2; i >= 0; i--)
+        for (var i = data.OldPositions.Length - 2; i >= 0; i--)
             newData.OldPositions[i + 1] = data.OldPositions[i];
 
         newData.OldPositions[0] = dust.position;
@@ -102,9 +100,9 @@ internal class WindParticle : ModDust
             return false;
         }
 
-        NPC npc = Main.npc[data.NPC];
+        var npc = Main.npc[data.NPC];
 
-        float lerpAmount = 0.03f + MathF.Sin(Main.GlobalTimeWrappedHourly * 8) * 0.03f;
+        var lerpAmount = 0.03f + MathF.Sin(Main.GlobalTimeWrappedHourly * 8) * 0.03f;
 
         var positions = from position in data.OldPositions
                         where !Equals(position, default(Vector2))
@@ -132,7 +130,7 @@ internal class WindParticle : ModDust
 
     private Vector2 MapPosition(Vector2 position, Dust dust, NPC npc, float lerpAmount)
     {
-        float rotation = npc.rotation;
+        var rotation = npc.rotation;
 
         if (dust.position.X < npc.Center.X)
             rotation += MathF.PI;

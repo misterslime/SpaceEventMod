@@ -24,10 +24,10 @@ namespace SpaceEventMod.Content.NPCs.Droplings;
 [Flags]
 public enum DroplingAppendage
 {
-    None       = 0b_0000_0000,
-    Flagellum  = 0b_0000_0001,
-    BigJaw     = 0b_0000_0010,
-    Wings      = 0b_0000_0100
+    None = 0b_0000_0000,
+    Flagellum = 0b_0000_0001,
+    BigJaw = 0b_0000_0010,
+    Wings = 0b_0000_0100
 }
 
 public enum DroplingState
@@ -127,16 +127,16 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
         }
         else
         {
-            float interpolant = s_dashMotion.Evaluate(Timer - delayBeforeDashing, out bool completed);
+            var interpolant = s_dashMotion.Evaluate(Timer - delayBeforeDashing, out var completed);
 
-            Vector2 dashVector = Vector2.Lerp(Vector2.Zero, _dashDisplacement, interpolant);
+            var dashVector = Vector2.Lerp(Vector2.Zero, _dashDisplacement, interpolant);
 
             if (Timer >= 60f)
             {
-                Vector2 dustPosition = Main.rand.NextVector2Circular(16f, 16f);
+                var dustPosition = Main.rand.NextVector2Circular(16f, 16f);
                 dustPosition += NPC.Center;
 
-                Vector2 dustVelocity = Main.rand.NextVector2Circular(2f, 2f) + (PreviousPosition - NPC.Center) / 60;
+                var dustVelocity = Main.rand.NextVector2Circular(2f, 2f) + (PreviousPosition - NPC.Center) / 60;
 
                 var dust = Dust.NewDustPerfect(dustPosition, ModContent.DustType<Pixel>(), dustVelocity);
                 dust.noGravity = true;
@@ -155,7 +155,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
             }
         }
 
-        PhysicsObject physicsObject = new PhysicsObject(PositionPhysics);
+        var physicsObject = new PhysicsObject(PositionPhysics);
         physicsObject.AddComponent(new SecondOrderData(1, s_droplingDash, TargetPosition));
 
         SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
@@ -219,7 +219,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
                 TargetVelocity *= Speed;
             }
 
-            PhysicsObject physicsObject = new PhysicsObject(VelocityPhysics);
+            var physicsObject = new PhysicsObject(VelocityPhysics);
             physicsObject.AddComponent(new SecondOrderData(1, s_droplingVelocity, TargetVelocity));
 
             SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);
@@ -230,7 +230,7 @@ internal partial class Dropling : BaseStateNPC<DroplingState>
         }
         else
         {
-            PhysicsObject physicsObject = new PhysicsObject(VelocityPhysics);
+            var physicsObject = new PhysicsObject(VelocityPhysics);
             physicsObject.AddComponent(new SecondOrderData(1, s_droplingDeccelerate, TargetVelocity));
 
             SecondOrderDynamics.Solver.RunPhysicsPasses([physicsObject]);

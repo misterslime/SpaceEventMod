@@ -1,11 +1,6 @@
 using SpaceEventMod.Core.Physics.Attributes;
 using SpaceEventMod.Core.Physics.Components;
 using SpaceEventMod.Core.Physics.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 
 namespace SpaceEventMod.Core.Physics.Passes.Collision;
@@ -17,13 +12,13 @@ internal class BouncePlayers : IPass
 
     public void Pass(PhysicsObject physicsObject)
     {
-        PhysicsShape shape = physicsObject.GetComponent<PhysicsShape>();
+        var shape = physicsObject.GetComponent<PhysicsShape>();
 
         foreach (var player in Main.ActivePlayers)
         {
-            for (int j = 0; j < shape.Points.Length; j++)
+            for (var j = 0; j < shape.Points.Length; j++)
             {
-                PhysicsPoint point = shape.Points[j];
+                var point = shape.Points[j];
 
                 if (player.getRect().Contains(point.Position.ToPoint()))
                 {

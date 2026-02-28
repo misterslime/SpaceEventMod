@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Events.Space.LevelElements;
 using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Graphics;
-using SpaceEventMod.Core.Physics;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -63,7 +62,7 @@ public class SeaTargets : ILoadable
             Main.graphics.GraphicsDevice.SetRenderTarget(SeaRenderTarget);
             Main.graphics.GraphicsDevice.Clear(Color.Transparent);
 
-            Pipeline pipeline = Graphics.BeginPipeline();
+            var pipeline = Graphics.BeginPipeline();
 
             DrawBackgroundPrimitives(in pipeline, Color.Blue, Color.Magenta);
             DrawForegroundPrimitives(in pipeline);
@@ -95,7 +94,7 @@ public class SeaTargets : ILoadable
 
         for (var chunk = 0; chunk < Sea.Springs.Length; chunk++)
         {
-            Mesh seaChunk = new Mesh(PrimitiveType.TriangleList);
+            var seaChunk = new Mesh(PrimitiveType.TriangleList);
 
             for (var spring = 0; spring < Sea.Springs[chunk].Length; spring++)
             {
@@ -148,7 +147,7 @@ public class SeaTargets : ILoadable
 
         for (var chunk = 0; chunk < Sea.Springs.Length; chunk++)
         {
-            Mesh seaChunk = new Mesh(PrimitiveType.TriangleList);
+            var seaChunk = new Mesh(PrimitiveType.TriangleList);
 
             for (var spring = 0; spring < Sea.Springs[chunk].Length; spring++)
             {

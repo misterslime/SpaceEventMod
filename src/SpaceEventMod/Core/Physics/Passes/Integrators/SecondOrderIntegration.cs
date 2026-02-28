@@ -1,13 +1,6 @@
-using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Physics.Attributes;
 using SpaceEventMod.Core.Physics.Components.Animation;
 using SpaceEventMod.Core.Physics.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SpaceEventMod.Core.Physics.Passes.Integrators;
 
@@ -18,20 +11,20 @@ internal class SecondOrderIntegration : IPass
 
     public void Pass(PhysicsObject physicsObject)
     {
-        SecondOrderData data = physicsObject.GetComponent<SecondOrderData>();
+        var data = physicsObject.GetComponent<SecondOrderData>();
 
         var point = physicsObject.Center;
         var dynamics = data.SecondOrderDynamics;
         var input = data.InputPosition;
         var previousInput = data.PreviousInput;
 
-        float k1 = dynamics.GetK1;
-        float k2 = dynamics.GetK2;
-        float k3 = dynamics.GetK3;
+        var k1 = dynamics.GetK1;
+        var k2 = dynamics.GetK2;
+        var k3 = dynamics.GetK3;
 
-        Vector2 deltaInput = (k3 + 1) * input - k3 * previousInput;
-        Vector2 deltaCurrent = k1 * point.PreviousPosition - (k1 + 1) * point.Position;
-        Vector2 acceleration = (deltaInput + deltaCurrent) / k2;
+        var deltaInput = (k3 + 1) * input - k3 * previousInput;
+        var deltaCurrent = k1 * point.PreviousPosition - (k1 + 1) * point.Position;
+        var acceleration = (deltaInput + deltaCurrent) / k2;
 
         acceleration *= data.DeltaTime * data.DeltaTime;
 
