@@ -31,8 +31,6 @@ internal enum AmoerphaState : byte
 
 internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
 {
-    private FluidSimulation _simulation;
-
     private ref float Timer => ref NPC.ai[1];
 
     public override void SetDefaults()
@@ -53,9 +51,6 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
 
     public override void OnSpawn(IEntitySource source)
     {
-        _simulation = new FluidSimulation(50f, 0.35f, 0.8f, 60f, 8f, 0.075f, 7);
-        _simulation.Fill(NPC.Center, 64, 0.07f, 0.07f);
-
         Init();
         
         Edge edgeA = AddEdge(NPC.Center, NPC.Center + Main.rand.NextVector2CircularEdge(MAX_EDGE_LENGTH, MAX_EDGE_LENGTH));
@@ -85,19 +80,7 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
 
         position = Vector2.Lerp(position, _nodes[centrality.Last().Node], 0.25f);
 
-        Vector2 fluidCenter = NPC.Center;
-
-        foreach (var peeb in _simulation.Positions)
-        {
-            fluidCenter += peeb * _simulation.Scale;
-        }
-
-        fluidCenter /= _simulation.Positions.Length;
-        fluidCenter -= _simulation.Position / _simulation.Scale;
-
         NPC.Center = Vector2.Lerp(NPC.Center, position, 0.01f);
-
-        _simulation.Update();
 
         List<Line> lines = new List<Line>();
 
@@ -113,8 +96,6 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
             //lines.Add(_nodes[edge.From]);
             //lines.Add(_nodes[edge.To]);
         }
-
-        _simulation.AttractToSkeleton(lines, 1 / 120f, 6f);
 
         return true;
     }
@@ -151,10 +132,18 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
 
-        if (_simulation is null)
+        if (_edges == null)
             return false;
 
-        AmoerphaMetaballRenderer.AddMetaballData(_simulation.Positions, 16f, _simulation.Scale);
+        if (_edges.Count() == 0)
+            return false;
+
+        foreach (Edge edge in _edges)
+        {
+            float radius = MathHelper.Lerp(-0.2f, 0.25f, edge.Length / MAX_EDGE_LENGTH);
+
+            AmoerphaMetaballRenderer.New(_nodes[edge.To], _nodes[edge.From], radius);
+        }
 
         return false;
 
