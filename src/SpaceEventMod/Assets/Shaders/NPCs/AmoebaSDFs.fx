@@ -74,13 +74,11 @@ float specularBRDF(float3 normal, float3 lightVector, float shininess)
 float3 fresnelColor(float3 n)
 {
 	// Tri-linear fresnel color mapping
-    float3 colXZ = float3(1.0, 0.0, 1.0);
-    float3 colYZ = float3(0.0, 1.0, 1.0);
-    float3 colXY = float3(0.0, 0.0, 1.0);
+    float3 colXZ = float3(1.0, 1.0, 0.2);
+    float3 colYZ = float3(0.0, 1.0, 0.0);
+    float3 colXY = float3(0.0, 0.0, 0.0);
       
-    n.z = abs(n.z);  
-    n.x *= -1;
-    n = clamp(n, 0., 1.);
+    n = abs(n);
         
     //n *= pow(n, float3(2));
     n /= n.x+n.y+n.z;
@@ -153,9 +151,9 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
         nor *= 2.*normalSample.rgb + 1.;
         nor = normalize(nor);
         
-        float3 specularColor = float3(0.75, 0.7, 1.0);
+        float3 specularColor = float3(0.8, 0.9, 1.0);
         //float3 fresnelColor = float3(0.0, 1.0, 0.0);
-		float3 diffuseColor = float3(0.0, 0.0, 1.0); 
+		float3 diffuseColor = float3(0.0, 0.2, 1.0); 
         
         // Lighting and fresnel
 		float3 lightVector = normalize(float3(0.25, 0.3, 0.75));
@@ -167,8 +165,8 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
 		// Non linear specular curve looks nicer
 		lightingColor = pow(lightingColor, 1.8);
 
-		// Add fresnel light
-		lightingColor += fresnelColor(nor) * fresnel * 0.3;
+		// Get fresnel color
+		float3 fresnelCol = fresnelColor(nor) * fresnel * 0.3;
 		
 		// Diffuse and subsurface lighting
 		float wrap = 1.0;
@@ -182,12 +180,13 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
 		color *= 0.5 + min(noise.r / 0.5, 1) * 0.5;
     
 		// Quantize the color and lighting
-		color = round(color * 10) / 10;
-		lightingColor = round(lightingColor * 5) / 5;
+		color = round(color * 16) / 16;
+		lightingColor = round(lightingColor * 3) / 3;
+        fresnelCol = round(fresnelCol * 12) / 12;
 		
 		// Get actual color and transparency
 		alpha = saturate(specular * 0.9 + fresnel + color * 2.5) + 0.2;
-		col = color * diffuseColor + lightingColor + float3(0.0, 0.0, 0.125);
+		col = color * diffuseColor + lightingColor + fresnelCol;
 		
 		
     }
@@ -197,7 +196,7 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
     col = sqrt( col );
     //alpha = sqrt( alpha );
 
-	return float4(col, alpha);
+	return float4(col * alpha, alpha);
 }
 
 technique Technique1 {

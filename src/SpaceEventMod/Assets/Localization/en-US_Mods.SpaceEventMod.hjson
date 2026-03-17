@@ -45,6 +45,21 @@ Items: {
 		DisplayName: Amoebic Leggings
 		Tooltip: +5% crit chance
 	}
+
+	Cosmoss: {
+		DisplayName: Cosmoss
+		Tooltip: ""
+	}
+
+	CosmostoneWall: {
+		DisplayName: Cosmostone Wall
+		Tooltip: ""
+	}
+
+	Cosmostone: {
+		DisplayName: Cosmostone
+		Tooltip: ""
+	}
 }
 
 NPCs: {
