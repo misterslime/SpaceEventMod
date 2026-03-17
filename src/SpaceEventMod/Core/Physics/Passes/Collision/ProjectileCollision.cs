@@ -1,4 +1,4 @@
-using SpaceEventMod.Content.NPCs;
+using SpaceEventMod.Content.CellularGrowth.NPCs;
 using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Physics.Attributes;
 using SpaceEventMod.Core.Physics.Components;

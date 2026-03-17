@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using SDL2;
-using SpaceEventMod.Content.Events.Space;
 using SpaceEventMod.Core.Geometry;
 using SteelSeries.GameSense;
 using System;

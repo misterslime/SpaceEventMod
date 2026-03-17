@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.NPCs.Droplings;
 using System;
 using System.Collections.Generic;
 using System.Linq;

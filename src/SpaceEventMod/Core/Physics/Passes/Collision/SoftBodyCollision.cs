@@ -1,5 +1,5 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.NPCs;
+using SpaceEventMod.Content.Miscellaneous.NPCs;
 using SpaceEventMod.Core.Physics.Attributes;
 using SpaceEventMod.Core.Physics.Collision;
 using SpaceEventMod.Core.Physics.Components;

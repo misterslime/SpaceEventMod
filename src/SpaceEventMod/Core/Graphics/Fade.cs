@@ -1,8 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.Events.Space;
-using SpaceEventMod.Content.Events.Space.Rendering;
-using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Utilities;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
