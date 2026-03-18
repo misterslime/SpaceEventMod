@@ -63,7 +63,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         var sb = Main.spriteBatch;
         var gd = Main.instance.GraphicsDevice;
-        var effect = Assets.Assets.Shaders.NPCs.AmoebaSDFs.Value;
+        var effect = Assets.Assets.Shaders.CellularGrowth.AmoebaSDFs.Value;
         ApplyToBindings(gd.GetRenderTargets());
         var rts = gd.GetRenderTargets();
         ApplyToBindings(rts);

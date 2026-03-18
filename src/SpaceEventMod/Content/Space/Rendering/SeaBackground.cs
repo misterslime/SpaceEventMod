@@ -32,7 +32,7 @@ public class SeaBackground : ILoadable
                     Vector2.One,
                     SpriteEffects.None)
                 .ApplyEffect(
-                    Assets.Assets.Shaders.Events.FirmamentSeaBackgroundTransparency.Value,
+                    Assets.Assets.Shaders.Space.FirmamentSeaBackgroundTransparency.Value,
                     ("sea", SeaTargets.SeaRenderTarget),
                     ("minimumAlpha", 0.8f))
                 .Schedule(RenderLayer.BeforeTiles);
@@ -81,7 +81,7 @@ public class SeaBackground : ILoadable
 
     private static Effect GetBackgroundBubbleShader(Texture2D palette, Vector3[] sampleOffsetsAndScales, float speed, float gradientLength, float gradientStart, float cutoff, float parallax)
     {
-        var firmamentSeaBackgroundShader = Assets.Assets.Shaders.Events.FirmamentSeaBubbles.Value;
+        var firmamentSeaBackgroundShader = Assets.Assets.Shaders.Space.FirmamentSeaBubbles.Value;
 
         firmamentSeaBackgroundShader.Parameters["bubbles"].SetValue(Assets.Assets.Textures.Noise.Bubble.Value);
         firmamentSeaBackgroundShader.Parameters["distortion"].SetValue(Assets.Assets.Textures.Noise.Perlin.Value);
