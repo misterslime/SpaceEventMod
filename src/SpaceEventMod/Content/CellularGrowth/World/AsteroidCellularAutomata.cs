@@ -157,9 +157,9 @@ public static class AsteroidCellularAutomata
         // cave entrance
         Rectangle opening = new Rectangle();
 
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < height - 2; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 1; x < width - 1; x++)
             {
                 int dir = WorldGen.genRand.Next(2) == 0 ? -1 : 1;
 
