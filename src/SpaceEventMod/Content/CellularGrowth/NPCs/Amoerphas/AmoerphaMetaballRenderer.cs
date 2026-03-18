@@ -57,8 +57,6 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
     public override void PostDrawTiles()
     {
-        Main.NewText(_activeLineCount);
-
         if (_activeLineCount == 0) return;
 
         var sb = Main.spriteBatch;

@@ -35,7 +35,7 @@ public class SeaBackground : ILoadable
                     Assets.Assets.Shaders.Space.FirmamentSeaBackgroundTransparency.Value,
                     ("sea", SeaTargets.SeaRenderTarget),
                     ("minimumAlpha", 0.8f))
-                .Schedule(RenderLayer.BeforeTiles);
+                .Flush();
         }
 
         orig(self);
