@@ -24,6 +24,8 @@ internal class Cosmoss : ModTile
         Main.tileMerge[ModContent.TileType<Cosmostone>()][Type] = true;
         Main.tileBlendAll[Type] = true;
 
+        TileID.Sets.Grass[Type] = true;
+        TileID.Sets.CanBeDugByShovel[Type] = true;
         TileID.Sets.NeedsGrassFramingDirt[Type] = ModContent.TileType<Cosmostone>();
         TileID.Sets.NeedsGrassFraming[Type] = true;
         TileID.Sets.ChecksForMerge[Type] = true;
@@ -66,12 +68,24 @@ internal class Cosmoss : ModTile
         cosmossShader.Parameters["tilePos"].SetValue(new Vector2(i, j) * 16);
         cosmossShader.Parameters["sourceRect"].SetValue(new Vector4(tile.TileFrameX, tile.TileFrameY, 16, 16));
 
+        Matrix viewMatrix = Main.GameViewMatrix.TransformationMatrix * Matrix.Invert(Main.GameViewMatrix.ZoomMatrix);
+
         SpriteBatchSnapshot snapshot;
 
         spriteBatch.End(out snapshot);
-        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, cosmossShader, Main.GameViewMatrix.NormalizedTransformationmatrix);
+        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, cosmossShader, viewMatrix);
         spriteBatch.Draw(glowTexture, drawPosition, new Rectangle(tile.TileFrameX, tile.TileFrameY, 16, 16), drawColor, 0.0f, Vector2.Zero, 1f, SpriteEffects.None, 0.0f);
         spriteBatch.End();
         spriteBatch.Begin(snapshot);
+    }
+
+    public override void KillTile(int i, int j, ref bool fail, ref bool effectOnly, ref bool noItem)
+    {
+        if (!effectOnly)
+        {
+            fail = true;
+            WorldGen.KillTile_MakeTileDust(i, j, Main.tile[i, j]);
+            Framing.GetTileSafely(i, j).TileType = (ushort)ModContent.TileType<Cosmostone>();
+        }
     }
 }

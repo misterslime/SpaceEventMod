@@ -16,7 +16,7 @@ internal class Cosmostone : ModTile
     {
         Main.tileSolid[Type] = true;
         Main.tileBlockLight[Type] = true;
-        Main.tileMergeDirt[Type] = true;
+        Main.tileMerge[TileID.Grass][Type] = true;
         Main.tileMerge[ModContent.TileType<Cosmoss>()][Type] = true;
 
         TileID.Sets.ChecksForMerge[Type] = true;
