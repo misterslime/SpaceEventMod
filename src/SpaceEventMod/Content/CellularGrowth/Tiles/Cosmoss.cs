@@ -69,7 +69,7 @@ internal class Cosmoss : ModTile
         SpriteBatchSnapshot snapshot;
 
         spriteBatch.End(out snapshot);
-        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, cosmossShader, Main.GameViewMatrix.TransformationMatrix);
+        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, cosmossShader, Main.GameViewMatrix.NormalizedTransformationmatrix);
         spriteBatch.Draw(glowTexture, drawPosition, new Rectangle(tile.TileFrameX, tile.TileFrameY, 16, 16), drawColor, 0.0f, Vector2.Zero, 1f, SpriteEffects.None, 0.0f);
         spriteBatch.End();
         spriteBatch.Begin(snapshot);
