@@ -40,7 +40,9 @@ internal class Cosmoss : ModTile
         if (!TileDrawing.IsVisible(tile))
             return;
 
-        Color drawColor = WorldGen.paintColor(Framing.GetTileSafely(i, j).TileColor);
+        //Color drawColor = WorldGen.paintColor(Framing.GetTileSafely(i, j).TileColor);
+
+        Color drawColor = Lighting.GetColor(i, j);
 
         Vector2 drawPosition = new Vector2(i * 16, j * 16) - Main.screenPosition;
         if (!Main.drawToScreen)

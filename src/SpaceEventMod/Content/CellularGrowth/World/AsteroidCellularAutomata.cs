@@ -155,17 +155,35 @@ public static class AsteroidCellularAutomata
         }
 
         // cave entrance
-        List<Rectangle> openings = GetCaveEntrances(in mask, width, height);
+        Rectangle opening = new Rectangle();
 
-        foreach (Rectangle opening in openings)
+        for (int y = 0; y < height; y++)
         {
-            for (int j = opening.Y; j < opening.Y + opening.Height; j++)
+            for (int x = 0; x < width; x++)
             {
-                for (int i = opening.X; i < opening.X + opening.Width; i++)
-                {
+                int dir = WorldGen.genRand.Next(2) == 0 ? -1 : 1;
 
-                    map[i + j * width] = CellState.DefinitelyAlive;
-                }
+                if (!IsSolid(mask, x, y, width) || !IsSolid(mask, x, y + 1, width) || !IsSolid(mask, x, y + 2, width))
+                    continue;
+
+                if (IsSolid(mask, x - dir, y, width) || IsSolid(mask, x - dir, y + 1, width) || IsSolid(mask, x - dir, y + 2, width))
+                    continue;
+
+                if (Math.Abs(y - (height / 2)) < Math.Abs(opening.Y - (height / 2)))
+                    opening = new Rectangle(Math.Min(x, x + 3 * dir + 1), y, 5, 3);
+            }
+        }
+
+        for (int j = opening.Y; j < opening.Y + opening.Height; j++)
+        {
+            for (int i = opening.X; i < opening.X + opening.Width; i++)
+            {
+                if (i < 0 || i >= width ||
+                    j < 0 || j >= height)
+                    continue;
+
+
+                map[i + j * width] = CellState.DefinitelyAlive;
             }
         }
 
@@ -173,88 +191,6 @@ public static class AsteroidCellularAutomata
             map = Step(map, width, height, hollow);
 
         return map;
-    }
-
-    private static List<Rectangle> GetCaveEntrances(in CellState[] mask, int width, int height)
-    {
-        List<Rectangle> openings = new List<Rectangle>();
-
-        // left
-        if (WorldGen.genRand.Next(2) == 0)
-        {
-            Rectangle opening = new Rectangle();
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int dir = 1;
-
-                    if (!IsSolid(mask, x, y, width) || !IsSolid(mask, x, y + 1, width) || !IsSolid(mask, x, y + 2, width))
-                        continue;
-
-                    if (IsSolid(mask, x - dir, y, width) || IsSolid(mask, x - dir, y + 1, width) || IsSolid(mask, x - dir, y + 2, width))
-                        continue;
-
-                    if (Math.Abs(y - (height / 2)) < Math.Abs(opening.Y - (height / 2)))
-                        opening = new Rectangle(Math.Min(x, x + 3 * dir + 1), y, 5, 3);
-                }
-            }
-
-            openings.Add(opening);
-        }
-
-        // right
-        if (WorldGen.genRand.Next(2) == 0)
-        {
-            Rectangle opening = new Rectangle();
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int dir = -1;
-
-                    if (!IsSolid(mask, x, y, width) || !IsSolid(mask, x, y + 1, width) || !IsSolid(mask, x, y + 2, width))
-                        continue;
-
-                    if (IsSolid(mask, x - dir, y, width) || IsSolid(mask, x - dir, y + 1, width) || IsSolid(mask, x - dir, y + 2, width))
-                        continue;
-
-                    if (Math.Abs(y - (height / 2)) < Math.Abs(opening.Y - (height / 2)))
-                        opening = new Rectangle(Math.Min(x, x + 3 * dir + 1), y, 5, 3);
-                }
-            }
-
-            openings.Add(opening);
-        }
-
-        // down
-        if (WorldGen.genRand.Next(2) == 0)
-        {
-            Rectangle opening = new Rectangle();
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int dir = -1;
-
-                    if (!IsSolid(mask, x, y, width) || !IsSolid(mask, x + 1, y, width) || !IsSolid(mask, x + 2, y, width))
-                        continue;
-
-                    if (IsSolid(mask, x, y - dir, width) || IsSolid(mask, x + 1, y - dir, width) || IsSolid(mask, x + 2, y - dir, width))
-                        continue;
-
-                    if (Math.Abs(x - (width / 2)) < Math.Abs(opening.X - (width / 2)))
-                        opening = new Rectangle(x, Math.Min(y, y + 3 * dir + 1), 3, 5);
-                }
-            }
-
-            openings.Add(opening);
-        }
-
-        return openings;
     }
 
     private static bool IsSolid(CellState[] mask, int i, int j, int width)

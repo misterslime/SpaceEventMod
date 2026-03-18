@@ -27,8 +27,8 @@ public struct AsteroidGenValues
 
     public AsteroidGenValues(Vector2 position, FastNoiseLite noise, int maxTilesX, int maxTilesY)
     {
-        int halfWidth = (int)(WorldGen.genRand.Next(16, 25));
-        int halfHeight = (int)(WorldGen.genRand.Next(16, 25));
+        int halfWidth = (int)(WorldGen.genRand.Next(9, 18));
+        int halfHeight = (int)(WorldGen.genRand.Next(9, 18));
 
         this.position = position;
         this.tilePosition = new Point((int)(position.X), (int)(position.Y));
@@ -49,8 +49,8 @@ public struct AsteroidGenValues
         if (WorldGen.genRand.Next(2) == 0)
             type = AsteroidCaveType.Porous;
 
-        /*if (WorldGen.genRand.Next(8) == 0)
-            type = AsteroidCaveType.None;*/
+        if (WorldGen.genRand.Next(8) == 0)
+            type = AsteroidCaveType.None;
 
         this.caveType = type;
         this.noiseSample = noise.GetNoise(position.X, position.Y) * 0.5f + 0.5f;

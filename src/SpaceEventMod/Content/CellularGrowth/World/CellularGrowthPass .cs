@@ -53,7 +53,7 @@ internal class CellularGrowthPass : GenPass
         noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 
         // get connective cells and asteroid positions
-        int radius = 30;
+        int radius = 22;
         PoissonSampler2D poissonSampler = new PoissonSampler2D(radius, new Vector2(Main.maxTilesX, Main.maxTilesY), noise, seedDimensions, seedPoints);
 
         noise.SetSeed(WorldGen.genRand.Next());
@@ -137,7 +137,7 @@ internal class CellularGrowthPass : GenPass
 
     private void ShapeAsteroid(AsteroidGenValues asteroid, out List<Point> exteriorTiles, out List<Point> interiorTiles)
     {
-        Output[] tiles = AsteroidCellularAutomata.Generate(asteroid.caveType, asteroid.width, asteroid.height, 6, 50);
+        Output[] tiles = AsteroidCellularAutomata.Generate(asteroid.caveType, asteroid.width, asteroid.height, 16, 50);
 
         // asteroid + caves
         for (int i = 0; i < asteroid.width; i++)
@@ -299,7 +299,7 @@ internal class CellularGrowthPass : GenPass
         }
     }
 
-    /*private void PlugCaveOpenings(AsteroidGenValues asteroid)
+    private void PlugCaveOpenings(AsteroidGenValues asteroid)
     {
         List<Point> positions = new List<Point>();
 
@@ -314,9 +314,9 @@ internal class CellularGrowthPass : GenPass
 
         foreach (Point point in positions)
         {
-            _tiles[point.X, point.Y] = TileTypes.Opening;
+            TryPlaceTile(point.X, point.Y, ModContent.TileType<Cosmostone>());
         }
-    }*/
+    }
 
     private bool PlugAutomata(int i, int j)
     {
@@ -342,7 +342,7 @@ internal class CellularGrowthPass : GenPass
         int walls = 0;
         int empty = 0;
 
-        foreach (Point position in positions)
+        foreach (Point position in  positions)
         {
             if (position.X < 0 || position.Y < 0 || position.X >= Main.maxTilesX || position.Y >= Main.maxTilesY)
                 continue;
@@ -356,7 +356,7 @@ internal class CellularGrowthPass : GenPass
                 walls++;
         }
 
-        if (empty > 1 && walls > 1)
+        if (walls > 1)
             return true;
 
         return false;

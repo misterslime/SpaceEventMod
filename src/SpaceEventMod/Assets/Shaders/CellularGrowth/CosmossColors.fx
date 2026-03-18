@@ -60,7 +60,7 @@ float4 PixelShaderFunction(float4 color : COLOR0, float2 uv : TEXCOORD0) : COLOR
     float4 red = tex2D(colorSampler, float2(glowValue, 0.9999));
 	float4 orange = tex2D(colorSampler, float2(glowValue, 0.));
     
-    return lerp(red, orange, mixValue) * glowMask;
+    return color * lerp(red, orange, mixValue) * glowMask;
 }
 
 technique Technique1 {
