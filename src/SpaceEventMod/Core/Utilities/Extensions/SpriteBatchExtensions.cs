@@ -42,6 +42,6 @@ public static class SpriteBatchExtensions
         var v = Vector2.Normalize(begin - end);
         var angle = (float)Math.Acos(Vector2.Dot(v, -Vector2.UnitX));
         if (begin.Y > end.Y) angle = MathHelper.TwoPi - angle;
-        spriteBatch.Draw(Assets.Assets.Textures.WhitePixel.Value, r, null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
+        spriteBatch.Draw(Assets.Textures.WhitePixel.Asset.Value, r, null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
     }
 }

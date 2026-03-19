@@ -44,15 +44,15 @@ public class AsteroidDrawing : ILoadable
     private Texture2D GetVariantTexture(int variant)
     {
         Texture2D[] textures = [
-            Assets.Assets.Textures.Space.LevelElements.Asteroid3Small.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid3Medium.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid3Large.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid4Small.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid4Medium.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid4Large.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid6.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid9.Value,
-            Assets.Assets.Textures.Space.LevelElements.Asteroid11.Value
+            Assets.Textures.Space.LevelElements.Asteroid3Small.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid3Medium.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid3Large.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid4Small.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid4Medium.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid4Large.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid6.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid9.Asset.Value,
+            Assets.Textures.Space.LevelElements.Asteroid11.Asset.Value
         ];
 
         return textures[variant];

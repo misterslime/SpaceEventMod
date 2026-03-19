@@ -66,7 +66,7 @@ public class Mist : ModDust
         if (dust.customData == null || dust.customData is not MistData mistData)
             return false;
 
-        var inkTexture = Assets.Assets.Textures.CellularGrowth.Dusts.MediumSmoke.Value;
+        var inkTexture = Assets.Textures.CellularGrowth.Dusts.MediumSmoke.Asset.Value;
 
         var frame = new Rectangle(0, 34 * mistData.FrameVariant, 32, 34);
 
@@ -86,7 +86,7 @@ public class Mist : ModDust
         if (mistData.HasParticle)
         {
             pipeline.DrawSprite(
-                Assets.Assets.Textures.WhitePixel.Value,
+                Assets.Textures.WhitePixel.Asset.Value,
                 dust.position - Main.screenPosition + pixelPosition,
                 new Color(42, 176, 191) { A = 0 },
                 scale: Vector2.One * 2f);

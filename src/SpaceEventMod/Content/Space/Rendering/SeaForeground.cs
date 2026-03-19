@@ -38,10 +38,10 @@ public class SeaForeground : ILoadable
             Main.spriteBatch.End();
             Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
 
-            var firmamentSeaForegroundShader = Assets.Assets.Shaders.Space.FirmamentSeaFoam.Value;
+            var firmamentSeaForegroundShader = Assets.Shaders.Space.FirmamentSeaFoam.Asset.Value;
 
-            firmamentSeaForegroundShader.Parameters["noise"].SetValue(Assets.Assets.Textures.Noise.Foam.Value);
-            firmamentSeaForegroundShader.Parameters["palette"].SetValue(Assets.Assets.Textures.Space.Palettes.FirmamentSea.NightForeground.Value);
+            firmamentSeaForegroundShader.Parameters["noise"].SetValue(Assets.Textures.Noise.Foam.Asset.Value);
+            firmamentSeaForegroundShader.Parameters["palette"].SetValue(Assets.Textures.Space.Palettes.FirmamentSea.NightForeground.Asset.Value);
             firmamentSeaForegroundShader.Parameters["globalTime"].SetValue(Main.GlobalTimeWrappedHourly);
             firmamentSeaForegroundShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight));
             firmamentSeaForegroundShader.Parameters["screenWorldPosition"].SetValue(screenPosition);

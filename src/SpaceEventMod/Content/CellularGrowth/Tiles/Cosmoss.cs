@@ -50,12 +50,12 @@ internal class Cosmoss : ModTile
         if (!Main.drawToScreen)
             drawPosition += new Vector2(Main.offScreenRange);
 
-        Texture2D glowTexture = Assets.Assets.Textures.CellularGrowth.Tiles.Cosmoss_Glow.Value;
+        Texture2D glowTexture = Assets.Textures.CellularGrowth.Tiles.Cosmoss_Glow.Asset.Value;
 
-        var cosmossShader = Assets.Assets.Shaders.CellularGrowth.CosmossColors.Value;
+        var cosmossShader = Assets.Shaders.CellularGrowth.CosmossColors.Asset.Value;
 
-        cosmossShader.Parameters["colorMap"].SetValue(Assets.Assets.Textures.CellularGrowth.Tiles.Cosmoss_Palette.Value);
-        cosmossShader.Parameters["noiseTexture"].SetValue(Assets.Assets.Textures.Noise.Foam.Value);
+        cosmossShader.Parameters["colorMap"].SetValue(Assets.Textures.CellularGrowth.Tiles.Cosmoss_Palette.Asset.Value);
+        cosmossShader.Parameters["noiseTexture"].SetValue(Assets.Textures.Noise.Foam.Asset.Value);
         cosmossShader.Parameters["sineAmp"].SetValue(0.0075f);
         cosmossShader.Parameters["sineStrength"].SetValue(0.5f);
         cosmossShader.Parameters["verticalSineAmp"].SetValue(0.01f);

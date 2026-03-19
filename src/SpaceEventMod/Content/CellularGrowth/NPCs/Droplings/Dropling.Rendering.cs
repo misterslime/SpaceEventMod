@@ -88,9 +88,9 @@ internal partial class Dropling
         {
             _flagellum.Center = new(trailPoints[16]);
 
-            DrawTail(in pipeline, _flagellumTail1, 0, Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
-            DrawTail(in pipeline, _flagellumTail2, 1, Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
-            DrawTail(in pipeline, _flagellumTail3, 2, Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+            DrawTail(in pipeline, _flagellumTail1, 0, Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Asset.Value, screenPos, drawColor);
+            DrawTail(in pipeline, _flagellumTail2, 1, Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Asset.Value, screenPos, drawColor);
+            DrawTail(in pipeline, _flagellumTail3, 2, Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Asset.Value, screenPos, drawColor);
         }
 
         pipeline
@@ -98,7 +98,7 @@ internal partial class Dropling
                 trailPointsArray,
                 _ => NPC.height * NPC.scale,
                 _ => drawColor,
-                Assets.Assets.Shaders.Trail.BendyTexture.Value,
+                Assets.Shaders.Trail.BendyTexture.Asset.Value,
                 ("transformMatrix", Graphics.WorldTransformMatrix),
                 ("sampleTexture", texture),
                 ("frame", new Vector4(0, (float)AppendageFrame(), 1, 4)));
@@ -110,8 +110,8 @@ internal partial class Dropling
 
         pipeline.Schedule(RenderLayer.AfterNPCs);
 
-        Texture2D starTexture = Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingStar.Value;
-        Texture2D starGlowTexture = Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingStar_Glow.Value;
+        Texture2D starTexture = Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingStar.Asset.Value;
+        Texture2D starGlowTexture = Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingStar_Glow.Asset.Value;
 
         Vector2 starPositionDifferenceFromCenter = trailPoints[7] - drawPosition;
         starPositionDifferenceFromCenter *= 0.25f;
@@ -130,8 +130,8 @@ internal partial class Dropling
         spriteBatch.Draw(starGlowTexture, starPosition - screenPos, null, starColor, starRotation, starGlowTexture.Size() * 0.5f, NPC.scale * starScale * 0.95f, 0, 0);
         spriteBatch.Draw(starTexture, starPosition - screenPos, null, Color.White, starRotation, starTexture.Size() * 0.5f, NPC.scale * starScale, 0, 0);
 
-        Texture2D jawsTexture = Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingJaw.Value;
-        Texture2D bigJawsTexture = Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingJawBig.Value;
+        Texture2D jawsTexture = Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingJaw.Asset.Value;
+        Texture2D bigJawsTexture = Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingJawBig.Asset.Value;
 
         var jawTextureOrigins = new Dictionary<string, Vector2>
         {
@@ -161,9 +161,9 @@ internal partial class Dropling
             {
                 _flagellum.Center = new(trailPoints[16]);
 
-                DrawTail(in pipeline, _flagellumTail1, 0, Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
-                DrawTail(in pipeline, _flagellumTail2, 1, Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
-                DrawTail(in pipeline, _flagellumTail3, 2, Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Value, screenPos, drawColor);
+                DrawTail(in pipeline, _flagellumTail1, 0, Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Asset.Value, screenPos, drawColor);
+                DrawTail(in pipeline, _flagellumTail2, 1, Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Asset.Value, screenPos, drawColor);
+                DrawTail(in pipeline, _flagellumTail3, 2, Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingTentacle2.Asset.Value, screenPos, drawColor);
             }
 
             pipeline
@@ -171,7 +171,7 @@ internal partial class Dropling
                     trailPointsArray,
                     _ => NPC.height * NPC.scale,
                     _ => drawColor,
-                    Assets.Assets.Shaders.Trail.BendyTexture.Value,
+                    Assets.Shaders.Trail.BendyTexture.Asset.Value,
                     ("transformMatrix", Graphics.WorldTransformMatrix),
                     ("sampleTexture", texture),
                     ("frame", new Vector4(0, (float)AppendageFrame(), 1, 4)));
@@ -191,7 +191,7 @@ internal partial class Dropling
             the = EasingFunctions.InQuart(Math.Clamp(the, 0.3f, 0.8f));
 
             pipeline.ApplyEffect(
-                Assets.Assets.Shaders.Fragment.ChangeColor.Value,
+                Assets.Shaders.Fragment.ChangeColor.Asset.Value,
                 ("color", drawColor.ToVector4() * Vector4.Lerp(Color.BlueViolet.ToVector4(), Color.Blue.ToVector4(), the)));
         });
 
@@ -292,7 +292,7 @@ internal partial class Dropling
                 trailPoints.ToArray(),
                 _ => texture.Width,
                 _ => drawColor,
-                Assets.Assets.Shaders.Trail.RepeatingTexture.Value,
+                Assets.Shaders.Trail.RepeatingTexture.Asset.Value,
                 ("transformMatrix", Graphics.WorldTransformMatrix),
                 ("sampleTexture", texture),
                 ("repeats", points.Count),
@@ -301,8 +301,8 @@ internal partial class Dropling
 
     private void DrawWings(in Pipeline pipeline, in Vector2[] trailPoints, Vector2 drawPosition, Vector2 screenPos, Color drawColor, bool drawingGlow = false)
     {
-        Texture2D wingTexture = Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingWing.Value;
-        Texture2D glowTexture = Assets.Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingWing_Glow.Value;
+        Texture2D wingTexture = Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingWing.Asset.Value;
+        Texture2D glowTexture = Assets.Textures.CellularGrowth.NPCs.Droplings.DroplingWing_Glow.Asset.Value;
 
         Vector2 wingPosition = new Vector2(6, 26) * NPC.scale;
 

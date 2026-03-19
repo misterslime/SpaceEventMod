@@ -165,7 +165,7 @@ internal class SoftBodyManager : ModSystem
                 .DrawBasicTrail(
                     trailPoints.ToArray(),
                     _ => 3f,
-                    Assets.Assets.Textures.WhitePixel.Value,
+                    Assets.Textures.WhitePixel.Asset.Value,
                     Color.White)
                 .ApplyOutline(Color.Black)
                 .Schedule(RenderLayer.AfterNPCs);

@@ -241,7 +241,7 @@ internal class PhysicsJellyfish : ModNPC
         pipeline.DrawBasicTrail(
             trailPoints.ToArray(),
             _ => 3f,
-            Assets.Assets.Textures.WhitePixel.Value,
+            Assets.Textures.WhitePixel.Asset.Value,
             Color.White);
     }
 
@@ -281,7 +281,7 @@ internal class PhysicsJellyfish : ModNPC
         pipeline.DrawBasicTrail(
             trailPoints.ToArray(),
             _ => 2f,
-            Assets.Assets.Textures.WhitePixel.Value,
+            Assets.Textures.WhitePixel.Asset.Value,
             Color.White);
     }
 }

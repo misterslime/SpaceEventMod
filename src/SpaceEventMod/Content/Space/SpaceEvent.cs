@@ -88,7 +88,7 @@ public class SpaceEvent : ModSystem
         int frameX = Main.rand.Next(0, 3);
         int frameY = Main.rand.Next(0, 2);
 
-        Texture2D texture = Assets.Assets.Textures.Space.LevelElements.Star.Value;
+        Texture2D texture = Assets.Textures.Space.LevelElements.Star.Asset.Value;
         Rectangle frame = texture.Frame(3, 2, frameX, frameY);
 
         Stars.List.Add(new LevelElements.Star(randomPosition, frame));
@@ -146,14 +146,5 @@ public class SpaceEvent : ModSystem
         var dimensions = GetDimensions(asteroidType);
 
         Asteroids.List.Add(new Asteroid(randomPosition, asteroidType, dimensions.X, dimensions.Y));
-    }
-
-    public void DrawLine(SpriteBatch spriteBatch, Vector2 begin, Vector2 end, Color color, int width = 1)
-    {
-        var r = new Rectangle((int)begin.X, (int)begin.Y, (int)(end - begin).Length() + width, width);
-        var v = Vector2.Normalize(begin - end);
-        var angle = (float)Math.Acos(Vector2.Dot(v, -Vector2.UnitX));
-        if (begin.Y > end.Y) angle = MathHelper.TwoPi - angle;
-        spriteBatch.Draw(Assets.Assets.Textures.WhitePixel.Value, r, null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
     }
 }

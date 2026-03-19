@@ -37,7 +37,7 @@ public class StarsapTileRenderer : ILoadable
                     if (tileData.Coated)
                     {
                         var target = new Rectangle((int)(i * 16 - Main.screenPosition.X), (int)(j * 16 - Main.screenPosition.Y), 16, 16);
-                        var tex = Assets.Assets.Textures.WhitePixel.Value;
+                        var tex = Assets.Textures.WhitePixel.Asset.Value;
 
                         Main.spriteBatch.Draw(tex, target, null, Color.Magenta);
                     }

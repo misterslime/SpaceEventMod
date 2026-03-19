@@ -1,51 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <!-- Import tModLoader mod properties -->
-    <Import Project="..\..\..\tModLoader.targets" />
-
-    <!-- General -->
-    <PropertyGroup>
-      <LangVersion>latest</LangVersion>
-    </PropertyGroup>
-
-    <!-- analyzers -->
-    <ItemGroup>
-        <ProjectReference Include="..\SourceGeneration\SourceGeneration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    </ItemGroup>
+﻿<Project Sdk="Tomat.Terraria.ModLoader.Sdk">
 
     <PropertyGroup>
-        <FXCPath>Assets/Shaders/Compiler/fxc.exe</FXCPath>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+
+        <TmlBuildUseDefaultModImpl>false</TmlBuildUseDefaultModImpl>
     </PropertyGroup>
 
-    <ItemGroup>
-        <ShaderFiles Include="**/*.fx" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <AdditionalFiles Include="Assets/**/*.png" />
-        <AdditionalFiles Include="Assets/**/*.fxc" />
-        <AdditionalFiles Include="Assets/**/*.wav" />
-        <AdditionalFiles Include="Assets/**/*.ogg" />
-        <AdditionalFiles Include="Assets/**/*.mp3" />
-    </ItemGroup>
-	
     <!-- Publicizer -->
     <ItemGroup>
-      <PackageReference Include="Krafs.Publicizer" PrivateAssets="true" Version="2.2.1" />
+        <!-- Publicize Terraria and tModLoader (Does not include the Relogic namespace) -->
+        <Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
 
-      <!-- Publicize Terraria and tModLoader (Does not include the Relogic namespace) -->
-      <Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
-        
-      <!-- Publicizes all FNA types -->
-      <Publicize Include="tModLoader;FNA" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+        <!-- Publicizes all FNA types -->
+        <Publicize Include="tModLoader;FNA" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
     </ItemGroup>
+
     <ItemGroup>
-      <Folder Include="Common\" />
+        <ProjectReference Include="..\daybreak-mod\src\Daybreak\Daybreak.csproj"/>
+        <ProjectReference Include="..\daybreak-mod\src\Daybreak.CodeAnalysis\Daybreak.CodeAnalysis.csproj" PrivateAssets="All" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
     </ItemGroup>
-
-    <Target Name="BuildEffects" BeforeTargets="BuildMod" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-        <Exec Command="@(ShaderFiles->'&quot;$(FXCPath)&quot; &quot;%(RecursiveDir)%(FileName)%(Extension)&quot; /T fx_2_0 /D FX=1 /nologo /Fo &quot;%(RecursiveDir)%(FileName).fxc&quot; &#xA;&#xD;')" IgnoreExitCode="true" />
-    </Target>
 
 </Project>

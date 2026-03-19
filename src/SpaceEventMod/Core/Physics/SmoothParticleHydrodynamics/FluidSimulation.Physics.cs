@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Terraria;
-using static SpaceEventMod.Assets.Assets.Shaders;
 
 namespace SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
 

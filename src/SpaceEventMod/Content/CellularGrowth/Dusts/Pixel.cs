@@ -42,7 +42,7 @@ public class Pixel : ModDust
 
         Graphics.BeginPipeline(0.5f)
             .DrawSprite(
-                Assets.Assets.Textures.WhitePixel.Value,
+                Assets.Textures.WhitePixel.Asset.Value,
                 position,
                 color,
                 scale: scale)

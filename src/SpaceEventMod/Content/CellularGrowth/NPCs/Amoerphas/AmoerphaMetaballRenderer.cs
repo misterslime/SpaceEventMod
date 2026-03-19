@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SpaceEventMod.Assets;
 using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Graphics;
 using SpaceEventMod.Core.Utilities.Extensions;
@@ -61,7 +60,7 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
 
         var sb = Main.spriteBatch;
         var gd = Main.instance.GraphicsDevice;
-        var effect = Assets.Assets.Shaders.CellularGrowth.AmoebaSDFs.Value;
+        var effect = Assets.Shaders.CellularGrowth.AmoebaSDFs.Asset.Value;
         ApplyToBindings(gd.GetRenderTargets());
         var rts = gd.GetRenderTargets();
         ApplyToBindings(rts);
@@ -73,8 +72,8 @@ internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
         var worldViewDimensions = new Vector2(Main.screenWidth, Main.screenHeight);
         var correctScreenTopLeft = screenCenter - worldViewDimensions / 2f;
 
-        effect.Parameters["noiseTexture"].SetValue(Assets.Assets.Textures.Noise.Bubble.Value);
-        effect.Parameters["normalTexture"].SetValue(Assets.Assets.Textures.Noise.BubbleNormal.Value);
+        effect.Parameters["noiseTexture"].SetValue(Assets.Textures.Noise.Bubble.Asset.Value);
+        effect.Parameters["normalTexture"].SetValue(Assets.Textures.Noise.BubbleNormal.Asset.Value);
         effect.Parameters["aData"].SetValue(_pointA);
         effect.Parameters["bData"].SetValue(_pointB);
         effect.Parameters["lineCount"].SetValue(_activeLineCount);

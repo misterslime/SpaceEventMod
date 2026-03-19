@@ -41,7 +41,7 @@ public class Sleep : ModDust
 
     public override bool PreDraw(Dust dust)
     {
-        var sleepTexture = Assets.Assets.Textures.CellularGrowth.Dusts.Sleep.Value;
+        var sleepTexture = Assets.Textures.CellularGrowth.Dusts.Sleep.Asset.Value;
 
         Graphics.BeginPipeline(0.5f)
             .DrawSprite(

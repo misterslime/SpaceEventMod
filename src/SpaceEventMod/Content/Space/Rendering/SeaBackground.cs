@@ -32,7 +32,7 @@ public class SeaBackground : ILoadable
                     Vector2.One,
                     SpriteEffects.None)
                 .ApplyEffect(
-                    Assets.Assets.Shaders.Space.FirmamentSeaBackgroundTransparency.Value,
+                    Assets.Shaders.Space.FirmamentSeaBackgroundTransparency.Asset.Value,
                     ("sea", SeaTargets.SeaRenderTarget),
                     ("minimumAlpha", 0.8f))
                 .Flush();
@@ -50,7 +50,7 @@ public class SeaBackground : ILoadable
             * Matrix.CreateScale(0.5f / Main.GameViewMatrix.Zoom.X, 0.5f / Main.GameViewMatrix.Zoom.Y, 1f)
             * Matrix.CreateTranslation(Main.GameViewMatrix.Translation.X * 0.5f, Main.GameViewMatrix.Translation.Y * 0.5f, 0f);
 
-        var palette = Assets.Assets.Textures.Space.Palettes.FirmamentSea.NightBackground2.Value;
+        var palette = Assets.Textures.Space.Palettes.FirmamentSea.NightBackground2.Asset.Value;
         Vector3[] sampleOffsetsAndScales = [new Vector3(0.02f, 0.03f, 0.7f), new Vector3(0.05f, 0.05f, 1), new Vector3(-0.03f, 0.02f, 0.85f)];
         var bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.15f, 1f, 0.5f, 0.35f, 0.3f);
         var color = Color.White;
@@ -60,7 +60,7 @@ public class SeaBackground : ILoadable
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
 
-        palette = Assets.Assets.Textures.Space.Palettes.FirmamentSea.NightBackground1.Value;
+        palette = Assets.Textures.Space.Palettes.FirmamentSea.NightBackground1.Asset.Value;
         sampleOffsetsAndScales = [new Vector3(0.02f, 0.03f, 1), new Vector3(0.05f, 0.05f, 1.35f), new Vector3(-0.03f, 0.02f, 1.1f)];
         bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.2f, 0.7f, 0.35f, 0.4f, 0.5f);
         color.A = 100;
@@ -69,7 +69,7 @@ public class SeaBackground : ILoadable
         Main.spriteBatch.Draw(SeaTargets.SeaRenderTarget, Vector2.Zero, rectangle, Color.White, 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
         Main.spriteBatch.End();
 
-        palette = Assets.Assets.Textures.Space.Palettes.FirmamentSea.NightBackground0.Value;
+        palette = Assets.Textures.Space.Palettes.FirmamentSea.NightBackground0.Asset.Value;
         sampleOffsetsAndScales = [new Vector3(0.02f, 0.03f, 1), new Vector3(0.05f, 0.05f, 2), new Vector3(0.03f, 0.02f, 2.2f)];
         bubbleShader = GetBackgroundBubbleShader(palette, sampleOffsetsAndScales, 0.3f, 1f, 0f, 0.4f, 0.85f);
         color.A = 180;
@@ -81,10 +81,10 @@ public class SeaBackground : ILoadable
 
     private static Effect GetBackgroundBubbleShader(Texture2D palette, Vector3[] sampleOffsetsAndScales, float speed, float gradientLength, float gradientStart, float cutoff, float parallax)
     {
-        var firmamentSeaBackgroundShader = Assets.Assets.Shaders.Space.FirmamentSeaBubbles.Value;
+        var firmamentSeaBackgroundShader = Assets.Shaders.Space.FirmamentSeaBubbles.Asset.Value;
 
-        firmamentSeaBackgroundShader.Parameters["bubbles"].SetValue(Assets.Assets.Textures.Noise.Bubble.Value);
-        firmamentSeaBackgroundShader.Parameters["distortion"].SetValue(Assets.Assets.Textures.Noise.Perlin.Value);
+        firmamentSeaBackgroundShader.Parameters["bubbles"].SetValue(Assets.Textures.Noise.Bubble.Asset.Value);
+        firmamentSeaBackgroundShader.Parameters["distortion"].SetValue(Assets.Textures.Noise.Perlin.Asset.Value);
         firmamentSeaBackgroundShader.Parameters["palette"].SetValue(palette);
         firmamentSeaBackgroundShader.Parameters["sampleOffsetsAndScales"].SetValue(sampleOffsetsAndScales);
         firmamentSeaBackgroundShader.Parameters["screenSize"].SetValue(new Vector2(Main.screenWidth, Main.screenHeight) * 1.75f);

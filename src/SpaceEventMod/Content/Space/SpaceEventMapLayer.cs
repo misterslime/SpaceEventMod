@@ -22,7 +22,7 @@ public class SpaceEventMapLayer : ModMapLayer
         if (Main.mapStyle == 2)
             return;
 
-        var whitePixel = Assets.Assets.Textures.WhitePixel.Value;
+        var whitePixel = Assets.Textures.WhitePixel.Asset.Value;
 
         // draw sea
         // help

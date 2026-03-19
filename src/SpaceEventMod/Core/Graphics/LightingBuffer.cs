@@ -159,7 +159,7 @@ internal static class LightingBuffer
 
             var gd = Main.instance.GraphicsDevice;
 
-            var shader = Assets.Assets.Shaders.Fragment.LightMesh.Value;
+            var shader = Assets.Shaders.Fragment.LightMesh.Asset.Value;
 
             shader.Parameters["uWorldViewProjection"]?.SetValue(Graphics.WorldTransformMatrix);
             shader.Parameters["layer1Texture"]?.SetValue(texture);

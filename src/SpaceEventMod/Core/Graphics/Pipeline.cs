@@ -14,7 +14,7 @@ public struct Pipeline(Graphics graphics)
     public readonly Pipeline ApplyOutline(Color color, float threshold = 0.001f)
     {
         ApplyEffect(
-            Assets.Assets.Shaders.Fragment.Outline.Value,
+            Assets.Shaders.Fragment.Outline.Asset.Value,
             ("uColor", color.ToVector4()),
             ("uSize", Main.ScreenSize.ToVector2()),
             ("uThreshold", threshold)
@@ -57,7 +57,7 @@ public struct Pipeline(Graphics graphics)
         int spriteRotation = 0
     )
     {
-        var effect = Assets.Assets.Shaders.Trail.Default.Value;
+        var effect = Assets.Shaders.Trail.Default.Asset.Value;
         ReadOnlySpan<(string, ParameterValue)> parameters = [
             ("sampleTexture", texture),
                 ("color", color.ToVector4()),
@@ -76,7 +76,7 @@ public struct Pipeline(Graphics graphics)
         int spriteRotation = 0
     )
     {
-        var effect = Assets.Assets.Shaders.Trail.Default.Value;
+        var effect = Assets.Shaders.Trail.Default.Asset.Value;
         ReadOnlySpan<(string, ParameterValue)> parameters = [
             ("sampleTexture", texture),
                 ("color", Color.White.ToVector4()),
@@ -319,7 +319,7 @@ public struct Pipeline(Graphics graphics)
 
     public readonly Pipeline ApplyTint(Color color)
     {
-        ApplyEffect(Assets.Assets.Shaders.Fragment.Tint.Value, ("color", color.ToVector4()));
+        ApplyEffect(Assets.Shaders.Fragment.Tint.Asset.Value, ("color", color.ToVector4()));
         return this;
     }
 

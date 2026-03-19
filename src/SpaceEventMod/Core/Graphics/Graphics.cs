@@ -113,7 +113,7 @@ public class Graphics : ModSystem
             );
             SpriteVertexBuffer.SetData([0f, 1f, 2f, 3f]);
 
-            SpriteEffect = Assets.Assets.Shaders.Trail.Quad.Value;
+            SpriteEffect = Assets.Shaders.Trail.Quad.Asset.Value;
             SpriteMatrix = SpriteEffect.Parameters["uMatrix"].values;
             SpriteColor = SpriteEffect.Parameters["uColor"].values;
             SpriteSource = SpriteEffect.Parameters["uSource"].values;

@@ -22,7 +22,7 @@ public class StarDrawing : ILoadable
         {
             var star = Stars.List[i];
 
-            var texture = Assets.Assets.Textures.Space.LevelElements.Star.Value;
+            var texture = Assets.Textures.Space.LevelElements.Star.Asset.Value;
             var drawPosition = star.GetCenter() - Main.screenPosition;
             var origin = star.Frame.Center.ToVector2();
 
