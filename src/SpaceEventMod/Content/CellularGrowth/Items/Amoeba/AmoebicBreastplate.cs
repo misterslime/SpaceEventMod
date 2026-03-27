@@ -7,6 +7,15 @@ namespace SpaceEventMod.Content.CellularGrowth.Items.Amoeba;
 [AutoloadEquip(EquipType.Body)]
 internal class AmoebicBreastplate : ModItem
 {
+    public override void SetStaticDefaults()
+    {
+        int equipSlotBody = EquipLoader.GetEquipSlot(Mod, Name, EquipType.Body);
+
+        ArmorIDs.Body.Sets.HidesTopSkin[equipSlotBody] = true;
+        ArmorIDs.Body.Sets.HidesArms[equipSlotBody] = true;
+        ArmorIDs.Body.Sets.HidesHands[equipSlotBody] = true;
+    }
+
     public override void SetDefaults()
     {
         Item.width = 18;

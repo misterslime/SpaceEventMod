@@ -18,6 +18,10 @@ internal class AmoebicHelmet : ModItem
     public override void SetStaticDefaults()
     {
         SetBonusText = this.GetLocalization("SetBonus");
+
+        int equipSlotHead= EquipLoader.GetEquipSlot(Mod, Name, EquipType.Head);
+
+        ArmorIDs.Head.Sets.DrawHead[equipSlotHead] = false;
     }
 
 

@@ -7,6 +7,13 @@ namespace SpaceEventMod.Content.CellularGrowth.Items.Amoeba;
 [AutoloadEquip(EquipType.Legs)]
 internal class AmoebicLeggings : ModItem
 {
+    public override void SetStaticDefaults()
+    {
+        int equipSlotLegs = EquipLoader.GetEquipSlot(Mod, Name, EquipType.Legs);
+
+        ArmorIDs.Legs.Sets.HidesBottomSkin[equipSlotLegs] = true;
+    }
+
     public override void SetDefaults()
     {
         Item.width = 18;
