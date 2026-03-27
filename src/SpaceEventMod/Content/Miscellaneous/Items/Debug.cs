@@ -4,6 +4,7 @@ using SpaceEventMod.Content.Space.LevelElements;
 using SpaceEventMod.Core;
 using System.Linq;
 using Terraria;
+using Terraria.Graphics.Effects;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -30,7 +31,11 @@ internal class Debug : ModItem
 
         //AmoerphaMetaballRenderer.New(Main.MouseWorld, Main.rand.NextFloat(32, 128), 7, Vector2.Zero);
 
-        //return true;
+        if (!Filters.Scene["SeaDistortFog"].IsActive())
+            Filters.Scene.Activate("SeaDistortFog");
+        else
+            Filters.Scene.Deactivate("SeaDistortFog");
+
 
         if (!SpaceEvent.Sea.Active)
             SpaceEvent.Sea = new FirmamentSea(16, 64, 3);

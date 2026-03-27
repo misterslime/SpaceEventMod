@@ -2,6 +2,7 @@ using Daybreak.Common.Features.Hooks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
+using SpaceEventMod.Content.Space.Rendering;
 using Terraria.Graphics.Effects;
 using Terraria.Graphics.Shaders;
 
@@ -31,9 +32,10 @@ internal class SpaceEventScreenShaderData : ScreenShaderData
     [ModSystemHooks.PostUpdateEverything]
     private static void UpdateShaderParameters()
     {
-        if (_myFilter is null)
+        if (_myFilter is null || SeaTargets.SeaRenderTarget is null)
             return;
 
+        Filters.Scene["SeaDistortFog"]._shader.UseImage(SeaTargets.SeaRenderTarget, 1, SamplerState.LinearWrap);
     }
 
     public override void Apply()

@@ -3,6 +3,7 @@
 
 sampler uImage0 : register(s0);
 sampler distort : register(s1);
+sampler sea : register(s2);
 
 float3 uColor;
 float3 uSecondaryColor;
@@ -33,6 +34,11 @@ float blurMulti; // 1.0;
 
 float4 PixelShaderFunction(float4 color : COLOR0, float2 coords : TEXCOORD0) : COLOR0
 {
+    if (tex2D(sea, coords).b < 0.5)
+    {
+        return tex2D(uImage0, coords);
+    }
+
     float2 uv = coords;
     float toCenter = length(float2(0.5, 0.5) - uv);
 
