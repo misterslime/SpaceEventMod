@@ -3,7 +3,7 @@
 
 #include "Math.fxh"
 
-static const int SAMPLES = 25;
+static const int SAMPLES = 12;
 static const float SIGMA = float(SAMPLES) * 0.25;
 
 // we don't need to recalculate these every time
