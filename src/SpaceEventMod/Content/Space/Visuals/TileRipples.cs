@@ -13,7 +13,7 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Space.Visuals;
 
-internal class TileRipples : ILoadable
+internal class TileRipples
 {
     public void Load(Mod mod)
     {
