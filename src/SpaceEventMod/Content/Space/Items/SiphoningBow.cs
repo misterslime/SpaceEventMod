@@ -147,7 +147,7 @@ internal class SiphoningBowHeld : ModProjectile
             float speed = playerWeapon.shootSpeed * Charge;
             int damage = (int)(Projectile.damage * Charge);
             float knockBack = Projectile.knockBack * Charge;
-            Vector2 shootVector = _direction.SafeNormalize(Vector2.Zero) * speed * Charge;
+            Vector2 shootVector = Vector2.Lerp(player.velocity, _direction.SafeNormalize(Vector2.Zero) * speed, Charge);
 
             Projectile.NewProjectileDirect(Projectile.GetSource_FromThis(), player.Center, shootVector, AmmoType, damage, knockBack, Projectile.owner);
             SoundEngine.PlaySound(SoundID.Item5, Projectile.Center);
