@@ -106,6 +106,8 @@ Projectiles: {
 		DisplayName: Cocoon Chunk
 		BuffText: Eat me!
 	}
+
+	SiphoningBowHeld.DisplayName: Siphoning Bow Held
 }
 
 Buffs: {
