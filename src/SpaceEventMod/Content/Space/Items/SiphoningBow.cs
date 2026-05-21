@@ -15,16 +15,6 @@ namespace SpaceEventMod.Content.Space.Items;
 
 internal class SiphoningBow : ModItem
 {
-    private readonly static Rectangle ITEM_FRAME = new Rectangle(12, 14, 38, 76);
-
-    public override void SetStaticDefaults()
-    {
-        Main.RegisterItemAnimation(Type, new DrawAnimationVertical(5, 19)
-        {
-            NotActuallyAnimating = true
-        });
-    }
-
     public override void SetDefaults()
     {
         Item.width = 38;
@@ -47,23 +37,6 @@ internal class SiphoningBow : ModItem
         Item.DamageType = DamageClass.Ranged;
         Item.knockBack = 4f;
         Item.noMelee = true;
-    }
-
-    public override Vector2? HoldoutOffset() => null;
-
-    private bool DrawSiphoningBow(SpriteBatch spriteBatch, Vector2 position, Color drawColor, float rotation, float scale)
-    {
-        spriteBatch.Draw(TextureAssets.Item[Type].Value, position, ITEM_FRAME, drawColor, rotation, ITEM_FRAME.Size() * 0.5f, scale, 0, 0);
-        return false;
-    }
-
-    public override bool PreDrawInInventory(SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
-        => DrawSiphoningBow(spriteBatch, position, drawColor, 0f, scale * 1.6f);
-
-    public override bool PreDrawInWorld(SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
-    {
-        Vector2 position = Item.Bottom - Main.screenPosition - new Vector2(0, ITEM_FRAME.Y);
-        return DrawSiphoningBow(spriteBatch, position, lightColor, rotation, scale);
     }
 }
 
