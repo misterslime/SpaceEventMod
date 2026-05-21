@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
@@ -45,6 +46,21 @@ internal class SiphoningBow : ModItem
     }
 
     public override bool CanUseItem(Player player) => player.ownedProjectileCounts[Item.shoot] == 0;
+
+    public override void AddRecipes()
+    {
+        CreateRecipe()
+            .AddIngredient(ItemID.GoldBar, 5)
+            .AddIngredient(ModContent.ItemType<Starsap>(), 12)
+            .AddTile(TileID.WorkBenches)
+            .Register();
+
+        CreateRecipe()
+            .AddIngredient(ItemID.PlatinumBar, 5)
+            .AddIngredient(ModContent.ItemType<Starsap>(), 12)
+            .AddTile(TileID.WorkBenches)
+            .Register();
+    }
 }
 
 internal class SiphoningBowHeld : ModProjectile
