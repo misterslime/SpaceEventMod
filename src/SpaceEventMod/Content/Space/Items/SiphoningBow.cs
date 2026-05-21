@@ -109,6 +109,7 @@ internal class SiphoningBowHeld : ModProjectile
             return false;
         }
 
+        // part of this is from spirit reforged btw
         _direction = Vector2.Lerp(_direction, (Main.MouseWorld - player.Center).SafeNormalize(Vector2.Zero), 0.2f);
         player.ChangeDir(Main.MouseWorld.X > player.position.X ? 1 : -1);
         player.heldProj = Projectile.whoAmI;

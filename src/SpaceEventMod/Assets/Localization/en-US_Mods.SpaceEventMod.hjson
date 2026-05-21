@@ -65,6 +65,11 @@ Items: {
 		DisplayName: Siphoning Bow
 		Tooltip: ""
 	}
+
+	Windoplasts: {
+		DisplayName: Windoplasts
+		Tooltip: ""
+	}
 }
 
 NPCs: {
