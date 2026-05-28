@@ -5,6 +5,7 @@ using System.IO;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static Terraria.Player;
@@ -17,8 +18,7 @@ internal class SiphoningBow : ModItem
     {
         Item.width = 38;
         Item.height = 76;
-        Item.rare = ItemRarityID.White;
-        Item.value = Item.buyPrice(silver: 20);
+        Item.SetShopValues(ItemRarityID.White, Item.buyPrice(silver: 20));
         Item.noUseGraphic = true;
 
         Item.channel = true;
@@ -27,21 +27,20 @@ internal class SiphoningBow : ModItem
         Item.UseSound = SoundID.Item7;
         Item.useStyle = ItemUseStyleID.Shoot;
         Item.useTurn = true;
+        Item.mana = 20;
 
-        Item.shootSpeed = 15f;
+        Item.shootSpeed = 22f;
         Item.shoot = ModContent.ProjectileType<SiphoningBowHeld>();
-        Item.useAmmo = AmmoID.Arrow;
 
-        Item.damage = 16;
-        Item.DamageType = DamageClass.Ranged;
-        Item.knockBack = 4f;
+        Item.SetWeaponValues(16, 4f);
+        Item.DamageType = DamageClass.Magic;
         Item.noMelee = true;
     }
 
     public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
     {
-        int useTime = (int)(Item.useTime / player.GetTotalAttackSpeed(DamageClass.Ranged));
-        Projectile.NewProjectileDirect(source, position, Vector2.Zero, Item.shoot, damage, knockback, player.whoAmI, 0, useTime, type);
+        int useTime = (int)(Item.useTime / player.GetTotalAttackSpeed(DamageClass.Magic));
+        Projectile.NewProjectileDirect(source, position, Vector2.Zero, Item.shoot, damage, knockback, player.whoAmI, 0, useTime);
         return false;
     }
 
@@ -67,7 +66,6 @@ internal class SiphoningBowHeld : ModProjectile
 {
     private ref float Charge => ref Projectile.ai[0];
     private float ChargeTime => Projectile.ai[1];
-    private int AmmoType => (int)Projectile.ai[2];
 
     private bool _primed = false;
     private Vector2 _direction = Vector2.Zero;
@@ -83,7 +81,7 @@ internal class SiphoningBowHeld : ModProjectile
         Projectile.height = 92;
         Projectile.hostile = false;
         Projectile.friendly = true;
-        Projectile.DamageType = DamageClass.Ranged;
+        Projectile.DamageType = DamageClass.Magic;
         Projectile.penetrate = -1;
         Projectile.tileCollide = false;
         Projectile.aiStyle = -1;
@@ -150,7 +148,15 @@ internal class SiphoningBowHeld : ModProjectile
             float knockBack = Projectile.knockBack * Charge;
             Vector2 shootVector = Vector2.Lerp(player.velocity, _direction.SafeNormalize(Vector2.Zero) * speed, Charge);
 
-            Projectile.NewProjectileDirect(Projectile.GetSource_FromThis(), player.Center, shootVector, AmmoType, damage, knockBack, Projectile.owner);
+            Projectile.NewProjectileDirect(
+                Projectile.GetSource_FromThis(), 
+                player.Center, shootVector, 
+                ModContent.ProjectileType<SiphoningBowArrow>(), 
+                damage,
+                knockBack, 
+                Projectile.owner,
+                0f,
+                Main.rand.Next(0, 3));
             SoundEngine.PlaySound(SoundID.Item5, Projectile.Center);
 
             Projectile.frame = 0;
@@ -162,37 +168,71 @@ internal class SiphoningBowHeld : ModProjectile
     }
 }
 
-internal class SiphoningBowArrows : GlobalProjectile
+internal class SiphoningBowArrow : ModProjectile
 {
-    private bool _siphonArrow = false;
-    private int _type = 0; // 0 = red, 1 = yellow, 2 = blue
-
-    public override bool InstancePerEntity => true;
-
-    public override bool AppliesToEntity(Projectile entity, bool lateInstantiation) => entity.friendly && entity.DamageType == DamageClass.Ranged;
-
-    public override void OnSpawn(Projectile projectile, IEntitySource source)
+    private enum ArrowState
     {
-        _siphonArrow = false;
-
-        if (source is EntitySource_Parent { Entity: Projectile proj } && proj != null && proj.ModProjectile is SiphoningBowHeld)
-        {
-            _siphonArrow = true;
-            _type = Main.rand.Next(0, 3);
-        }
+        Thrown,
+        ImpaledEnemy,
+        ImpaledGround
     }
 
-    public override bool PreDraw(Projectile projectile, ref Color lightColor)
-    {
-        if (!_siphonArrow)
-            return true;
+    public ref float Timer => ref Projectile.ai[0];
+    public int ArrowType => (int)Projectile.ai[1];
 
-        Texture2D tex = Assets.Textures.Space.Items.SiphoningBowArrows.Asset.Value;
-        Rectangle frame = tex.Frame(3, 1, _type, 0);
+    public override void SetDefaults()
+    {
+        Projectile.width = Projectile.height = 10;
+
+        Projectile.arrow = true;
+        Projectile.friendly = true;
+        Projectile.DamageType = DamageClass.Magic;
+        Projectile.timeLeft = 1200;
+    }
+
+    public override void AI()
+    {
+        Timer += 1f;
+        if (Timer >= 15f)
+        {
+            Timer = 15f;
+            Projectile.velocity.Y += 0.35f;
+            Projectile.velocity.X *= 0.99f;
+        }
+
+        Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver2;
+
+        if (Projectile.velocity.Y > 16f)
+        {
+            Projectile.velocity.Y = 16f;
+        }
+
+
+        Projectile.width = Projectile.height = 6;
+    }
+
+    public override bool PreDraw(ref Color lightColor)
+    {
+        Texture2D tex = TextureAssets.Projectile[Type].Value;
+        Rectangle frame = tex.Frame(3, 1, ArrowType, 0);
+        frame.Height = ArrowType switch
+        {
+            0 => 36,
+            1 => 44,
+            _ => frame.Height
+        };
         Vector2 origin = frame.Center() - frame.Location.ToVector2();
 
-        Main.EntitySpriteDraw(tex, projectile.Center - Main.screenPosition, frame, Color.White, projectile.rotation, origin, projectile.scale, 0, 0);
+        Main.EntitySpriteDraw(tex, Projectile.Center - Main.screenPosition, frame, Color.White, Projectile.rotation, origin, Projectile.scale, 0, 0);
 
         return false;
+    }
+
+    public override void OnKill(int timeLeft)
+    {
+        Point tilePos = Projectile.Hitbox.Bottom().ToTileCoordinates();
+
+        SoundEngine.PlaySound(SoundID.Dig, Projectile.position);
+        WorldGen.KillTile(tilePos.X, tilePos.Y, fail: true, effectOnly: true);
     }
 }
