@@ -203,7 +203,6 @@ internal class SiphoningBowArrow : ModProjectile
         Projectile.DamageType = DamageClass.Magic;
         Projectile.timeLeft = 1200;
         Projectile.tileCollide = false;
-        Projectile.hide = true;
         Projectile.penetrate = -1;
     }
 
@@ -232,6 +231,18 @@ internal class SiphoningBowArrow : ModProjectile
                 break;
             default:
                 break;
+        }
+
+        if (State != ArrowState.ManaSteal)
+        {
+            Projectile.drawLayer = ProjectileDrawLayerID.BehindNPCsAndTiles;
+            return;
+        }
+        else
+        {
+            // If attached to an NPC, draw behind tiles (and the npc) if that NPC is behind tiles, otherwise just behind the NPC.
+            if (_targetWhoAmI >= 0 && _targetWhoAmI < 200 && Main.npc[_targetWhoAmI].active)
+                Projectile.drawLayer = Main.npc[_targetWhoAmI].behindTiles ? ProjectileDrawLayerID.BehindNPCsAndTiles : ProjectileDrawLayerID.BehindNPCs;
         }
     }
 
@@ -349,7 +360,7 @@ internal class SiphoningBowArrow : ModProjectile
         WorldGen.KillTile(tilePos.X, tilePos.Y, fail: true, effectOnly: true);
     }
 
-    public override bool PreDraw(ref Color lightColor)
+    public override bool PreDraw(Player player, ref Color lightColor)
     {
         // framing
         Texture2D tex = TextureAssets.Projectile[Type].Value;
@@ -386,7 +397,7 @@ internal class SiphoningBowArrow : ModProjectile
         Vector2 rotationVector = (rotation + MathHelper.PiOver2).ToRotationVector2();
 
         Vector2 start = Projectile.Center + rotationVector * frame.Height;
-        Vector2 end = Main.player[Projectile.owner].Center;
+        Vector2 end = player.Center;
 
         Vector2 middle = start + (Vector2.Lerp(start, end, 0.5f) - start).Length() * (rotation + MathHelper.PiOver2).ToRotationVector2();
 
@@ -422,24 +433,6 @@ internal class SiphoningBowArrow : ModProjectile
             .Schedule(RenderLayer.AfterTiles);
 
         return false;
-    }
-
-    public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
-    {
-        if (State != ArrowState.ManaSteal)
-        {
-            behindNPCsAndTiles.Add(index);
-            return;
-        }
-
-        // If attached to an NPC, draw behind tiles (and the npc) if that NPC is behind tiles, otherwise just behind the NPC.
-        if (_targetWhoAmI >= 0 && _targetWhoAmI < 200 && Main.npc[_targetWhoAmI].active)
-        {
-            if (Main.npc[_targetWhoAmI].behindTiles)
-                behindNPCsAndTiles.Add(index);
-            else
-                behindNPCs.Add(index);
-        }
     }
 
     public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)

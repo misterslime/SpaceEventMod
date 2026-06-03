@@ -10,14 +10,14 @@ public class AsteroidCollision : ILoadable
 
     public void Unload() => On_Collision.SlopeCollision -= CheckSlopeCollision;
 
-    private Vector4 CheckSlopeCollision(On_Collision.orig_SlopeCollision orig, Vector2 position, Vector2 velocity, int width, int height, float gravity, bool fall)
+    private Vector4 CheckSlopeCollision(On_Collision.orig_SlopeCollision orig, Vector2 position, Vector2 velocity, int width, int height, float gravity, bool fall, bool ignoreAetheriumPlatforms)
     {
         var result = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
 
         if (!fall && !SpaceEvent.Sea.Despawning)
             result = CheckCollision(position, velocity, width, height, gravity);
 
-        return orig(result.XY(), result.ZW(), width, height, gravity, fall);
+        return orig(result.XY(), result.ZW(), width, height, gravity, fall, ignoreAetheriumPlatforms);
     }
 
     private Vector4 CheckCollision(Vector2 position, Vector2 velocity, int width, int height, float gravity)

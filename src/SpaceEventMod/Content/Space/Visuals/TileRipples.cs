@@ -33,7 +33,9 @@ internal class TileRipples
 
     private void DrawRipples(On_Main.orig_DrawInfernoRings orig, Main self)
     {
-        if (self.wallTarget is null || self.tileTarget is null || self.tile2Target is null)
+        orig(self);
+
+        /*if (Main.wallTarget is null || Main.tileTarget is null || Main.tile2Target is null)
         {
             orig(self);
             return;
@@ -53,9 +55,9 @@ internal class TileRipples
             changeColor.Parameters.color = Color.Red.ToVector4();
             changeColor.Apply();
 
-            Main.spriteBatch.Draw(self.wallTarget, (Main.sceneWallPos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
-            Main.spriteBatch.Draw(self.tileTarget, (Main.sceneTilePos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
-            Main.spriteBatch.Draw(self.tile2Target, (Main.sceneTile2Pos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
+            Main.spriteBatch.Draw(Main.wallTarget, (Main.sceneWallPos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
+            Main.spriteBatch.Draw(Main.tileTarget, (Main.sceneTilePos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
+            Main.spriteBatch.Draw(Main.tile2Target, (Main.sceneTile2Pos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
 
             Main.spriteBatch.End();
 
@@ -86,7 +88,7 @@ internal class TileRipples
 
             seaRipples.Parameters.pixelSize = (Vector2.One * 2f) / rippleTarget2.Target.Size();
             seaRipples.Parameters.noise = Assets.Textures.Noise.Bubble.Asset.Value;
-            seaRipples.Parameters.sea = SeaTargets.SeaRenderTarget;
+            seaRipples.Parameters.sea = Assets.Textures.WhitePixel.Asset.Value;
             seaRipples.Parameters.uTime = Main.GlobalTimeWrappedHourly * 0.06f;
             seaRipples.Parameters.uScale = 1f;
             seaRipples.Parameters.factor = 2f;
@@ -98,6 +100,6 @@ internal class TileRipples
             Main.spriteBatch.End();
         }
 
-        orig(self);
+        orig(self);*/
     }
 }

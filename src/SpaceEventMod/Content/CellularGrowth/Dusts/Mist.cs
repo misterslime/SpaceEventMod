@@ -1,4 +1,3 @@
-using Microsoft.Build.Utilities;
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Core.Animation.Tweening;
 using SpaceEventMod.Core.Graphics;

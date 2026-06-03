@@ -14,7 +14,7 @@ public class CellularGrowthGen : ModSystem
 {
     public static Line[] _connectiveCells;
 
-    public override void ModifyWorldGenTasks(List<GenPass> tasks, ref double totalWeight)
+    public override void ModifyWorldGenTasks(List<GenPass> tasks)
     {
         int islandsIndex = tasks.FindIndex(genpass => genpass.Name.Equals("Lakes"));
 

@@ -9,9 +9,9 @@ using Terraria.ModLoader;
 namespace SpaceEventMod.Content.Space.Rendering;
 
 [Autoload(Side = ModSide.Client)]
-public class SeaForeground : ILoadable
+public class SeaForeground
 {
-    private FirmamentSea Sea { get => SpaceEvent.Sea; }
+    /*private FirmamentSea Sea { get => SpaceEvent.Sea; }
 
     public void Load(Mod mod) => On_Main.DrawInfernoRings += DrawSeaForeground;
 
@@ -57,5 +57,5 @@ public class SeaForeground : ILoadable
         }
 
         orig(self);
-    }
+    }*/
 }

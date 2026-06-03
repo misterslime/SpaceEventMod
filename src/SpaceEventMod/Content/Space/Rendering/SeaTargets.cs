@@ -10,9 +10,9 @@ using Terraria.ModLoader;
 namespace SpaceEventMod.Content.Space.Rendering;
 
 [Autoload(Side = ModSide.Client)]
-public class SeaTargets : ILoadable
+public class SeaTargets
 {
-    public static RenderTarget2D SeaRenderTarget;
+    /*public static RenderTarget2D SeaRenderTarget;
 
     public static RenderTarget2D BackgroundRenderTarget;
 
@@ -189,5 +189,5 @@ public class SeaTargets : ILoadable
 
             pipeline.DrawMesh(seaChunk, SpaceEventMod.basicEffect);
         }
-    }
+    }*/
 }

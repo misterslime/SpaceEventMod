@@ -9,9 +9,9 @@ using Terraria.ModLoader;
 namespace SpaceEventMod.Content.Space.Rendering;
 
 [Autoload(Side = ModSide.Client)]
-public class SeaBackground : ILoadable
+public class SeaBackground
 {
-    private FirmamentSea Sea { get => SpaceEvent.Sea; }
+    /*private FirmamentSea Sea { get => SpaceEvent.Sea; }
 
     public void Load(Mod mod) => On_Main.DoDraw_WallsTilesNPCs += DrawSeaBackground;
 
@@ -96,5 +96,5 @@ public class SeaBackground : ILoadable
         firmamentSeaBackgroundShader.Parameters["parallax"].SetValue(parallax);
 
         return firmamentSeaBackgroundShader;
-    }
+    }*/
 }

@@ -1,0 +1,12 @@
+<Project>
+
+    <PropertyGroup>
+        <PublicizerClearCacheOnClean>true</PublicizerClearCacheOnClean>
+    </PropertyGroup>
+
+	<!-- Publicizer -->
+    <ItemGroup>
+        <Publicize Include="tModLoader;FNA;ReLogic" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+    </ItemGroup>
+
+</Project>

@@ -57,7 +57,7 @@ public class SpaceEvent : ModSystem
 
     private void SpawnStars()
     {
-        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
+        if (!Sea.CanSpawnThings || Main.gameMenu || FocusHelper.GameplayActive)
             return;
 
         var playerCenter = Main.player[Main.myPlayer].Center;
@@ -97,7 +97,7 @@ public class SpaceEvent : ModSystem
 
     private void SpawnAsteroids()
     {
-        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
+        if (!Sea.CanSpawnThings || Main.gameMenu || FocusHelper.GameplayActive)
             return;
 
         var playerCenter = Main.player[Main.myPlayer].Center;

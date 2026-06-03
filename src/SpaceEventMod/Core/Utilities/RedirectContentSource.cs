@@ -21,6 +21,8 @@ internal sealed class RedirectContentSource(IContentSource source) : IContentSou
 
     RejectedAssetCollection IContentSource.Rejections => source.Rejections;
 
+    public string FileWatcherPath => "";
+
     IEnumerable<string> IContentSource.EnumerateAssets()
     {
         return source.EnumerateAssets().Select(RewritePath);
@@ -52,5 +54,9 @@ internal sealed class RedirectContentSource(IContentSource source) : IContentSou
         }
 
         return path;
+    }
+
+    public void Refresh()
+    {
     }
 }
