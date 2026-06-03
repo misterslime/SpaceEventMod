@@ -4,5 +4,8 @@
     <Project Path="daybreak-mod/src/Daybreak.SourceGen/Daybreak.SourceGen.csproj" />
     <Project Path="daybreak-mod/src/Daybreak/Daybreak.csproj" />
   </Folder>
+  <Folder Name="/daybreak-mod/generators/">
+    <Project Path="daybreak-mod/src/generators/DaybreakHookGenerator/DaybreakHookGenerator.csproj" />
+  </Folder>
   <Project Path="SpaceEventMod/SpaceEventMod.csproj" />
 </Solution>
