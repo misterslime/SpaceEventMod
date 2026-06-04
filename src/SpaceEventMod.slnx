@@ -5,4 +5,5 @@
     <Project Path="daybreak-mod/src/Daybreak/Daybreak.csproj" />
   </Folder>
   <Project Path="SpaceEventMod/SpaceEventMod.csproj" />
+  <Project Path="DetourHookGenerator/DetourHookGenerator.csproj" />
 </Solution>
