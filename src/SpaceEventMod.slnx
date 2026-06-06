@@ -1,11 +1,19 @@
 <Solution>
   <Folder Name="/daybreak-mod/">
-    <Project Path="daybreak-mod/src/Daybreak.CodeAnalysis/Daybreak.CodeAnalysis.csproj" />
-    <Project Path="daybreak-mod/src/Daybreak.SourceGen/Daybreak.SourceGen.csproj" />
-    <Project Path="daybreak-mod/src/Daybreak/Daybreak.csproj" />
+    <Project Path="daybreak-mod/src/Daybreak.CodeAnalysis/Daybreak.CodeAnalysis.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="daybreak-mod/src/Daybreak.SourceGen/Daybreak.SourceGen.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="daybreak-mod/src/Daybreak/Daybreak.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
   </Folder>
   <Folder Name="/daybreak-mod/generators/">
-    <Project Path="daybreak-mod/src/generators/DaybreakHookGenerator/DaybreakHookGenerator.csproj" />
+    <Project Path="daybreak-mod/src/generators/DaybreakHookGenerator/DaybreakHookGenerator.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
   </Folder>
   <Project Path="SpaceEventMod/SpaceEventMod.csproj" />
   <Project Path="DetourHookGenerator/DetourHookGenerator.csproj" />
