@@ -1,7 +1,6 @@
 using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.Space.Rendering;
 using SpaceEventMod.Core.Graphics;
 using System;
 using System.Collections.Generic;

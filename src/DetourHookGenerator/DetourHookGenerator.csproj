@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="tModLoader" Version="1.4.4.9" PrivateAssets="all" />
-        <PackageReference Include="Steamworks.NET" Version="1.0.0.0" PrivateAssets="all" />
+        <PackageReference Include="tModLoader" Version="2026.3.3" PrivateAssets="all" />
+        <PackageReference Include="Steamworks.NET" Version="15.0.1" PrivateAssets="all" />
     </ItemGroup>
 
 </Project>
