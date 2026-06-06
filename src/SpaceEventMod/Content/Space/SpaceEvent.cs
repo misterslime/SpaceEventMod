@@ -268,10 +268,10 @@ internal class SpaceEventFogShaderData : ScreenShaderData
     [ModSystemHooks.PostUpdateEverything]
     private static void UpdateShaderParameters()
     {
-        /*if (_myFilter is null || SeaTargets.SeaRenderTarget is null)
+        if (_myFilter is null || SeaBuffers.SeaMeshBuffer is null)
             return;
 
-        Filters.Scene["SeaDistortFog"]._shader.UseImage(SeaTargets.SeaRenderTarget, 1, SamplerState.LinearWrap);*/
+        Filters.Scene["SeaDistortFog"]._shader.UseImage(SeaBuffers.SeaMeshBuffer.Target, 1, SamplerState.LinearWrap);
     }
 
     public override void Apply()
