@@ -9,7 +9,7 @@ using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.CellularGrowth.Dusts;
+namespace SpaceEventMod.Content.CellularGrowth.NPCs.Sackteriums;
 
 internal struct WindParticleData(
     int npc,
@@ -27,7 +27,7 @@ internal struct WindParticleData(
     public float Width { get; set; } = width;
 }
 
-internal class WindParticle : ModDust
+internal class WindGust : ModDust
 {
     public override string Texture => "SpaceEventMod/Assets/Textures/EmptyPixel";
 

@@ -18,7 +18,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SpaceEventMod.Content.CellularGrowth.NPCs.Amoerphas;
 
-internal unsafe sealed class AmoerphaMetaballRenderer : ModSystem
+internal unsafe sealed class AmoerphaMetaballs : ModSystem
 {
 
     private const int MAX_LINES = 64;

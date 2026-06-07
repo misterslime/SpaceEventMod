@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Tomat.Terraria.ModLoader.Sdk">
 
-    <Import Project="../../build/Mod.Build.targets"/>
+    <Import Project="../../build/Mod.Build.targets" />
 
     <PropertyGroup>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
