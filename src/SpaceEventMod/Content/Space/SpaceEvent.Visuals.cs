@@ -4,6 +4,8 @@ using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
+using ReLogic.Content;
+using SpaceEventMod.Content.Space.LevelElements;
 using SpaceEventMod.Core;
 using SpaceEventMod.Core.DataStructures;
 using SpaceEventMod.Core.Graphics;
@@ -12,11 +14,58 @@ using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using Terraria;
 using Terraria.GameContent.Drawing;
+using Terraria.Graphics.Effects;
+using Terraria.Graphics.Shaders;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.Space.LevelElements;
+namespace SpaceEventMod.Content.Space;
 
-public static class SeaBuffers
+internal class SpaceEventFogShaderData : ScreenShaderData
+{
+    private static Filter _myFilter;
+
+    public SpaceEventFogShaderData(Asset<Effect> shader, string passName)
+            : base(shader, passName)
+    {
+    }
+
+    [OnLoad]
+    private static void Load()
+    {
+        var shader = Assets.Shaders.Space.SeaDistortFog.Asset;
+
+        _myFilter = new Filter(new SpaceEventFogShaderData(shader, "Pass0")
+            .UseImage(Assets.Textures.Noise.SwirlyDisplaceNoise.Asset, 0, SamplerState.LinearWrap), EffectPriority.VeryHigh);
+
+        Filters.Scene["SeaDistortFog"] = _myFilter;
+        Filters.Scene["SeaDistortFog"].Load();
+    }
+
+    [ModSystemHooks.PostUpdateEverything]
+    private static void UpdateShaderParameters()
+    {
+        if (_myFilter is null || SpaceEvent.SeaMeshBuffer is null)
+            return;
+
+        Filters.Scene["SeaDistortFog"]._shader.UseImage(SpaceEvent.SeaMeshBuffer.Target, 1, SamplerState.LinearWrap);
+    }
+
+    public override void Apply()
+    {
+        // base.Shader.Parameters["fogColor"]?.SetValue(new Vector4(0.0f, 0.25f, 1.0f, 0.25f));
+        base.Shader.Parameters["fogColor"]?.SetValue(new Vector4(0.0f, 0.25f, 1.0f, 0.35f));
+        base.Shader.Parameters["fogStart"]?.SetValue(0.15f);
+        base.Shader.Parameters["fogEnd"]?.SetValue(0.65f);
+        base.Shader.Parameters["distortIntensity"]?.SetValue(0.07f);
+        base.Shader.Parameters["distortNoiseScale"]?.SetValue(0.001f);
+        base.Shader.Parameters["timeScale"]?.SetValue(0.02f);
+        base.Shader.Parameters["blurMulti"]?.SetValue(0.0005f);
+
+        base.Apply();
+    }
+}
+
+internal static partial class SpaceEvent
 {
     private sealed class BufferData : IStatic<BufferData>
     {
@@ -57,15 +106,14 @@ public static class SeaBuffers
 
     private static RenderTargetLease BackgroundBuffer => BufferData.Instance.BackgroundBuffer;
 
-    private static FirmamentSea Sea { get => SpaceEvent.Sea; }
 
     [OnLoad(Side = ModSide.Client)]
     private static void LoadTargetHook()
     {
         On_Main.DoDraw_UpdateCameraPosition += RenderBuffers;
-
         On_Main.DoDraw_WallsTilesNPCs += DrawSeaBackground;
         On_Main.DrawInfernoRings += DrawSeaForeground;
+        On_Main.DrawInfernoRings += DrawRipples;
     }
 
     #region Buffer Rendering
@@ -331,6 +379,80 @@ public static class SeaBuffers
         }
 
         orig(self);
+    }
+    #endregion
+
+    #region Tile Ripples
+    private static void DrawRipples(On_Main.orig_DrawInfernoRings orig, Main self)
+    {
+        orig(self);
+
+        /*if (Main.wallTarget is null || Main.tileTarget is null || Main.tile2Target is null)
+        {
+            orig(self);
+            return;
+        }
+
+        using var rippleTarget = ScreenspaceTargetPool.Shared.Rent(Main.instance.GraphicsDevice, (width, height) => (width / 2, height / 2));
+        using var rippleTarget2 = ScreenspaceTargetPool.Shared.Rent(Main.instance.GraphicsDevice, (width, height) => (width / 2, height / 2));
+
+        using (rippleTarget.Target.Scope(clearColor: Color.Transparent))
+        {
+            using var sbScope = Main.spriteBatch.Scope();
+
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
+            var changeColor = Assets.Shaders.Fragment.ChangeColor.CreateAwesomePass();
+
+            changeColor.Parameters.color = Color.Red.ToVector4();
+            changeColor.Apply();
+
+            Main.spriteBatch.Draw(Main.wallTarget, (Main.sceneWallPos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
+            Main.spriteBatch.Draw(Main.tileTarget, (Main.sceneTilePos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
+            Main.spriteBatch.Draw(Main.tile2Target, (Main.sceneTile2Pos - Main.screenPosition) * 0.5f, null, Color.White, 0f, Vector2.Zero, 0.5f, SpriteEffects.None, 0f);
+
+            Main.spriteBatch.End();
+
+        }
+
+        using (rippleTarget2.Target.Scope(clearColor: Color.Transparent))
+        {
+            using var sbScope = Main.spriteBatch.Scope();
+
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
+            var seaRipplesBlur = Assets.Shaders.Space.SeaRippleBlur.CreatePass0();
+
+            seaRipplesBlur.Parameters.blurRadius = 0.002f;
+            seaRipplesBlur.Apply();
+
+            Main.spriteBatch.Draw(rippleTarget.Target, Vector2.Zero, null, new Color(1, 1, 1, 0), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+
+            Main.spriteBatch.End();
+
+        }
+
+        using (Main.spriteBatch.Scope())
+        {
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
+            var seaRipples = Assets.Shaders.Space.SeaRipples.CreatePass0();
+
+            seaRipples.Parameters.pixelSize = (Vector2.One * 2f) / rippleTarget2.Target.Size();
+            seaRipples.Parameters.noise = Assets.Textures.Noise.Bubble.Asset.Value;
+            seaRipples.Parameters.sea = Assets.Textures.WhitePixel.Asset.Value;
+            seaRipples.Parameters.uTime = Main.GlobalTimeWrappedHourly * 0.06f;
+            seaRipples.Parameters.uScale = 1f;
+            seaRipples.Parameters.factor = 2f;
+            seaRipples.Parameters.quantization = 4;
+            seaRipples.Apply();
+
+            Main.spriteBatch.Draw(rippleTarget2.Target, Vector2.Zero, null, new Color(103, 126, 255), 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
+
+            Main.spriteBatch.End();
+        }
+
+        orig(self);*/
     }
     #endregion
 }

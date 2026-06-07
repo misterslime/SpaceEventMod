@@ -26,28 +26,31 @@ namespace SpaceEventMod.Content.Space;
 // - add bubble particles when you move
 // - maybe stuff behind the foam could be shaded in the foam? or it could be transparent.
 // - make the sea appear on the map
-internal class SpaceEvent : ModSystem
+internal static partial class SpaceEvent
 {
+    private const float MINIMUM_TO_SPAWN_ASTEROID = 0.7f;
+    private const float SEPARATION_DISTANCE = 10 * 16;
+    private const float STAR_SEPARATION_DISTANCE = 1920;
+
     public static FirmamentSea Sea;
 
     public static Vector2 SeaToWorldCoordinates(Vector2 position) => new Vector2(position.X, position.Y + Sea.SeaPos.Height.Position);
 
     public static Vector2 WorldToSeaCoordinates(Vector2 position) => new Vector2(position.X, position.Y - Sea.SeaPos.Height.Position);
 
-    private FastNoiseLite noise;
-    private float minimumToSpawnAsteroid = 0.7f;
-    private float separationDistance = 10 * 16;
-    private float starSeparationDistance = 120 * 16;
+    private static FastNoiseLite s_noise;
 
-    public override void ClearWorld()
+    [ModSystemHooks.ClearWorld]
+    private static void ClearWorld()
     {
         Sea = new FirmamentSea();
 
-        noise = new FastNoiseLite(Main.ActiveWorldFileData.Seed);
-        noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+        s_noise = new FastNoiseLite(Main.ActiveWorldFileData.Seed);
+        s_noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
     }
 
-    public override void PostUpdatePlayers()
+    [ModSystemHooks.PostUpdatePlayers]
+    private static void UpdateEvent()
     {
         if (Sea.Springs is null)
             return;
@@ -62,7 +65,7 @@ internal class SpaceEvent : ModSystem
         SpawnStars();
     }
 
-    private void SpawnStars()
+    private static void SpawnStars()
     {
         if (!Sea.CanSpawnThings || Main.gameMenu || FocusHelper.GameplayActive)
             return;
@@ -81,10 +84,10 @@ internal class SpaceEvent : ModSystem
         {
             foreach (var star in stars)
             {
-                if ((star.Position - randomPosition).LengthSquared() <= Math.Pow(starSeparationDistance, 2))
+                if ((star.Position - randomPosition).LengthSquared() <= Math.Pow(STAR_SEPARATION_DISTANCE, 2))
                     return;
 
-                if ((star.Position - playerCenter).LengthSquared() <= Math.Pow(starSeparationDistance * 1.35, 2))
+                if ((star.Position - playerCenter).LengthSquared() <= Math.Pow(STAR_SEPARATION_DISTANCE * 1.35, 2))
                     return;
             }
         }
@@ -102,7 +105,7 @@ internal class SpaceEvent : ModSystem
 
     }
 
-    private void SpawnAsteroids()
+    private static void SpawnAsteroids()
     {
         if (!Sea.CanSpawnThings || Main.gameMenu || FocusHelper.GameplayActive)
             return;
@@ -116,7 +119,7 @@ internal class SpaceEvent : ModSystem
         if (randomPosition.Y > -320)
             return;
 
-        var noiseSample = (float)(1 + noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
+        var noiseSample = (float)(1 + s_noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
 
         var density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.InCirc(noiseSample));
 
@@ -126,7 +129,7 @@ internal class SpaceEvent : ModSystem
         {
             foreach (var asteroid in asteroids)
             {
-                if ((asteroid.RestPosition - randomPosition).LengthSquared() <= Math.Pow(separationDistance * density, 2))
+                if ((asteroid.RestPosition - randomPosition).LengthSquared() <= Math.Pow(SEPARATION_DISTANCE * density, 2))
                     return;
             }
         }
@@ -156,135 +159,11 @@ internal class SpaceEvent : ModSystem
     }
 
     [ModPlayerHooks.PostUpdateBuffs]
-    public static void PostUpdateBuffs(ModPlayer self)
+    private static void PostUpdateBuffs(ModPlayer self)
     {
         Player player = self.Player;
 
         if (SpaceEvent.Sea.Active && player.Center.Y < SpaceEvent.Sea.SeaPos.Height.Position)
             player.gravity = 0.25f;
-    }
-}
-
-internal class SpaceEventMapLayer : ModMapLayer
-{
-    public override Position GetDefaultPosition() => BeforeFirstVanillaLayer;
-
-    public override void Draw(ref MapOverlayDrawContext context, ref string text)
-    {
-        // We can check Main.mapStyle or Main.mapFullscreen to limit drawing to specific map modes.
-        // This example doesn't draw on the overlay map, but draws on the minimap and fullscreen map.
-        if (Main.mapStyle == 2)
-            return;
-
-        var whitePixel = Assets.Textures.WhitePixel.Asset.Value;
-
-        // draw sea
-        // help
-
-        // draw asteroids
-        Vector2 GetDimensions(int variant)
-        {
-            Vector2[] dimensions = [
-                new Vector2(3, 1),
-                new Vector2(3, 2),
-                new Vector2(3, 3),
-                new Vector2(4, 1.5f),
-                new Vector2(4, 2),
-                new Vector2(4, 3),
-                new Vector2(6, 3),
-                new Vector2(9, 4.5f),
-                new Vector2(11, 7),
-            ];
-
-            return dimensions[variant];
-        }
-
-        foreach (var asteroid in Asteroids.List)
-        {
-            var scale = GetDimensions(asteroid.Variant) * context.MapScale;
-            var position = SpaceEvent.SeaToWorldCoordinates(asteroid.Transform.Position) / 16f;
-
-            var color = new Color(40, 35, 47);
-
-            Draw(context, whitePixel, position, color, new SpriteFrame(1, 1, 0, 0), scale, scale, Alignment.TopLeft);
-        }
-
-        // draw stars
-        foreach (var star in Stars.List)
-        {
-            var itemTexture = TextureAssets.Item[ItemID.FallenStar].Value;
-
-            var tilePosition = star.GetCenter() / 16f;
-
-            if (context.Draw(itemTexture, tilePosition, Color.White, new SpriteFrame(1, 8, 0, 0), 1f, 1.2f, Alignment.Center).IsMouseOver)
-                text = "Star (" + star.Durability / 10f + "%)";
-        }
-    }
-
-    public bool Draw(MapOverlayDrawContext context, Texture2D texture, Vector2 position, Color color, SpriteFrame frame, Vector2 scaleIfNotSelected, Vector2 scaleIfSelected, Alignment alignment, SpriteEffects spriteEffects = SpriteEffects.None)
-    {
-        position = (position - context.MapPosition) * context.MapScale + context.MapOffset;
-        if (context.ClippingRectangle.HasValue && !context.ClippingRectangle.Value.Contains(position.ToPoint()))
-            return false;
-
-        var sourceRectangle = frame.GetSourceRectangle(texture);
-        var vector = sourceRectangle.Size() * alignment.OffsetMultiplier;
-        var position2 = position;
-
-        var scale = context.DrawScale * scaleIfNotSelected;
-        var vector2 = position - vector * scale;
-
-        var mouseSelected = new Rectangle((int)vector2.X, (int)vector2.Y, (int)(sourceRectangle.Width * scale.X), (int)(sourceRectangle.Height * scale.Y)).Contains(Main.MouseScreen.ToPoint());
-
-        if (mouseSelected)
-            scale = context.DrawScale * scaleIfSelected;
-
-        Main.spriteBatch.Draw(texture, position2, sourceRectangle, color, 0f, vector, scale, spriteEffects, 0f);
-        return mouseSelected;
-    }
-}
-
-internal class SpaceEventFogShaderData : ScreenShaderData
-{
-    private static Filter _myFilter;
-
-    public SpaceEventFogShaderData(Asset<Effect> shader, string passName)
-            : base(shader, passName)
-    {
-    }
-
-    [OnLoad]
-    private static void Load()
-    {
-        var shader = Assets.Shaders.Space.SeaDistortFog.Asset;
-
-        _myFilter = new Filter(new SpaceEventFogShaderData(shader, "Pass0")
-            .UseImage(Assets.Textures.Noise.SwirlyDisplaceNoise.Asset, 0, SamplerState.LinearWrap), EffectPriority.VeryHigh);
-
-        Filters.Scene["SeaDistortFog"] = _myFilter;
-        Filters.Scene["SeaDistortFog"].Load();
-    }
-
-    [ModSystemHooks.PostUpdateEverything]
-    private static void UpdateShaderParameters()
-    {
-        if (_myFilter is null || SeaBuffers.SeaMeshBuffer is null)
-            return;
-
-        Filters.Scene["SeaDistortFog"]._shader.UseImage(SeaBuffers.SeaMeshBuffer.Target, 1, SamplerState.LinearWrap);
-    }
-
-    public override void Apply()
-    {
-        // base.Shader.Parameters["fogColor"]?.SetValue(new Vector4(0.0f, 0.25f, 1.0f, 0.25f));
-        base.Shader.Parameters["fogColor"]?.SetValue(new Vector4(0.0f, 0.25f, 1.0f, 0.35f));
-        base.Shader.Parameters["fogStart"]?.SetValue(0.15f);
-        base.Shader.Parameters["fogEnd"]?.SetValue(0.65f);
-        base.Shader.Parameters["distortIntensity"]?.SetValue(0.07f);
-        base.Shader.Parameters["distortNoiseScale"]?.SetValue(0.001f);
-        base.Shader.Parameters["timeScale"]?.SetValue(0.02f);
-        base.Shader.Parameters["blurMulti"]?.SetValue(0.0005f);
-
-        base.Apply();
     }
 }

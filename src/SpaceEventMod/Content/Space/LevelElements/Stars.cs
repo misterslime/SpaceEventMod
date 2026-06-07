@@ -7,8 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
+using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.ID;
+using Terraria.Map;
 using Terraria.ModLoader;
+using Terraria.UI;
 
 namespace SpaceEventMod.Content.Space.LevelElements;
 
@@ -277,6 +281,32 @@ public static class Stars
         }
 
         return newStar;
+    }
+    #endregion
+
+    #region Map Layer
+    internal class StarsMapLayer : ModMapLayer
+    {
+        public override Position GetDefaultPosition() => BeforeFirstVanillaLayer;
+
+        public override void Draw(ref MapOverlayDrawContext context, ref string text)
+        {
+            // We can check Main.mapStyle or Main.mapFullscreen to limit drawing to specific map modes.
+            // This example doesn't draw on the overlay map, but draws on the minimap and fullscreen map.
+            if (Main.mapStyle == 2)
+                return;
+
+            // draw stars
+            foreach (var star in Stars.List)
+            {
+                var itemTexture = TextureAssets.Item[ItemID.FallenStar].Value;
+
+                var tilePosition = star.GetCenter() / 16f;
+
+                if (context.Draw(itemTexture, tilePosition, Color.White, new SpriteFrame(1, 8, 0, 0), 1f, 1.2f, Alignment.Center).IsMouseOver)
+                    text = "Star (" + star.Durability / 10f + "%)";
+            }
+        }
     }
     #endregion
 }
