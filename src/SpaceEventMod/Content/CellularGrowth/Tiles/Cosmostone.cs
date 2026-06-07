@@ -10,6 +10,21 @@ using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
+internal class CosmostoneItem : ModItem
+{
+    public override void SetStaticDefaults()
+    {
+        Item.ResearchUnlockCount = 100;
+    }
+
+    public override void SetDefaults()
+    {
+        Item.DefaultToPlaceableTile(ModContent.TileType<Tiles.Cosmostone>());
+        Item.width = 12;
+        Item.height = 12;
+    }
+}
+
 internal class Cosmostone : ModTile
 {
     public override void SetStaticDefaults()

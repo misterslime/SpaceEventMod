@@ -70,6 +70,21 @@ Items: {
 		DisplayName: Windoplasts
 		Tooltip: ""
 	}
+
+	CosmossItem: {
+		DisplayName: Cosmoss Item
+		Tooltip: ""
+	}
+
+	CosmostoneItem: {
+		DisplayName: Cosmostone Item
+		Tooltip: ""
+	}
+
+	CosmostoneWallItem: {
+		DisplayName: Cosmostone Wall Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
