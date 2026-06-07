@@ -17,7 +17,7 @@ internal class CocoonPlayer : ModPlayer
     public bool Cocooned { get; set; }
     public int MyCocoon { get; set; }
 
-    private int cocoonedManaCounter;
+    private int _cocoonedManaCounter;
 
     public override void ResetEffects()
     {
@@ -52,10 +52,10 @@ internal class CocoonPlayer : ModPlayer
         if (Cocooned)
         {
             var num = 6;
-            cocoonedManaCounter++;
-            if (cocoonedManaCounter >= num)
+            _cocoonedManaCounter++;
+            if (_cocoonedManaCounter >= num)
             {
-                cocoonedManaCounter = 0;
+                _cocoonedManaCounter = 0;
                 Player.statMana++;
                 if (Player.statMana >= Player.statManaMax2)
                 {
@@ -67,7 +67,7 @@ internal class CocoonPlayer : ModPlayer
         }
         else
         {
-            cocoonedManaCounter = 0;
+            _cocoonedManaCounter = 0;
         }
     }
 
