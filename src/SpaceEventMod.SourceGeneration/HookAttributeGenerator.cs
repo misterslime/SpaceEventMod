@@ -11,28 +11,7 @@ namespace SpaceEventMod.Core.SourceGeneration;
 
 
 [Generator]
-public class EnumGenerator : IIncrementalGenerator
-{
-    public const string Attribute = @"
-namespace NetEscapades.EnumGenerators
-{
-    [System.AttributeUsage(System.AttributeTargets.Enum)]
-    public class EnumExtensionsAttribute : System.Attribute
-    {
-    }
-}";
-
-    public void Initialize(IncrementalGeneratorInitializationContext context)
-    {
-        // Add the marker attribute to the compilation
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-            "EnumExtensionsAttribute.g.cs",
-            SourceText.From(Attribute, Encoding.UTF8)));
-
-        // TODO: implement the remainder of the source generator
-    }
-}
-/*public class HookAttributeGenerator : IIncrementalGenerator
+public class HookAttributeGenerator : IIncrementalGenerator
 {
     private const string SOURCEGEN_NAMESPACE = "SpaceEventMod.Core.SourceGeneration";
 
@@ -106,4 +85,4 @@ namespace NetEscapades.EnumGenerators
 
         return numAttributes;
     }
-}*/
+}
