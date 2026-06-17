@@ -1,0 +1,35 @@
+<Solution>
+
+  <Folder Name="/solution-items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path=".gitmodules" />
+    <File Path="LICENSE" />
+    <File Path="CREDITS.md" />
+    <File Path="ORGANIZATION.md" />
+    <File Path="README.md" />
+  </Folder>
+
+  <Folder Name="/daybreak-mod/">
+    <Project Path="src/daybreak-mod/src/Daybreak.CodeAnalysis/Daybreak.CodeAnalysis.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/daybreak-mod/src/Daybreak.SourceGen/Daybreak.SourceGen.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/daybreak-mod/src/Daybreak/Daybreak.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+  </Folder>
+
+  <Folder Name="/daybreak-mod/generators/">
+    <Project Path="src/daybreak-mod/src/generators/DaybreakHookGenerator/DaybreakHookGenerator.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+  </Folder>
+
+  <Project Path="src/SpaceEventMod/SpaceEventMod.csproj" />
+  <Project Path="src/DetourHookGenerator/DetourHookGenerator.csproj" />
+
+</Solution>
