@@ -22,8 +22,7 @@
     <File Path="ORGANIZATION.md" />
     <File Path="README.md" />
   </Folder>
-
-  <Project Path="src/SpaceEventMod/SpaceEventMod.csproj" />
   <Project Path="src/SpaceEventMod.SourceGeneration/SpaceEventMod.SourceGeneration.csproj" />
+  <Project Path="src/SpaceEventMod/SpaceEventMod.csproj" />
 
 </Solution>
