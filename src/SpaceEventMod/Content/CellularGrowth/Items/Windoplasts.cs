@@ -84,7 +84,10 @@ internal class WindoplastProjectile : ModProjectile
             foreach (var npc in Main.ActiveNPCs)
             {
                 if (npc.Hitbox.Intersects(Projectile.Hitbox))
+                {
                     Projectile.PrepareBombToBlow();
+                    Projectile.ai[0] = 1;
+                }
             }
         }
 
@@ -144,6 +147,9 @@ internal class WindoplastProjectile : ModProjectile
         {
             Vector2 kbVector = npc.Center - Projectile.Hitbox.Bottom();
             float distance = InvLerp(ExplosionWidthHeight * 0.5f, 0, kbVector.Length());
+
+            if (Projectile.ai[0] == 1)
+                kbVector = Projectile.velocity;
 
             kbVector = kbVector.SafeNormalize(Vector2.Zero);
             kbVector -= Vector2.UnitY;
