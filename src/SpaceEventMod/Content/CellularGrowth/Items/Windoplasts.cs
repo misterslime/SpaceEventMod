@@ -47,8 +47,8 @@ internal class WindoplastProjectile : ModProjectile
     public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/Windoplasts";
 
     private const int DefaultWidthHeight = 15;
-    private const int ExplosionWidthHeight = 250;
-    private const float KNOCKBACK_STRENGTH = 12f;
+    private const int EXPLOSION_WIDTH_HEIGHT = 250;
+    private const float KNOCKBACK_STRENGTH = 15f;
 
     public override void SetStaticDefaults()
     {
@@ -101,7 +101,7 @@ internal class WindoplastProjectile : ModProjectile
         Projectile.tileCollide = false;
         Projectile.alpha = 255;
 
-        Projectile.Resize(ExplosionWidthHeight, ExplosionWidthHeight);
+        Projectile.Resize(EXPLOSION_WIDTH_HEIGHT, EXPLOSION_WIDTH_HEIGHT);
     }
 
     public override void OnKill(int timeLeft)
@@ -146,7 +146,7 @@ internal class WindoplastProjectile : ModProjectile
         foreach (var npc in Main.ActiveNPCs)
         {
             Vector2 kbVector = npc.Center - Projectile.Hitbox.Bottom();
-            float distance = InvLerp(ExplosionWidthHeight * 0.5f, 0, kbVector.Length());
+            float distance = InvLerp(EXPLOSION_WIDTH_HEIGHT * 0.5f, 0, kbVector.Length());
 
             if (Projectile.ai[0] == 1)
                 kbVector = Projectile.velocity;
@@ -161,7 +161,7 @@ internal class WindoplastProjectile : ModProjectile
         foreach (var player in Main.ActivePlayers)
         {
             Vector2 kbVector = player.Center - Projectile.Hitbox.Bottom();
-            float distance = InvLerp(ExplosionWidthHeight * 0.5f, 0, kbVector.Length());
+            float distance = InvLerp(EXPLOSION_WIDTH_HEIGHT * 0.5f, 0, kbVector.Length());
 
             kbVector = kbVector.SafeNormalize(Vector2.Zero);
             kbVector -= Vector2.UnitY;
@@ -169,6 +169,10 @@ internal class WindoplastProjectile : ModProjectile
 
             player.velocity += kbVector * KNOCKBACK_STRENGTH * MathHelper.Clamp(distance, 0, 1);
         }
+
+
+        int peeb = 5;
+        peeb -= 2;
     }
 
     private float InvLerp(float a, float b, float v) => (v - a) / (b - a);

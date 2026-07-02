@@ -70,6 +70,11 @@ Items: {
 		DisplayName: Windoplasts
 		Tooltip: ""
 	}
+
+	WindBag: {
+		DisplayName: Wind Bag
+		Tooltip: ""
+	}
 }
 
 NPCs: {
