@@ -55,28 +55,6 @@ public class BellowTileEntity : ModTileEntity
         return tile.HasTile && tile.TileType == ModContent.TileType<MechanicalBellowTile>() && TileObjectData.IsTopLeft(x, y);
     }
 
-    public override int Hook_AfterPlacement(int i, int j, int type, int style, int direction, int alternate)
-    {
-        var position = TileObjectData.TopLeft(i, j);
-        (i, j) = (position.X, position.Y);
-
-        var tile = Framing.GetTileSafely(i, j);
-        var data = TileObjectData.GetTileData(tile);
-
-        var size = (data is null) ? new Point(1, 1) : new Point(data.Width, data.Height);
-
-        if (Main.netMode == NetmodeID.MultiplayerClient)
-        {
-            NetMessage.SendTileSquare(Main.myPlayer, i, j, size.X, size.Y);
-            NetMessage.SendData(MessageID.TileEntityPlacement, number: i, number2: j, number3: Type);
-
-            return -1;
-        }
-
-        Rotation = 0;
-        return Place(i, j);
-    }
-
     // Tile Entities can store data. This data most likely needs to be synced to connected clients.
     public override void SaveData(TagCompound tag)
     {
@@ -148,7 +126,7 @@ internal class MechanicalBellowTile : ModTile
 
         TileObjectData.newTile.CopyFrom(TileObjectData.Style2x2);
         TileObjectData.newTile.CoordinateHeights = [16, 18];
-        TileObjectData.newTile.HookPostPlaceMyPlayer = new PlacementHook(ModContent.GetInstance<BellowTileEntity>().Hook_AfterPlacement, -1, 0, false);
+        TileObjectData.newTile.HookPostPlaceMyPlayer = ModContent.GetInstance<BellowTileEntity>().Generic_HookPostPlaceMyPlayer;
         TileObjectData.addTile(Type);
 
         AddMapEntry(new Color(170, 91, 68));
@@ -215,8 +193,6 @@ internal class MechanicalBellowTile : ModTile
 
     public override void SpecialDraw(int i, int j, SpriteBatch spriteBatch)
     {
-        const int frame_duration = 4;
-
         Texture2D texture = TextureAssets.Tile[Type].Value;
 
         Tile tile = Main.tile[i, j];
