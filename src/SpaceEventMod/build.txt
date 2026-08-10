@@ -5,3 +5,4 @@ hideResources = true
 includeSource = false
 
 modReferences = Daybreak
+buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, .editorconfig, Properties\*, WorldGenSandbox\*

@@ -75,6 +75,11 @@ Items: {
 		DisplayName: Wind Bag
 		Tooltip: ""
 	}
+
+	MechanicalBellow: {
+		DisplayName: Mechanical Bellow
+		Tooltip: ""
+	}
 }
 
 NPCs: {

@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -9,23 +10,32 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
+using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
+using static log4net.Appender.ColoredConsoleAppender;
+using static Terraria.GameContent.Animations.Actions.NPCs;
 
 namespace SpaceEventMod.Content.CellularGrowth.Items;
 
 internal class Windoplasts : ModItem
 {
+    private int _variant;
+
     public override void SetStaticDefaults()
     {
+        Main.RegisterItemAnimation(Type, new DrawAnimationVertical(30, 5));
+        ItemID.Sets.AnimatesAsSoul[Type] = true;
         Item.ResearchUnlockCount = 25;
     }
 
     public override void SetDefaults()
     {
-        Item.width = 36;
-        Item.height = 36;
+        Item.width = 24;
+        Item.height = 28;
         Item.maxStack = 9999;
         Item.rare = ItemRarityID.Blue;
         Item.value = Item.sellPrice(silver: 2);
@@ -39,6 +49,60 @@ internal class Windoplasts : ModItem
         Item.noUseGraphic = true;
         Item.noMelee = true;
         Item.useStyle = ItemUseStyleID.Swing;
+
+        _variant = Main.rand.Next(0, 5);
+    }
+
+    public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+    {
+        int projectile = Projectile.NewProjectile(source, position, velocity, type, damage * 2, knockback, player.whoAmI);
+        Main.projectile[projectile].frame = _variant;
+        return false;
+    }
+
+    public override ModItem Clone(Item item)
+    {
+        Windoplasts clone = (Windoplasts)base.Clone(item);
+        return clone;
+    }
+
+    public override void OnCreated(ItemCreationContext context)
+    {
+        _variant = Main.rand.Next(0, 5);
+    }
+
+    public override bool PreDrawInInventory(SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
+    {
+        var texture = TextureAssets.Item[Type].Value;
+
+        var newFrame = new Rectangle(0, 30 * _variant, 24, 28);
+        var newOrigin = newFrame.Size() / 2;
+
+        spriteBatch.Draw(texture, position, newFrame, drawColor, 0f, newOrigin, scale, default, 0);
+
+        return false;
+    }
+
+    public override bool PreDrawInWorld(SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
+    {
+        var texture = TextureAssets.Item[Type].Value;
+        
+        var itemFrame = new Rectangle(0, 30 * _variant, 24, 28);
+        var drawOrigin = itemFrame.Size() / 2;
+        var drawPosition = Item.Bottom - Main.screenPosition - new Vector2(0, drawOrigin.Y);
+
+        spriteBatch.Draw(texture, drawPosition, itemFrame, alphaColor, rotation, drawOrigin, scale, default, 0);
+        return false;
+    }
+
+    public override void SaveData(TagCompound tag)
+    {
+        tag[nameof(_variant)] = _variant;
+    }
+
+    public override void LoadData(TagCompound tag)
+    {
+        _variant = tag.GetInt(nameof(_variant));
     }
 }
 
@@ -53,6 +117,7 @@ internal class WindoplastProjectile : ModProjectile
     public override void SetStaticDefaults()
     {
         ProjectileID.Sets.Explosive[Type] = true;
+        Main.projFrames[Type] = 5;
     }
 
     public override void SetDefaults()
