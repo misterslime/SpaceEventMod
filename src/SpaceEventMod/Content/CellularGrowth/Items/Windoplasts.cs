@@ -110,7 +110,7 @@ internal class WindoplastProjectile : ModProjectile
 {
     public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/Windoplasts";
 
-    private const int DefaultWidthHeight = 15;
+    private const int DEFAULT_WIDTH_HEIGHT = 15;
     private const int EXPLOSION_WIDTH_HEIGHT = 250;
     private const float KNOCKBACK_STRENGTH = 15f;
 
@@ -122,8 +122,8 @@ internal class WindoplastProjectile : ModProjectile
 
     public override void SetDefaults()
     {
-        Projectile.width = DefaultWidthHeight;
-        Projectile.height = DefaultWidthHeight;
+        Projectile.width = DEFAULT_WIDTH_HEIGHT;
+        Projectile.height = DEFAULT_WIDTH_HEIGHT;
         Projectile.friendly = true;
         Projectile.penetrate = 1;
 
@@ -173,7 +173,7 @@ internal class WindoplastProjectile : ModProjectile
     {
         SoundEngine.PlaySound(SoundID.Item14, Projectile.position);
 
-        Projectile.Resize(DefaultWidthHeight, DefaultWidthHeight);
+        Projectile.Resize(DEFAULT_WIDTH_HEIGHT, DEFAULT_WIDTH_HEIGHT);
 
         if (Projectile.owner != Main.myPlayer)
             return;
