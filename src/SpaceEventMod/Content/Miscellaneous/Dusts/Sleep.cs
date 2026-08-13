@@ -5,7 +5,7 @@ using System;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.CellularGrowth.Dusts;
+namespace SpaceEventMod.Content.Miscellaneous.Dusts;
 
 public struct SleepData(int parent)
 {
@@ -41,7 +41,7 @@ public class Sleep : ModDust
 
     public override bool PreDraw(Dust dust)
     {
-        var sleepTexture = Assets.Textures.CellularGrowth.Dusts.Sleep.Asset.Value;
+        var sleepTexture = Assets.Textures.Miscellaneous.Dusts.Sleep.Asset.Value;
 
         Graphics.BeginPipeline(0.5f)
             .DrawSprite(

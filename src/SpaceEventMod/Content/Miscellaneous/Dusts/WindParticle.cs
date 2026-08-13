@@ -9,17 +9,17 @@ using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.CellularGrowth.Dusts;
+namespace SpaceEventMod.Content.Miscellaneous.Dusts;
 
 internal struct WindParticleData(
-    int npc,
+    int projectile,
     Color secondColor, 
     int maxOldPositions,
     Point direction,
     float curveAmount, 
     float width)
 {
-    public int NPC { get; } = npc;
+    public int Projectile { get; } = projectile;
     public Color SecondColor { get; } = secondColor;
     public Vector2[] OldPositions { get; set; } = new Vector2[maxOldPositions];
     public Point Direction { get; } = direction;
@@ -102,13 +102,13 @@ internal class WindParticle : ModDust
             return false;
         }
 
-        var npc = Main.npc[data.NPC];
+        var projectile = Main.projectile[data.Projectile];
 
         var lerpAmount = 0.03f + MathF.Sin(Main.GlobalTimeWrappedHourly * 8) * 0.03f;
 
         var positions = from position in data.OldPositions
                         where !Equals(position, default(Vector2))
-                        select MapPosition(position, dust, npc, lerpAmount);
+                        select MapPosition(position, dust, projectile, lerpAmount);
 
         if (positions.Count() < 2)
             return false;
@@ -130,20 +130,20 @@ internal class WindParticle : ModDust
         return false;
     }
 
-    private Vector2 MapPosition(Vector2 position, Dust dust, NPC npc, float lerpAmount)
+    private Vector2 MapPosition(Vector2 position, Dust dust, Projectile projectile, float lerpAmount)
     {
-        var rotation = npc.rotation;
+        var rotation = projectile.rotation;
 
-        if (dust.position.X < npc.Center.X)
+        if (dust.position.X < projectile.Center.X)
             rotation += MathF.PI;
 
-        position -= npc.Center;
+        position -= projectile.Center;
 
         position = Vector2.Lerp(position, Vector2.Zero, lerpAmount);
 
         position = position.RotatedBy(rotation);
 
-        position += npc.Center;
+        position += projectile.Center;
 
         return position;
     }

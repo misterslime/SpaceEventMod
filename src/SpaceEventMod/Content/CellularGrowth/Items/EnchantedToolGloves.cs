@@ -1,5 +1,5 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.CellularGrowth.Dusts;
+using SpaceEventMod.Content.Miscellaneous.Dusts;
 using System;
 using System.Collections.Generic;
 using System.Linq;

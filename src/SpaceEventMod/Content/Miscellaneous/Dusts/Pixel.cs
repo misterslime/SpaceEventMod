@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.CellularGrowth.Dusts;
+namespace SpaceEventMod.Content.Miscellaneous.Dusts;
 
 public class Pixel : ModDust
 {

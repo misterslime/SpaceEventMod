@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace SpaceEventMod.Content.CellularGrowth.Dusts;
+namespace SpaceEventMod.Content.Miscellaneous.Dusts;
 
 public struct MistData(int variant, float spin)
 {
@@ -20,7 +20,7 @@ public class Mist : ModDust
 {
     public int counter;
 
-    public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Dusts/MediumSmoke";
+    public override string Texture => "SpaceEventMod/Assets/Textures/Miscellaneous/Dusts/MediumSmoke";
 
     public override bool Update(Dust dust)
     {
@@ -66,7 +66,7 @@ public class Mist : ModDust
         if (dust.customData == null || dust.customData is not MistData mistData)
             return false;
 
-        var inkTexture = Assets.Textures.CellularGrowth.Dusts.MediumSmoke.Asset.Value;
+        var inkTexture = Assets.Textures.Miscellaneous.Dusts.MediumSmoke.Asset.Value;
 
         var frame = new Rectangle(0, 34 * mistData.FrameVariant, 32, 34);
 

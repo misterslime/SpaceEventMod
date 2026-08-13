@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Content.BaseTypes.NPCs.Attributes;
 using SpaceEventMod.Content.BaseTypes.NPCs;
-using SpaceEventMod.Content.CellularGrowth.Dusts;
 using SpaceEventMod.Content.CellularGrowth.Items;
 using SpaceEventMod.Core.Animation.SecondOrderDynamics;
 using SpaceEventMod.Core.Animation.Tweening;
@@ -18,6 +17,7 @@ using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
+using SpaceEventMod.Content.Miscellaneous.Dusts;
 
 namespace SpaceEventMod.Content.CellularGrowth.NPCs.Droplings;
 

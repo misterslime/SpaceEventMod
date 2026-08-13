@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.CellularGrowth.Dusts;
 using SpaceEventMod.Content.Space.Mechanics.StarsapCoating;
 using System;
 using System.Collections.Generic;

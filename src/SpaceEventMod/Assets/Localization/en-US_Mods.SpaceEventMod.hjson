@@ -125,6 +125,7 @@ Projectiles: {
 	SiphoningBowHeld.DisplayName: Siphoning Bow Held
 	SiphoningBowArrow.DisplayName: Siphoning Bow Arrow
 	WindoplastProjectile.DisplayName: Windoplast Projectile
+	WindGustBlow.DisplayName: Wind Gust Blow
 }
 
 Buffs: {

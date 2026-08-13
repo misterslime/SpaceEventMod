@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.CellularGrowth.Dusts;
+using SpaceEventMod.Content.Miscellaneous.Projectiles;
 using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Utilities.Extensions;
 using System;
@@ -16,10 +16,6 @@ namespace SpaceEventMod.Content.CellularGrowth.NPCs.Sackteriums;
 
 internal partial class Sackterium : ModNPC
 {
-    private ref float Timer => ref NPC.ai[1];
-
-    public RotatedRectangle WindGustTrigger { get; private set; }
-
     public override void SetDefaults()
     {
         NPC.width = 34;
@@ -38,8 +34,6 @@ internal partial class Sackterium : ModNPC
 
     public override void AI()
     {
-        Timer++;
-
         NPC.TargetClosest(false);
 
         if (!NPC.HasValidTarget)
@@ -47,17 +41,23 @@ internal partial class Sackterium : ModNPC
 
         NPC.rotation = (Main.player[NPC.target].Center - NPC.Center).ToRotation();
 
-        var rectangleDimensions = new Point(320, 160);
-        var rectangleDisplacement = new Vector2(200, 0).RotatedBy(NPC.rotation).ToPoint();
-
-        var rectanglePosition = NPC.Center.ToPoint() - (rectangleDimensions.ToVector2() * 0.5f).ToPoint() + rectangleDisplacement;
-        var rectangle = new Rectangle(rectanglePosition.X, rectanglePosition.Y, rectangleDimensions.X, rectangleDimensions.Y);
-        WindGustTrigger = new RotatedRectangle(rectangle, NPC.rotation);
-
-        if (Timer % 6 != 0)
+        if ((int)NPC.ai[0] < 0 || (int)NPC.ai[0] >= Main.maxProjectiles)
             return;
 
-        SpawnWindGust(rectangleDimensions);
+        if (Main.projectile[(int)NPC.ai[0]].type != ModContent.ProjectileType<WindGustBlow>() || !Main.projectile[(int)NPC.ai[0]].active)
+            NPC.ai[0] = Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, NPC.velocity, ModContent.ProjectileType<WindGustBlow>(), 0, 0, -1, NPC.whoAmI, 200);
+
+    }
+
+    public override void OnKill()
+    {
+        if ((int)NPC.ai[0] < 0 || (int)NPC.ai[0] >= Main.maxProjectiles)
+            return;
+
+        if (Main.projectile[(int)NPC.ai[0]].type != ModContent.ProjectileType<WindGustBlow>() || !Main.projectile[(int)NPC.ai[0]].active)
+            return;
+
+        Main.projectile[(int)NPC.ai[0]].Kill();
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
