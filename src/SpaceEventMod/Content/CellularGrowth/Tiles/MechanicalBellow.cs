@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.RuntimeDetour;
 using SpaceEventMod.Content.CellularGrowth.Items;
+using SpaceEventMod.Content.Miscellaneous.Projectiles;
 using System;
 using System.IO;
 using Terraria;
@@ -49,6 +50,8 @@ public class BellowTileEntity : ModTileEntity
 
     public int AnimationCounter { get; private set; }
 
+    private int _windProjectile;
+
     public override bool IsTileValidForEntity(int x, int y)
     {
         Tile tile = Main.tile[x, y];
@@ -84,8 +87,21 @@ public class BellowTileEntity : ModTileEntity
     {
         if (AnimationCounter < 100)
             AnimationCounter++;
+        
+        if (_windProjectile != -1 && AnimationCounter == 100)
+        {
+            Main.projectile[_windProjectile].Kill();
+            _windProjectile = -1;
+        }
 
         Dust.QuickDust(Position.X, Position.Y, Color.Red);
+
+
+        Vector2 dustPosition = new Vector2(Position.X, Position.Y).ToWorldCoordinates(17, 15);
+        dustPosition += (Vector2.UnitX * 13).RotatedBy(Rotation);
+
+        Dust.QuickDust(dustPosition, Color.Yellow);
+
     }
 
     public void Interact(int i, int j, int item)
@@ -93,10 +109,21 @@ public class BellowTileEntity : ModTileEntity
         if (item == ModContent.ItemType<Windoplasts>())
         {
             Main.NewText("woosh!");
+
+            Vector2 position = new Vector2(Position.X, Position.Y).ToWorldCoordinates(17, 15);
+            //position += (Vector2.UnitX * 13).RotatedBy(Rotation);
+
+            _windProjectile = Projectile.NewProjectile(new EntitySource_Wiring(i, j), position, Vector2.Zero, ModContent.ProjectileType<WindGustBlow>(), 0, 0, -1, -1, 0, 160);
+
+            Main.projectile[_windProjectile].rotation = Rotation;
+
             AnimationCounter = 0;
             SyncTileEntity();
             return;
         }
+
+        if (AnimationCounter < 100)
+            return;
 
         if (Position.X - i == 0)
             Rotation -= MathHelper.PiOver4 / 2;
