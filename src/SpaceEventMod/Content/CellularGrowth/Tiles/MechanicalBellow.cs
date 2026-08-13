@@ -46,6 +46,8 @@ internal class MechanicalBellow : ModItem
 
 public class BellowTileEntity : ModTileEntity
 {
+    private const int ANIMATION_LENGTH = 96;
+
     public float Rotation { get; private set; }
 
     public int AnimationCounter { get; private set; }
@@ -85,31 +87,31 @@ public class BellowTileEntity : ModTileEntity
 
     public override void Update()
     {
-        if (AnimationCounter < 100)
+        if (AnimationCounter < ANIMATION_LENGTH)
             AnimationCounter++;
         
-        if (_windProjectile != -1 && AnimationCounter == 100)
+        if (_windProjectile != -1 && AnimationCounter >= ANIMATION_LENGTH)
         {
             Main.projectile[_windProjectile].Kill();
             _windProjectile = -1;
         }
 
-        Dust.QuickDust(Position.X, Position.Y, Color.Red);
-
+        //debug indicators
+        /*Dust.QuickDust(Position.X, Position.Y, Color.Red);
 
         Vector2 dustPosition = new Vector2(Position.X, Position.Y).ToWorldCoordinates(17, 15);
         dustPosition += (Vector2.UnitX * 13).RotatedBy(Rotation);
 
-        Dust.QuickDust(dustPosition, Color.Yellow);
-
+        Dust.QuickDust(dustPosition, Color.Yellow);*/
     }
 
     public void Interact(int i, int j, int item)
     {
+        if (AnimationCounter < ANIMATION_LENGTH)
+            return;
+
         if (item == ModContent.ItemType<Windoplasts>())
         {
-            Main.NewText("woosh!");
-
             Vector2 position = new Vector2(Position.X, Position.Y).ToWorldCoordinates(17, 15);
             //position += (Vector2.UnitX * 13).RotatedBy(Rotation);
 
@@ -121,9 +123,6 @@ public class BellowTileEntity : ModTileEntity
             SyncTileEntity();
             return;
         }
-
-        if (AnimationCounter < 100)
-            return;
 
         if (Position.X - i == 0)
             Rotation -= MathHelper.PiOver4 / 2;

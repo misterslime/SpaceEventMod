@@ -139,10 +139,10 @@ internal class WindGustBlow : ModProjectile
 
     public override bool PreDraw(ref Color lightColor)
     {
-        Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.BottomLeft() - Main.screenPosition, Color.White, 4);
+        /*Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.BottomLeft() - Main.screenPosition, Color.White, 4);
         Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.TopRight() - Main.screenPosition, Color.White, 4);
         Main.spriteBatch.DrawLine(WindGustTrigger.BottomLeft() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
-        Main.spriteBatch.DrawLine(WindGustTrigger.TopRight() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
+        Main.spriteBatch.DrawLine(WindGustTrigger.TopRight() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);*/
         return base.PreDraw(ref lightColor);
     }
 

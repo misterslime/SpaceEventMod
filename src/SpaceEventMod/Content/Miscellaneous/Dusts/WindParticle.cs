@@ -39,24 +39,29 @@ internal class WindParticle : ModDust
             return false;
         }
 
-        var curveAmount = dust.fadeIn <= 60 ? data.CurveAmount * data.Direction.X : 0.02f * data.Direction.Y;
+        int steps = 2;
 
-        dust.velocity *= 0.985f;
-        dust.velocity = dust.velocity.RotatedBy(curveAmount).RotatedByRandom(curveAmount);
-
-        dust.position += dust.velocity;
-
-        dust.fadeIn--;
-        if (dust.fadeIn <= 30)
+        for (int i = 0; i < steps; i++)
         {
-            dust.velocity *= 0.965f;
-            data = Shorten(dust, in data);
+            var curveAmount = dust.fadeIn <= 60 ? data.CurveAmount * data.Direction.X : 0.02f * data.Direction.Y;
+
+            dust.velocity *= 0.985f;
+            dust.velocity = dust.velocity.RotatedBy(curveAmount).RotatedByRandom(curveAmount);
+
+            dust.position += dust.velocity;
+
+            dust.fadeIn--;
+            if (dust.fadeIn <= 30)
+            {
+                dust.velocity *= 0.965f;
+                data = Shorten(dust, in data);
+            }
+
+            if (dust.fadeIn <= 0)
+                dust.active = false;
+
+            dust.customData = UpdatePositions(dust, in data);
         }
-
-        if (dust.fadeIn <= 0)
-            dust.active = false;
-
-        dust.customData = UpdatePositions(dust, in data);
 
         return false;
     }
