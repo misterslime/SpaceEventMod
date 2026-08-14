@@ -45,7 +45,7 @@ internal partial class Sackterium : ModNPC
             return;
 
         if (Main.projectile[(int)NPC.ai[0]].type != ModContent.ProjectileType<WindGustBlow>() || !Main.projectile[(int)NPC.ai[0]].active)
-            NPC.ai[0] = Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, NPC.velocity, ModContent.ProjectileType<WindGustBlow>(), 0, 0, -1, NPC.whoAmI, 200);
+            NPC.ai[0] = Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, NPC.velocity, ModContent.ProjectileType<WindGustBlow>(), 0, 0, -1, NPC.whoAmI, 0, 200);
 
     }
 

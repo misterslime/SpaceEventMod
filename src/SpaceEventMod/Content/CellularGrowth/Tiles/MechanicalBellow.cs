@@ -160,9 +160,6 @@ internal class MechanicalBellowTile : ModTile
 
     private BellowTileEntity Entity(int i, int j)
     {
-        var position = TileObjectData.TopLeft(i, j);
-        (i, j) = (position.X, position.Y);
-        
         if (TileEntity.TryGet(i, j, out BellowTileEntity tileEntity))
             return tileEntity;
 

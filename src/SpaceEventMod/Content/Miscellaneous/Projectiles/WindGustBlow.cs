@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Miscellaneous.Projectiles;
@@ -139,14 +140,14 @@ internal class WindGustBlow : ModProjectile
 
     public override bool PreDraw(ref Color lightColor)
     {
-        /*Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.BottomLeft() - Main.screenPosition, Color.White, 4);
-        Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.TopRight() - Main.screenPosition, Color.White, 4);
-        Main.spriteBatch.DrawLine(WindGustTrigger.BottomLeft() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
-        Main.spriteBatch.DrawLine(WindGustTrigger.TopRight() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);*/
+        //Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.BottomLeft() - Main.screenPosition, Color.White, 4);
+        //Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.TopRight() - Main.screenPosition, Color.White, 4);
+        //Main.spriteBatch.DrawLine(WindGustTrigger.BottomLeft() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
+        //Main.spriteBatch.DrawLine(WindGustTrigger.TopRight() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
         return base.PreDraw(ref lightColor);
     }
 
-    private static Vector2 GetVelocityFromWind(Vector2 entityVelocity, Rectangle rectangle)
+    private static Vector2 GetVelocityFromWind(Vector2 entityVelocity, Rectangle rectangle, float knockbackResist = 1f)
     {
         var windGusts = from gust in Main.projectile
                           where gust.active
@@ -155,11 +156,19 @@ internal class WindGustBlow : ModProjectile
 
         foreach (var gust in windGusts)
         {
+            if (gust is null)
+                continue;
+
             if (!gust.WindGustTrigger.Intersects(rectangle))
                 continue;
 
-            var windAcceleration = Vector2.UnitX.RotatedBy(gust.Projectile.rotation);
+            Vector2 windOrigin = Vector2.Lerp(gust.WindGustTrigger.TopLeft(), gust.WindGustTrigger.BottomLeft(), 0.5f);
 
+
+            // Wind Physics Idea 1
+            var windAcceleration = Vector2.UnitX.RotatedBy(gust.Projectile.rotation) * knockbackResist;
+
+            entityVelocity *= 0.92f;
             entityVelocity.X += windAcceleration.X;
             entityVelocity.Y += windAcceleration.Y;
         }
@@ -171,13 +180,43 @@ internal class WindGustBlow : ModProjectile
     public static void NPCWindPhysics()
     {
         foreach (var npc in Main.ActiveNPCs)
-            npc.velocity = GetVelocityFromWind(npc.velocity, npc.getRect());
+            npc.velocity = GetVelocityFromWind(npc.velocity, npc.getRect(), npc.knockBackResist);
     }
 
     [ModSystemHooks.PreUpdatePlayers]
     public static void PlayerWindPhysics()
     {
         foreach (var player in Main.ActivePlayers)
-            player.velocity = GetVelocityFromWind(player.velocity, player.getRect());
+            player.velocity = GetVelocityFromWind(player.velocity, player.getRect(), player.noKnockback ? 0 : 1);
+    }
+
+    [ModSystemHooks.PreUpdateProjectiles]
+    public static void GolfBallWindPhysics()
+    {
+        int[] golfBalls = [
+            ProjectileID.DirtGolfBall,
+            ProjectileID.GolfBallDyedBlack,
+            ProjectileID.GolfBallDyedBlue,
+            ProjectileID.GolfBallDyedBrown,
+            ProjectileID.GolfBallDyedCyan,
+            ProjectileID.GolfBallDyedGreen,
+            ProjectileID.GolfBallDyedLimeGreen,
+            ProjectileID.GolfBallDyedOrange,
+            ProjectileID.GolfBallDyedPink,
+            ProjectileID.GolfBallDyedPurple,
+            ProjectileID.GolfBallDyedRed,
+            ProjectileID.GolfBallDyedSkyBlue,
+            ProjectileID.GolfBallDyedTeal,
+            ProjectileID.GolfBallDyedViolet,
+            ProjectileID.GolfBallDyedYellow
+            ];
+
+        foreach (var projectile in Main.ActiveProjectiles)
+        {
+            if (!golfBalls.Contains(projectile.type))
+                continue;
+
+            projectile.velocity = GetVelocityFromWind(projectile.velocity, projectile.getRect(), 2f);
+        }
     }
 }
