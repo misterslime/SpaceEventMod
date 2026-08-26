@@ -11,7 +11,7 @@ internal class CellWood : ModTile, ILoadItem
     public void SetItemStaticDefaults(ModItem modItem)
     {
         ItemID.Sets.ShimmerTransformToItem[Type] = ItemID.Wood;
-        RecipeGroup.recipeGroups[RecipeGroupID.Wood].ValidItems.Add(modItem.Type);
+        RecipeGroups.Wood.Add(modItem.Type);
         modItem.Item.ResearchUnlockCount = 100;
     }
 

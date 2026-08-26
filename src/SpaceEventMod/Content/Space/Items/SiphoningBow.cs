@@ -1,4 +1,3 @@
-using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Space.LevelElements;
@@ -307,9 +306,7 @@ internal class SiphoningBowArrow : ModProjectile
         }
         else if (Main.npc[_targetWhoAmI].active && !Main.npc[_targetWhoAmI].dontTakeDamage)
         {
-            Matrix matrix = Matrix.CreateRotationZ(Main.npc[_targetWhoAmI].rotation);
-
-            Projectile.Center = Main.npc[_targetWhoAmI].Center - (Projectile.velocity * 2f).Transform(matrix);
+            Projectile.Center = Main.npc[_targetWhoAmI].Center - (Projectile.velocity * 2f).RotatedBy(Main.npc[_targetWhoAmI].rotation);
             Projectile.gfxOffY = Main.npc[_targetWhoAmI].gfxOffY;
         }
         else
@@ -423,7 +420,7 @@ internal class SiphoningBowArrow : ModProjectile
             _ => Color.Blue
         };
 
-        Graphics.BeginPipeline(0.5f)
+        Core.Graphics.Graphics.BeginPipeline(0.5f)
             .DrawBasicTrail(
                 trailPoints.ToArray(),
                 r => 2 + 4 * MathHelper.Clamp(MathF.Sin(r * MathHelper.Pi * 5 - 16 * Main.GlobalTimeWrappedHourly), 0, 1),

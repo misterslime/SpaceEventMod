@@ -2,14 +2,28 @@
 
   <Folder Name="/build-targets/">
     <File Path="build/Mod.Build.targets" />
+    <File Path="build/Mod.Modules.targets" />
     <File Path="build/Mod.Publicizer.targets" />
     <File Path="build/Mod.References.targets" />
   </Folder>
 
   <Folder Name="/daybreak-mod/">
-    <Project Path="src/daybreak-mod/src/Daybreak.CodeAnalysis/Daybreak.CodeAnalysis.csproj" />
-    <Project Path="src/daybreak-mod/src/Daybreak.SourceGen/Daybreak.SourceGen.csproj" />
+    <File Path="src/daybreak-mod/src/DaybreakModuleAttribute.cs" />
+    <File Path="src/daybreak-mod/src/Module.props" />
     <Project Path="src/daybreak-mod/src/Daybreak/Daybreak.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.ChatTags/Daybreak.ChatTags.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.CodeAnalysis/Daybreak.CodeAnalysis.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Contracts/Daybreak.Contracts.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.EarlyLoader/Daybreak.EarlyLoader.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Hooks/Daybreak.Hooks.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Mathematics/Daybreak.Mathematics.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Models/Daybreak.Models.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.MonoMod/Daybreak.MonoMod.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Networking/Daybreak.Networking.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Rendering.Buffers/Daybreak.Rendering.Buffers.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Rendering.ItemBuffering/Daybreak.Rendering.ItemBuffering.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Rendering/Daybreak.Rendering.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.Resources/Daybreak.Resources.csproj" />
   </Folder>
 
   <Folder Name="/solution-items/">
@@ -22,7 +36,10 @@
     <File Path="ORGANIZATION.md" />
     <File Path="README.md" />
   </Folder>
+  
+  <Project Path="src/TileHelper/TileHelper.csproj" />
   <Project Path="src/SpaceEventMod.SourceGeneration/SpaceEventMod.SourceGeneration.csproj" />
   <Project Path="src/SpaceEventMod/SpaceEventMod.csproj" />
+  <Project Path="src/WorldGenSandbox/WorldGenSandbox.csproj" />
 
 </Solution>

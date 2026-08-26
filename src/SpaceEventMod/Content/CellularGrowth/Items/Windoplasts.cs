@@ -83,13 +83,13 @@ internal class Windoplasts : ModItem
         return false;
     }
 
-    public override bool PreDrawInWorld(SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
+    public override bool PreDrawInWorld(WorldItem item, SpriteBatch spriteBatch, Color lightColor, Color alphaColor, ref float rotation, ref float scale, int whoAmI)
     {
         var texture = TextureAssets.Item[Type].Value;
         
         var itemFrame = new Rectangle(0, 30 * _variant, 24, 28);
         var drawOrigin = itemFrame.Size() / 2;
-        var drawPosition = Item.Bottom - Main.screenPosition - new Vector2(0, drawOrigin.Y);
+        var drawPosition = item.Bottom - Main.screenPosition - new Vector2(0, drawOrigin.Y);
 
         spriteBatch.Draw(texture, drawPosition, itemFrame, alphaColor, rotation, drawOrigin, scale, default, 0);
         return false;

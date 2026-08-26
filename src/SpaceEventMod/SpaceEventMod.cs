@@ -6,6 +6,7 @@ using SpaceEventMod.Core.Utilities;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using TileHelper.Common;
 
 namespace SpaceEventMod;
 

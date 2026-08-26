@@ -9,11 +9,7 @@ using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
 
-<<<<<<<< HEAD:src/SpaceEventMod/Content/Miscellaneous/Dusts/WindParticle.cs
 namespace SpaceEventMod.Content.Miscellaneous.Dusts;
-========
-namespace SpaceEventMod.Content.CellularGrowth.NPCs.Sackteriums;
->>>>>>>> origin/1.4.5:src/SpaceEventMod/Content/CellularGrowth/NPCs/WindGust.cs
 
 internal struct WindParticleData(
     int projectile,

@@ -182,11 +182,8 @@ internal class AmoebicPicklawProjectile : ModProjectile
         return false;
     }
 
-    public override bool PreDraw(ref Color lightColor)
+    public override bool PreDraw(Player player, ref Color lightColor)
     {
-        if (!Projectile.TryGetOwner(out Player player))
-            return false;
-
         var midControlPoint = Vector2.Lerp(player.Center, Projectile.Center, 0.7f);
 
         if (player.channel)
@@ -197,6 +194,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
         var trailPoints = new List<Vector2>();
 
         ReadOnlySpan<Vector2> controlPoints = [player.Center - Main.screenPosition, midControlPoint, Projectile.Center - Main.screenPosition];
+
         using (var curve = new BezierCurve(controlPoints))
             trailPoints = curve.GetPoints(20);
 

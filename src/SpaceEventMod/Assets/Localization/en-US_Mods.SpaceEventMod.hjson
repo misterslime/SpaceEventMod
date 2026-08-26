@@ -85,6 +85,36 @@ Items: {
 		DisplayName: Cosmostone Wall Item
 		Tooltip: ""
 	}
+
+	AmoebicPicklaw: {
+		DisplayName: Amoebic Picklaw
+		Tooltip: ""
+	}
+
+	WindBag: {
+		DisplayName: Wind Bag
+		Tooltip: ""
+	}
+
+	CellWoodItem: {
+		DisplayName: Cell Wood Item
+		Tooltip: ""
+	}
+
+	CosmostoneBrickItem: {
+		DisplayName: Cosmostone Brick Item
+		Tooltip: ""
+	}
+
+	HerbCellItem: {
+		DisplayName: Herb Cell Item
+		Tooltip: ""
+	}
+
+	MechanicalBellowItem: {
+		DisplayName: Mechanical Bellow Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {

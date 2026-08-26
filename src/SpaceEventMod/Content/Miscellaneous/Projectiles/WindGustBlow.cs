@@ -1,4 +1,4 @@
-using Daybreak.Common.Features.Hooks;
+using Daybreak.Hooks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
@@ -116,7 +116,7 @@ internal class WindGustBlow : ModProjectile
 
         _windDirections.Enqueue(direction);
 
-        var dust = Dust.NewDustPerfect(dustPosition, ModContent.DustType<WindParticle>(), dustVelocity);
+        var dust = Dust.NewDustPerfect(dustPosition, ModContent.DustType<WindGust>(), dustVelocity);
         dust.noGravity = true;
         dust.color = color.Item1;
 
@@ -138,13 +138,13 @@ internal class WindGustBlow : ModProjectile
         dust.fadeIn = 80;
     }
 
-    public override bool PreDraw(ref Color lightColor)
+    public override bool PreDraw(Player player, ref Color lightColor)
     {
-        //Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.BottomLeft() - Main.screenPosition, Color.White, 4);
-        //Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.TopRight() - Main.screenPosition, Color.White, 4);
-        //Main.spriteBatch.DrawLine(WindGustTrigger.BottomLeft() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
-        //Main.spriteBatch.DrawLine(WindGustTrigger.TopRight() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
-        return base.PreDraw(ref lightColor);
+        Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.BottomLeft() - Main.screenPosition, Color.White, 4);
+        Main.spriteBatch.DrawLine(WindGustTrigger.TopLeft() - Main.screenPosition, WindGustTrigger.TopRight() - Main.screenPosition, Color.White, 4);
+        Main.spriteBatch.DrawLine(WindGustTrigger.BottomLeft() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
+        Main.spriteBatch.DrawLine(WindGustTrigger.TopRight() - Main.screenPosition, WindGustTrigger.BottomRight() - Main.screenPosition, Color.White, 4);
+        return base.PreDraw(player, ref lightColor);
     }
 
     private static Vector2 GetVelocityFromWind(Vector2 entityVelocity, Rectangle rectangle, float knockbackResist = 1f)

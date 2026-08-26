@@ -3,6 +3,5 @@ author = users
 version = 0.1
 hideResources = true
 includeSource = false
-dllReferences = TileHelper
-modReferences = Daybreak
+dllReferences = TileHelper, Daybreak.ChatTags, Daybreak.Contracts, Daybreak.EarlyLoader, Daybreak.Hooks, Daybreak.Mathematics, Daybreak.Models, Daybreak.MonoMod, Daybreak.Networking, Daybreak.Rendering, Daybreak.Rendering.Buffers, Daybreak.Resources
 buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, .editorconfig, Properties\*, WorldGenSandbox\*

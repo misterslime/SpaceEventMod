@@ -1,6 +1,6 @@
 <Project>
 
     <Import Project="Mod.Publicizer.targets"/>
-    <Import Project="Mod.References.targets"/>
+    <Import Project="Mod.Modules.targets"/>
 
 </Project>

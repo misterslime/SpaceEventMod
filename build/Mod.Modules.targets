@@ -1,0 +1,25 @@
+<Project>
+
+    <!-- Modules and Libraries -->
+    <ItemGroup>
+        <Libraries Include="..\TileHelper\TileHelper.csproj" />
+        <Libraries Include="..\daybreak-mod\src\*\*.csproj"
+                   Exclude="..\daybreak-mod\src\Daybreak\Daybreak.csproj"/>
+
+        <ProjectReference Include="@(Libraries)" />
+        <ProjectReference Include="..\daybreak-mod\src\Daybreak.CodeAnalysis\Daybreak.CodeAnalysis.csproj" PrivateAssets="All" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
+        <ProjectReference Include="..\daybreak-mod\src\Daybreak.SourceGen\Daybreak.SourceGen.csproj" PrivateAssets="All" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
+    </ItemGroup>
+
+    <Target Name="PackageModules" BeforeTargets="Build">
+        <Message Text="$(MSBuildThisFileDirectory)" Importance="high" />
+
+        <MSBuild Projects="@(Libraries)" Targets="Build" Properties="Configuration=Release">
+            <Output TaskParameter="TargetOutputs" ItemName="BuildOutput" />
+        </MSBuild>
+
+        <Copy SourceFiles="@(BuildOutput)" DestinationFolder="$(ProjectDir)lib\" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(BuildOutput-&gt;'%(Identity)'-&gt;Replace('.dll', '.pdb'))" DestinationFolder="$(ProjectDir)lib\" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
+    </Target>
+
+</Project>

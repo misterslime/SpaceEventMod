@@ -1,6 +1,7 @@
-using Daybreak.Common.Features.Hooks;
-using Daybreak.Common.Features.Models;
-using Daybreak.Common.Rendering;
+using Daybreak.Hooks;
+using Daybreak.Models;
+using Daybreak.Rendering;
+using Daybreak.Rendering.Buffers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
@@ -84,8 +85,8 @@ internal static partial class SpaceEvent
                 {
                     BubbleShader = Assets.Shaders.Space.FirmamentSeaBubbles.CreatePass0(),
                     FoamShader = Assets.Shaders.Space.FirmamentSeaFoam.CreatePass0(),
-                    SeaMeshBuffer = ScreenspaceTargetPool.Shared.Rent(Main.instance.GraphicsDevice),
-                    BackgroundBuffer = ScreenspaceTargetPool.Shared.Rent(Main.instance.GraphicsDevice),
+                    SeaMeshBuffer = ScreenspaceTargetProvider.Shared.Create(Main.instance.GraphicsDevice),
+                    BackgroundBuffer = ScreenspaceTargetProvider.Shared.Create(Main.instance.GraphicsDevice),
                 }
             ).GetAwaiter().GetResult();
         }
@@ -123,7 +124,7 @@ internal static partial class SpaceEvent
         {
             using (SeaMeshBuffer.Target.Scope(clearColor: Color.Transparent)) 
             {
-                Pipeline pipeline = Graphics.BeginPipeline();
+                Pipeline pipeline = Core.Graphics.Graphics.BeginPipeline();
 
                 DrawBackgroundPrimitives(in pipeline, Color.Blue, Color.Magenta);
                 DrawForegroundPrimitives(in pipeline);
@@ -133,7 +134,7 @@ internal static partial class SpaceEvent
 
             using (BackgroundBuffer.Target.Scope(clearColor: Color.Transparent))
             {
-                Pipeline pipeline = Graphics.BeginPipeline();
+                Pipeline pipeline = Core.Graphics.Graphics.BeginPipeline();
 
                 DrawBackgroundPrimitives(in pipeline, new Color(10, 0, 100), new Color(10, 0, 100));
 
@@ -306,7 +307,7 @@ internal static partial class SpaceEvent
     {
         if (BackgroundBuffer.Target is not null && Sea.Springs is not null && Sea.Active)
         {
-            Graphics.BeginPipeline(0.5f)
+            Core.Graphics.Graphics.BeginPipeline(0.5f)
                 .DrawSprite(
                     BackgroundBuffer.Target,
                     Vector2.Zero,
