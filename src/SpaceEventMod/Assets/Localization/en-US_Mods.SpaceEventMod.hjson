@@ -100,6 +100,41 @@ Items: {
 		DisplayName: Herb Cell
 		Tooltip: ""
 	}
+
+	CellWoodItem: {
+		DisplayName: Cell Wood Item
+		Tooltip: ""
+	}
+
+	CosmossItem: {
+		DisplayName: Cosmoss Item
+		Tooltip: ""
+	}
+
+	CosmostoneItem: {
+		DisplayName: Cosmostone Item
+		Tooltip: ""
+	}
+
+	CosmostoneBrickItem: {
+		DisplayName: Cosmostone Brick Item
+		Tooltip: ""
+	}
+
+	HerbCellItem: {
+		DisplayName: Herb Cell Item
+		Tooltip: ""
+	}
+
+	MechanicalBellowItem: {
+		DisplayName: Mechanical Bellow Item
+		Tooltip: ""
+	}
+
+	CosmostoneWallItem: {
+		DisplayName: Cosmostone Wall Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {

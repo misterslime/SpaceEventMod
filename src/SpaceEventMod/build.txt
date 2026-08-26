@@ -3,6 +3,6 @@ author = users
 version = 0.1
 hideResources = true
 includeSource = false
-
+dllReferences = TileHelper
 modReferences = Daybreak
 buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, .editorconfig, Properties\*, WorldGenSandbox\*

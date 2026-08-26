@@ -10,3 +10,6 @@ obj/
 
 # User-specific files.
 *.user
+
+# Mod dll references
+src/*/lib/

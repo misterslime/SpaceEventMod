@@ -1,17 +1,15 @@
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
-internal class Cosmostone : ModTile
+internal class Cosmostone : ModTile, ILoadItem
 {
+    public void SetItemStaticDefaults(ModItem modItem) => modItem.Item.ResearchUnlockCount = 100;
+
     public override void SetStaticDefaults()
     {
         Main.tileSolid[Type] = true;
@@ -21,7 +19,7 @@ internal class Cosmostone : ModTile
 
         TileID.Sets.ChecksForMerge[Type] = true;
 
-        MineResist = .5f;
+        DustType = DustID.Stone;
         HitSound = SoundID.Tink;
 
         AddMapEntry(Color.Gray);

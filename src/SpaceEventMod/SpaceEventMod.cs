@@ -19,6 +19,8 @@ internal class SpaceEventMod : Mod
     {
         Instance = this;
 
+        TileHelper.Autoloader.Load(this);
+
         Main.QueueMainThreadAction(() =>
         {
             if (Main.netMode == NetmodeID.Server)
@@ -58,4 +60,14 @@ internal class SpaceEventMod : Mod
         source.AddRedirect("Content", "Assets/Textures");
         return source;
     }
+}
+
+public static class AutoItemExtensions
+{
+    //credit to SpiritR for these
+    public const string SUFFIX = "Item";
+
+    public static ModItem AutoModItem<T>(this T t, string prepend = "") where T : ModType => SpaceEventMod.Instance.Find<ModItem>(t.Name + prepend + SUFFIX);
+
+    public static int AutoItemType<T>(this T t, string prepend = "") where T : ModType => AutoModItem(t, prepend).Type;
 }

@@ -1,48 +1,18 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoMod.RuntimeDetour;
 using SpaceEventMod.Content.CellularGrowth.Items;
 using SpaceEventMod.Content.Miscellaneous.Projectiles;
-using System;
 using System.IO;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.Enums;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.ObjectData;
-using static Terraria.ModLoader.BackupIO;
+using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
-
-internal class MechanicalBellow : ModItem
-{
-    public override void SetDefaults()
-    {
-        Item.DefaultToPlaceableTile(ModContent.TileType<MechanicalBellowTile>());
-        Item.width = 30;
-        Item.height = 22;
-        Item.value = 3000;
-    }
-
-    public override void AddRecipes()
-    {
-        CreateRecipe()
-            .AddIngredient(ModContent.ItemType<Windoplasts>(), 5)
-            .AddIngredient(ItemID.LeadBar, 10)
-            .AddTile(TileID.WorkBenches)
-            .Register();
-
-        CreateRecipe()
-            .AddIngredient(ModContent.ItemType<Windoplasts>(), 5)
-            .AddIngredient(ItemID.IronBar, 10)
-            .AddTile(TileID.WorkBenches)
-            .Register();
-    }
-}
 
 public class BellowTileEntity : ModTileEntity
 {
@@ -57,7 +27,7 @@ public class BellowTileEntity : ModTileEntity
     public override bool IsTileValidForEntity(int x, int y)
     {
         Tile tile = Main.tile[x, y];
-        return tile.HasTile && tile.TileType == ModContent.TileType<MechanicalBellowTile>() && TileObjectData.IsTopLeft(x, y);
+        return tile.HasTile && tile.TileType == ModContent.TileType<MechanicalBellow>() && TileObjectData.IsTopLeft(x, y);
     }
 
     // Tile Entities can store data. This data most likely needs to be synced to connected clients.
@@ -140,8 +110,25 @@ public class BellowTileEntity : ModTileEntity
     }
 }
 
-internal class MechanicalBellowTile : ModTile
+internal class MechanicalBellow : ModTile, ILoadItem
 {
+    public void SetItemDefaults(ModItem modItem) => modItem.Item.value = 3000;
+
+    public void AddItemRecipes(ModItem modItem)
+    {
+        modItem.CreateRecipe()
+            .AddIngredient(ModContent.ItemType<Windoplasts>(), 5)
+            .AddIngredient(ItemID.LeadBar, 10)
+            .AddTile(TileID.WorkBenches)
+            .Register();
+
+        modItem.CreateRecipe()
+            .AddIngredient(ModContent.ItemType<Windoplasts>(), 5)
+            .AddIngredient(ItemID.IronBar, 10)
+            .AddTile(TileID.WorkBenches)
+            .Register();
+    }
+
     public override void SetStaticDefaults()
     {
         Main.tileSolid[Type] = false;

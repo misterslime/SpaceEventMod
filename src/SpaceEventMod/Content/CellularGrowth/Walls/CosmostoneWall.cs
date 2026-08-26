@@ -1,16 +1,13 @@
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Terraria.ID;
 using Terraria.ModLoader;
+using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Walls;
 
-internal class CosmostoneWall : ModWall
+internal class CosmostoneWall : ModWall, ILoadItem
 {
+    public void SetItemStaticDefaults(ModItem modItem) => modItem.Item.ResearchUnlockCount = 400;
+
     public override void SetStaticDefaults()
     {
         var wallColor = Color.Gray * 0.6f;
