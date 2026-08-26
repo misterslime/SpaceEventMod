@@ -80,6 +80,26 @@ Items: {
 		DisplayName: Mechanical Bellow
 		Tooltip: ""
 	}
+
+	AmoebicPicklaw: {
+		DisplayName: Amoebic Picklaw
+		Tooltip: ""
+	}
+
+	CellWood: {
+		DisplayName: Cell Wood
+		Tooltip: ""
+	}
+
+	CosmostoneBrick: {
+		DisplayName: Cosmostone Brick
+		Tooltip: ""
+	}
+
+	HerbCell: {
+		DisplayName: Herb Cell
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -126,6 +146,7 @@ Projectiles: {
 	SiphoningBowArrow.DisplayName: Siphoning Bow Arrow
 	WindoplastProjectile.DisplayName: Windoplast Projectile
 	WindGustBlow.DisplayName: Wind Gust Blow
+	AmoebicPicklawProjectile.DisplayName: Amoebic Picklaw Projectile
 }
 
 Buffs: {
