@@ -32,6 +32,7 @@
     <File Path=".gitignore" />
     <File Path=".gitmodules" />
     <File Path="LICENSE" />
+    <File Path="CONTRIBUTORS.md" />
     <File Path="CREDITS.md" />
     <File Path="ORGANIZATION.md" />
     <File Path="README.md" />
