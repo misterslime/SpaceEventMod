@@ -2,12 +2,12 @@
 
     <!-- Modules and Libraries -->
     <ItemGroup>
-        <Libraries Include="..\TileHelper\TileHelper.csproj" />
+        <Libraries Include="..\..\lib\TileHelper\TileHelper.csproj" />
 
         <ProjectReference Include="@(Libraries)" />
         
-        <ProjectReference Include="..\daybreak-mod\src\Daybreak\Daybreak.csproj" />
-        <ProjectReference Include="..\daybreak-mod\src\Daybreak.CodeAnalysis\Daybreak.CodeAnalysis.csproj" PrivateAssets="All" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+        <ProjectReference Include="..\..\lib\daybreak-mod\src\Daybreak\Daybreak.csproj" />
+        <ProjectReference Include="..\..\lib\daybreak-mod\src\Daybreak.CodeAnalysis\Daybreak.CodeAnalysis.csproj" PrivateAssets="All" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <Target Name="PackageModules" BeforeTargets="Build">
