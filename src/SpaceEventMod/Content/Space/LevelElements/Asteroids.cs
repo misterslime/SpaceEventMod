@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Animation.SecondOrderDynamics;
-using SpaceEventMod.Core.Physics;
-using SpaceEventMod.Core.Physics.Components.Animation;
+using SpaceEventMod.Common.Animation;
+using SpaceEventMod.Common.Physics;
+using SpaceEventMod.Common.Physics.Components.Animation;
 using System;
 using System.Collections.Generic;
 using Terraria;

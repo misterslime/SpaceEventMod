@@ -1,9 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SpaceEventMod.Core.Geometry;
-using SpaceEventMod.Core.Graphics;
-using SpaceEventMod.Core.Utilities.Extensions;
+using SpaceEventMod.Common.Geometry;
+using SpaceEventMod.Common.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;

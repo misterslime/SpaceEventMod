@@ -12,10 +12,6 @@
       "commandLineArgs": "$(tMLPath)",
       "workingDirectory": "$(tMLSteamPath)"
     },
-    "Terraria Client (ProjectBuild)": {
-      "commandName": "Project",
-      "commandLineArgs": "\"$(TmlBuildBootstrapRoot)Tomat.TML.ClientBootstrap.dll\" --working-directory \"$(tMLSteamPath).\" --binary \"$(tMLPath)\" --mode client --mod $(AssemblyName) --sdk-natives-directory \"$(TmlBuildNativeRoot).\" --tml-build-version $(TmlBuildSdkVersion) --tml-version $(TmlVersion) --tml-version-resolved $(TmlVersionResolved) --features \"$(TmlBuildBootstrapFeatures)\""
-    },
     "Terraria Client (D3D11)": {
       "commandName": "Executable",
       "executablePath": "$(DotNetName)",
@@ -27,7 +23,7 @@
       "executablePath": "$(DotNetName)",
       "commandLineArgs": "$(tMLPath) -- /gldevice:D3D11",
       "workingDirectory": "$(tMLSteamPath)"
-    }
+    },
     "Terraria Server": {
       "commandName": "Executable",
       "executablePath": "$(DotNetName)",

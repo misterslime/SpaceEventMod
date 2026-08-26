@@ -1,9 +1,8 @@
 using Daybreak.Common.Features.Hooks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Geometry;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
-using SpaceEventMod.Core.Geometry;
-using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -1,8 +1,8 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Physics;
-using SpaceEventMod.Core.Physics.Components;
-using SpaceEventMod.Core.Physics.Interfaces;
-using SpaceEventMod.Core.Physics.Joints;
+using SpaceEventMod.Common.Physics;
+using SpaceEventMod.Common.Physics.Components;
+using SpaceEventMod.Common.Physics.Interfaces;
+using SpaceEventMod.Common.Physics.Joints;
 using System;
 using System.Collections.Generic;
 using System.Linq;

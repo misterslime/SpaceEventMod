@@ -1,8 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.CellularGrowth.NPCs.Droplings;
-using SpaceEventMod.Core.Animation.Splines;
-using SpaceEventMod.Core.Graphics;
+using SpaceEventMod.Common.Graphics;
+using SpaceEventMod.Common.Splines;
 using System;
 using System.Collections.Generic;
 using System.Linq;

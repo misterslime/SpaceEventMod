@@ -2,7 +2,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
-using SpaceEventMod.Content.Space.Mechanics.StarsapCoating;
 using System;
 using System.Collections.Generic;
 using System.Linq;

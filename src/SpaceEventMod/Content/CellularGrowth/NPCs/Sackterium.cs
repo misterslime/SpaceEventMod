@@ -1,8 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Miscellaneous.Projectiles;
-using SpaceEventMod.Core.Geometry;
-using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections;
 using System.Linq;

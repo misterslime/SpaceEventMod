@@ -1,11 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.BaseTypes.NPCs.Attributes;
-using SpaceEventMod.Content.BaseTypes.NPCs;
 using SpaceEventMod.Content.CellularGrowth.NPCs.Amoerphas;
-using SpaceEventMod.Core.Geometry;
 using SpaceEventMod.Core.Physics.SmoothParticleHydrodynamics;
-using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,6 +15,8 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using static System.Net.Mime.MediaTypeNames;
 using static Terraria.GameContent.Skies.StardustSky;
+using SpaceEventMod.Common.Geometry;
+using SpaceEventMod.Common.BaseTypes;
 
 namespace SpaceEventMod.Content.CellularGrowth.NPCs.Amoerphas;
 

@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.DataStructures;
-using SpaceEventMod.Core.Utilities.Extensions;
+using SpaceEventMod.Common.DataStructures;
 using Terraria;
 using Terraria.GameContent.Drawing;
 using Terraria.ID;

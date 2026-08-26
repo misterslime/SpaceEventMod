@@ -1,10 +1,5 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Content.Space.Mechanics.StarsapCoating;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SpaceEventMod.Common.StarsapCoating;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;

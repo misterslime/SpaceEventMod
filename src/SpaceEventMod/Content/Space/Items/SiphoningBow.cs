@@ -1,9 +1,8 @@
 using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Content.Space.LevelElements;
-using SpaceEventMod.Core.Animation.Splines;
-using SpaceEventMod.Core.Graphics;
+using SpaceEventMod.Common.Graphics;
+using SpaceEventMod.Common.Splines;
 using System;
 using System.Collections.Generic;
 using System.IO;

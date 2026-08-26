@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Animation.Splines;
+using SpaceEventMod.Common.Splines;
 using SpaceEventMod.Core.Animation.Tweening;
-using SpaceEventMod.Core.Utilities.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

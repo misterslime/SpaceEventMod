@@ -1,10 +1,11 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Animation.Splines;
+using SpaceEventMod.Common.Graphics;
+using SpaceEventMod.Common.Physics;
+using SpaceEventMod.Common.Physics.Components;
+using SpaceEventMod.Common.Splines;
+using SpaceEventMod.Common.Tweening;
 using SpaceEventMod.Core.Animation.Tweening;
-using SpaceEventMod.Core.Graphics;
-using SpaceEventMod.Core.Physics;
-using SpaceEventMod.Core.Physics.Components;
 using System;
 using System.Collections.Generic;
 using Terraria;

@@ -6,6 +6,10 @@ Our syntax is defined in the [**.editorconfig**](../.editorconfig) file located 
 
 Please also follow the file organization found in [ORGANIZATION.md](ORGANIZATION.md)
 
+## Member naming
+
+Private fields should be named `_likeThis` (prefixed with an underscore, camel case) and constants should be named `LIKE_THIS`.
+
 # Current Contributors
 ## Template
 Fields in curly braces are to be replaced with your own text.

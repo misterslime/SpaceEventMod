@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Core.Graphics;
+using SpaceEventMod.Common.Graphics;
 using System;
 using Terraria;
 using Terraria.ModLoader;
