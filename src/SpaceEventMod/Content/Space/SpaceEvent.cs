@@ -1,12 +1,19 @@
+using Daybreak.Common.Features.Hooks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
 using SpaceEventMod.Content.Space.LevelElements;
 using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.GameContent;
+using Terraria.Graphics.Effects;
+using Terraria.Graphics.Shaders;
 using Terraria.ID;
+using Terraria.Map;
 using Terraria.ModLoader;
+using Terraria.UI;
 
 namespace SpaceEventMod.Content.Space;
 
@@ -19,28 +26,31 @@ namespace SpaceEventMod.Content.Space;
 // - add bubble particles when you move
 // - maybe stuff behind the foam could be shaded in the foam? or it could be transparent.
 // - make the sea appear on the map
-public class SpaceEvent : ModSystem
+internal static partial class SpaceEvent
 {
+    private const float MINIMUM_TO_SPAWN_ASTEROID = 0.7f;
+    private const float SEPARATION_DISTANCE = 10 * 16;
+    private const float STAR_SEPARATION_DISTANCE = 1920;
+
     public static FirmamentSea Sea;
 
     public static Vector2 SeaToWorldCoordinates(Vector2 position) => new Vector2(position.X, position.Y + Sea.SeaPos.Height.Position);
 
     public static Vector2 WorldToSeaCoordinates(Vector2 position) => new Vector2(position.X, position.Y - Sea.SeaPos.Height.Position);
 
-    private FastNoiseLite noise;
-    private float minimumToSpawnAsteroid = 0.7f;
-    private float separationDistance = 10 * 16;
-    private float starSeparationDistance = 120 * 16;
+    private static FastNoiseLite s_noise;
 
-    public override void ClearWorld()
+    [ModSystemHooks.ClearWorld]
+    private static void ClearWorld()
     {
         Sea = new FirmamentSea();
 
-        noise = new FastNoiseLite(Main.ActiveWorldFileData.Seed);
-        noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
+        s_noise = new FastNoiseLite(Main.ActiveWorldFileData.Seed);
+        s_noise.SetNoiseType(FastNoiseLite.NoiseType.Cellular);
     }
 
-    public override void PostUpdatePlayers()
+    [ModSystemHooks.PostUpdatePlayers]
+    private static void UpdateEvent()
     {
         if (Sea.Springs is null)
             return;
@@ -55,9 +65,9 @@ public class SpaceEvent : ModSystem
         SpawnStars();
     }
 
-    private void SpawnStars()
+    private static void SpawnStars()
     {
-        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
+        if (!Sea.CanSpawnThings || Main.gameMenu || FocusHelper.GameplayActive)
             return;
 
         var playerCenter = Main.player[Main.myPlayer].Center;
@@ -74,10 +84,10 @@ public class SpaceEvent : ModSystem
         {
             foreach (var star in stars)
             {
-                if ((star.Position - randomPosition).LengthSquared() <= Math.Pow(starSeparationDistance, 2))
+                if ((star.Position - randomPosition).LengthSquared() <= Math.Pow(STAR_SEPARATION_DISTANCE, 2))
                     return;
 
-                if ((star.Position - playerCenter).LengthSquared() <= Math.Pow(starSeparationDistance * 1.35, 2))
+                if ((star.Position - playerCenter).LengthSquared() <= Math.Pow(STAR_SEPARATION_DISTANCE * 1.35, 2))
                     return;
             }
         }
@@ -95,9 +105,9 @@ public class SpaceEvent : ModSystem
 
     }
 
-    private void SpawnAsteroids()
+    private static void SpawnAsteroids()
     {
-        if (!Sea.CanSpawnThings || Main.gameMenu || Main.gameInactive)
+        if (!Sea.CanSpawnThings || Main.gameMenu || FocusHelper.GameplayActive)
             return;
 
         var playerCenter = Main.player[Main.myPlayer].Center;
@@ -109,7 +119,7 @@ public class SpaceEvent : ModSystem
         if (randomPosition.Y > -320)
             return;
 
-        var noiseSample = (float)(1 + noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
+        var noiseSample = (float)(1 + s_noise.GetNoise(randomPosition.X * 0.3f, randomPosition.Y * 0.3f, 0));
 
         var density = MathHelper.Lerp(0.7f, 30f, EasingFunctions.InCirc(noiseSample));
 
@@ -119,7 +129,7 @@ public class SpaceEvent : ModSystem
         {
             foreach (var asteroid in asteroids)
             {
-                if ((asteroid.RestPosition - randomPosition).LengthSquared() <= Math.Pow(separationDistance * density, 2))
+                if ((asteroid.RestPosition - randomPosition).LengthSquared() <= Math.Pow(SEPARATION_DISTANCE * density, 2))
                     return;
             }
         }
@@ -146,5 +156,14 @@ public class SpaceEvent : ModSystem
         var dimensions = GetDimensions(asteroidType);
 
         Asteroids.List.Add(new Asteroid(randomPosition, asteroidType, dimensions.X, dimensions.Y));
+    }
+
+    [ModPlayerHooks.PostUpdateBuffs]
+    private static void PostUpdateBuffs(ModPlayer self)
+    {
+        Player player = self.Player;
+
+        if (SpaceEvent.Sea.Active && player.Center.Y < SpaceEvent.Sea.SeaPos.Height.Position)
+            player.gravity = 0.25f;
     }
 }

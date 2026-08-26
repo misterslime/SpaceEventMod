@@ -141,7 +141,7 @@ internal partial class Amoerpha : BaseStateNPC<AmoerphaState>
         {
             float radius = MathHelper.Lerp(-0.2f, 0.25f, edge.Length / MAX_EDGE_LENGTH);
 
-            AmoerphaMetaballRenderer.New(_nodes[edge.To], _nodes[edge.From], radius);
+            AmoerphaMetaballs.New(_nodes[edge.To], _nodes[edge.From], radius);
         }
 
         return false;

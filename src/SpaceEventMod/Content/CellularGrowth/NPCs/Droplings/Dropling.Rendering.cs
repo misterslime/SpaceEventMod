@@ -150,7 +150,7 @@ internal partial class Dropling
         if (Timer <= 60f || State != DroplingState.Biting || Timer > 85f)
             return false;
 
-        Fade.Draw(0.5f, (in Pipeline pipeline) =>
+        /*Fade.Draw(0.5f, (in Pipeline pipeline) =>
         {
             if (HasAppendage(DroplingAppendage.Wings))
             {
@@ -193,7 +193,7 @@ internal partial class Dropling
             pipeline.ApplyEffect(
                 Assets.Shaders.Fragment.ChangeColor.Asset.Value,
                 ("color", drawColor.ToVector4() * Vector4.Lerp(Color.BlueViolet.ToVector4(), Color.Blue.ToVector4(), the)));
-        });
+        });*/
 
 
         return false;

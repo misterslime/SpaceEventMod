@@ -17,7 +17,7 @@ namespace SpaceEventMod.Core.Graphics;
 // note: this shit is ass
 internal class Fade : ModSystem
 {
-    private record struct DrawAction(float Scale, ActionRef<Pipeline> Action);
+    /*private record struct DrawAction(float Scale, ActionRef<Pipeline> Action);
 
     private static RenderTarget2D s_bufferTarget;
     private static RenderTarget2D s_fadeTarget;
@@ -152,5 +152,5 @@ internal class Fade : ModSystem
         Main.spriteBatch.End();
 
         CopyContents(t, s_bufferTarget);
-    }
+    }*/
 }

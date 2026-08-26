@@ -1,29 +1,20 @@
 ﻿<Project Sdk="Tomat.Terraria.ModLoader.Sdk">
 
+    <Import Project="../../build/Mod.Build.targets" />
+
     <PropertyGroup>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-
         <TmlBuildUseDefaultModImpl>false</TmlBuildUseDefaultModImpl>
+        <TargetFramework>net10.0</TargetFramework>
+        <TmlVersion>dev</TmlVersion>
     </PropertyGroup>
-
-    <!-- Publicizer -->
-    <ItemGroup>
-        <!-- Publicize Terraria and tModLoader (Does not include the Relogic namespace) -->
-        <Publicize Include="tModLoader" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
-
-        <!-- Publicizes all FNA types -->
-        <Publicize Include="tModLoader;FNA" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
-    </ItemGroup>
-
+    
     <!-- Modules and Libraries -->
     <ItemGroup>
         <Libraries Include="..\TileHelper\TileHelper.csproj" />
 
         <ProjectReference Include="@(Libraries)" />
-        
-        <ProjectReference Include="..\daybreak-mod\src\Daybreak\Daybreak.csproj" />
-        <ProjectReference Include="..\daybreak-mod\src\Daybreak.CodeAnalysis\Daybreak.CodeAnalysis.csproj" PrivateAssets="All" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <Target Name="PackageModules" BeforeTargets="Build">
@@ -36,5 +27,4 @@
         <Copy SourceFiles="@(BuildOutput)" DestinationFolder="$(ProjectDir)lib\" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
         <Copy SourceFiles="@(BuildOutput-&gt;'%(Identity)'-&gt;Replace('.dll', '.pdb'))" DestinationFolder="$(ProjectDir)lib\" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
     </Target>
-    
 </Project>

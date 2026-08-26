@@ -71,68 +71,18 @@ Items: {
 		Tooltip: ""
 	}
 
-	WindBag: {
-		DisplayName: Wind Bag
-		Tooltip: ""
-	}
-
-	MechanicalBellow: {
-		DisplayName: Mechanical Bellow
-		Tooltip: ""
-	}
-
-	AmoebicPicklaw: {
-		DisplayName: Amoebic Picklaw
-		Tooltip: ""
-	}
-
-	CellWood: {
-		DisplayName: Cell Wood
-		Tooltip: ""
-	}
-
-	CosmostoneBrick: {
-		DisplayName: Cosmostone Brick
-		Tooltip: ""
-	}
-
-	HerbCell: {
-		DisplayName: Herb Cell
-		Tooltip: ""
-	}
-
-	CellWoodItem: {
-		DisplayName: Cell Wood
-		Tooltip: ""
-	}
-
 	CosmossItem: {
-		DisplayName: Cosmoss
+		DisplayName: Cosmoss Item
 		Tooltip: ""
 	}
 
 	CosmostoneItem: {
-		DisplayName: Cosmostone
-		Tooltip: ""
-	}
-
-	CosmostoneBrickItem: {
-		DisplayName: Cosmostone Brick
-		Tooltip: ""
-	}
-
-	HerbCellItem: {
-		DisplayName: Herb Cell
-		Tooltip: ""
-	}
-
-	MechanicalBellowItem: {
-		DisplayName: Mechanical Bellow
+		DisplayName: Cosmostone Item
 		Tooltip: ""
 	}
 
 	CosmostoneWallItem: {
-		DisplayName: Cosmostone Wall
+		DisplayName: Cosmostone Wall Item
 		Tooltip: ""
 	}
 }

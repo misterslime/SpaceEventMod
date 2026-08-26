@@ -1,0 +1,28 @@
+<Solution>
+
+  <Folder Name="/build-targets/">
+    <File Path="build/Mod.Build.targets" />
+    <File Path="build/Mod.Publicizer.targets" />
+    <File Path="build/Mod.References.targets" />
+  </Folder>
+
+  <Folder Name="/daybreak-mod/">
+    <Project Path="src/daybreak-mod/src/Daybreak.CodeAnalysis/Daybreak.CodeAnalysis.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak.SourceGen/Daybreak.SourceGen.csproj" />
+    <Project Path="src/daybreak-mod/src/Daybreak/Daybreak.csproj" />
+  </Folder>
+
+  <Folder Name="/solution-items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path=".gitmodules" />
+    <File Path="LICENSE" />
+    <File Path="CREDITS.md" />
+    <File Path="ORGANIZATION.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/SpaceEventMod.SourceGeneration/SpaceEventMod.SourceGeneration.csproj" />
+  <Project Path="src/SpaceEventMod/SpaceEventMod.csproj" />
+
+</Solution>
