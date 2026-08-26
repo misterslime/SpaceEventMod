@@ -102,37 +102,37 @@ Items: {
 	}
 
 	CellWoodItem: {
-		DisplayName: Cell Wood Item
+		DisplayName: Cell Wood
 		Tooltip: ""
 	}
 
 	CosmossItem: {
-		DisplayName: Cosmoss Item
+		DisplayName: Cosmoss
 		Tooltip: ""
 	}
 
 	CosmostoneItem: {
-		DisplayName: Cosmostone Item
+		DisplayName: Cosmostone
 		Tooltip: ""
 	}
 
 	CosmostoneBrickItem: {
-		DisplayName: Cosmostone Brick Item
+		DisplayName: Cosmostone Brick
 		Tooltip: ""
 	}
 
 	HerbCellItem: {
-		DisplayName: Herb Cell Item
+		DisplayName: Herb Cell
 		Tooltip: ""
 	}
 
 	MechanicalBellowItem: {
-		DisplayName: Mechanical Bellow Item
+		DisplayName: Mechanical Bellow
 		Tooltip: ""
 	}
 
 	CosmostoneWallItem: {
-		DisplayName: Cosmostone Wall Item
+		DisplayName: Cosmostone Wall
 		Tooltip: ""
 	}
 }
