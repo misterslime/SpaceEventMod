@@ -14,6 +14,7 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static Terraria.ModLoader.BackupIO;
 
 namespace SpaceEventMod.Content.Miscellaneous.Projectiles;
 
@@ -212,10 +213,12 @@ internal class WindGustBlow : ModProjectile
 
         foreach (var projectile in Main.ActiveProjectiles)
         {
-            if (!golfBalls.Contains(projectile.type))
+            if (!golfBalls.Contains(projectile.type) && projectile.type != ProjectileID.JimsDrone)
                 continue;
 
-            projectile.velocity = GetVelocityFromWind(projectile.velocity, projectile.getRect(), 2f);
+            float knockbackMultiplier = projectile.type == ProjectileID.JimsDrone ? 1f : 2f;
+
+            projectile.velocity = GetVelocityFromWind(projectile.velocity, projectile.getRect(), knockbackMultiplier);
         }
     }
 }
