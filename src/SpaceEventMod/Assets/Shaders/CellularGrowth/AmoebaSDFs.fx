@@ -141,8 +141,8 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
         uv.x = frac(uv.x-uTime*.1);
         
         // Sample noise and normal textures
-        float2 noiseOffset1 = float2(0, 0.3f - uTime * 0.15 * 0.2f);
-    	float2 noiseOffset2 = float2(uTime * 0.15 * 0.5f, 0.3f - uTime * 0.15);
+        float2 noiseOffset1 = float2(uTime * 0.15 * 0.2, uTime * 0.05);
+    	float2 noiseOffset2 = float2(uTime * 0.075, uTime * -0.15);
 
         float noise = tex2D(noiseSampler, uv * 2. + noiseOffset1) * tex2D(noiseSampler, uv * 2. + noiseOffset2);
         float4 normalSample = (tex2D(normalSampler, uv * 2. + noiseOffset1) + tex2D(normalSampler, uv * 2. + noiseOffset2)) / 2;
@@ -151,21 +151,17 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
         nor *= 2.*normalSample.rgb + 1.;
         nor = normalize(nor);
         
-        float3 specularColor = float3(0.8, 0.9, 1.0);
-        //float3 fresnelColor = float3(0.0, 1.0, 0.0);
-		float3 diffuseColor = float3(0.0, 0.2, 1.0); 
-        
-        // Lighting and fresnel
+		// Lighting
 		float3 lightVector = normalize(float3(0.25, 0.3, 0.75));
+		
+		// Specular Highlight
+        float3 specularColor = float3(0.8, 0.9, 1.0);
 		float specular = saturate(specularBRDF(nor,lightVector,22));
-		float fresnel = saturate(1 - nor.z);
-		
-		float3 lightingColor = specular * specularColor;
-		
-		// Non linear specular curve looks nicer
-		lightingColor = pow(lightingColor, 1.8);
+
+        float3 lightingColor = pow(specular * specularColor, 1.8);
 
 		// Get fresnel color
+		float fresnel = saturate(1 - nor.z);
 		float3 fresnelCol = fresnelColor(nor) * fresnel * 0.3;
 		
 		// Diffuse and subsurface lighting
@@ -175,9 +171,6 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
 		
 		// Make sure only subsurface approximation is shown since it looks cool
 		float color = (subsurface - diffuse);
-		
-		// Extremely fake ambient occlusion
-		color *= 0.5 + min(noise.r / 0.5, 1) * 0.5;
     
 		// Quantize the color and lighting
 		color = round(color * 16) / 16;
@@ -185,6 +178,7 @@ float4 PixelShaderFunction(PSInput input) : COLOR0
         fresnelCol = round(fresnelCol * 12) / 12;
 		
 		// Get actual color and transparency
+		float3 diffuseColor = float3(0.0, 0.2, 1.0); 
 		alpha = saturate(specular * 0.9 + fresnel + color * 2.5) + 0.2;
 		col = color * diffuseColor + lightingColor + fresnelCol;
 		

@@ -1,29 +1,20 @@
+using Daybreak.Common.Mathematics;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Common.World;
+namespace SpaceEventMod;
 
-internal static class SignedDistanceFunctions
+internal static class SdfHelper
 {
-    // https://iquilezles.org/articles/smin/ from here
-    public static float SmoothMinimum(float a, float b, float k)
-    {
-        k *= 1.0f / (1.0f - MathF.Sqrt(0.5f));
-        return MathF.Max(k, MathF.Min(a, b)) -
-               Vector2.Max(new Vector2(k, k) - new Vector2(a, b), new Vector2(0.0f)).Length();
-    }
-
-    public static float CircleSDF(Vector2 p, float r)
-    {
-        return p.Length() - r;
-    }
-
     // https://iquilezles.org/articles/distfunctions2d/ from here
-    public static float EllipseSDF(Vector2 point, Vector2 ab)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SdfSample Ellipse(Vector2 point, Vector2 ab)
     {
         point.X = MathF.Abs(point.X);
         point.Y = MathF.Abs(point.Y);
@@ -46,6 +37,6 @@ internal static class SignedDistanceFunctions
         float d = (point - ab * cs).Length();
 
         // return signed distance
-        return (Vector2.Dot(point / ab, point / ab) > 1.0f) ? d : -d;
+        return new SdfSample((Vector2.Dot(point / ab, point / ab) > 1.0f) ? d : -d, Vector2.Zero);
     }
 }

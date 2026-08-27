@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Common.World;
+namespace SpaceEventMod.Common.WorldGeneration;
 
 internal static class TileDirections
 {
