@@ -6,6 +6,7 @@ using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
+using Terraria.GameContent.Drawing;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -137,6 +138,8 @@ internal class MechanicalBellow : ModTile, ILoadItem
 
         DustType = -1;
 
+        TileID.Sets.DrawTileInSolidLayer[Type] = true; 
+
         TileObjectData.newTile.CopyFrom(TileObjectData.Style2x2);
         TileObjectData.newTile.CoordinateHeights = [16, 18];
         TileObjectData.newTile.HookPostPlaceMyPlayer = ModContent.GetInstance<BellowTileEntity>().Generic_HookPostPlaceMyPlayer;
@@ -220,7 +223,7 @@ internal class MechanicalBellow : ModTile, ILoadItem
     {
         if (TileObjectData.IsTopLeft(i, j))
         {
-            Main.instance.TilesRenderer.AddSpecialPoint(i, j, Terraria.GameContent.Drawing.TileDrawing.TileCounterType.CustomNonSolid);
+            Main.instance.TilesRenderer.AddSpecialPoint(i, j, TileDrawing.TileCounterType.CustomSolid);
             return true;
         }
         return true;

@@ -121,14 +121,14 @@ internal class WindParticle : ModDust
 
         ReadOnlySpan<Vector2> controlPoints = positions.ToArray();
         using (var curve = new BezierCurve(controlPoints))
-            trailPoints = curve.GetPoints(20);
+            trailPoints = curve.GetPoints(30);
 
-        Graphics.BeginPipeline(0.5f)
+        Graphics.BeginPipeline()
             .DrawBasicTrail(
                 trailPoints.ToArray(),
-                progress => MathF.Sin(progress * MathHelper.Pi) * data.Width,
-                Assets.Textures.Trails.WindTrail.Asset.Value,
-                progress => Color.Lerp(dust.color, data.SecondColor, progress))
+                progress => /*MathF.Sin(progress * MathHelper.Pi)*/ (0.5f + 0.5f * (1 - progress)) * data.Width,
+                Assets.Textures.WhitePixel.Asset.Value,
+                progress => Color.Lerp(dust.color, data.SecondColor, progress) * (1 - progress) * MathF.Sin(progress * MathHelper.Pi))
             .Schedule(RenderLayer.AfterPlayers);
 
         return false;

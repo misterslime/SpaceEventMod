@@ -101,10 +101,7 @@ internal class WindGustBlow : ModProjectile
 
         var dustPosition = Projectile.Center;
 
-        var color = Main.rand.NextFromList(
-            (Color.White, Color.White),
-            (Color.Gray, Color.White),
-            (Color.White, Color.Gray));
+        var color = (Color.White, Color.Gray);
 
         color.Item1.A = 0;
         color.Item2.A = 0;
@@ -125,7 +122,6 @@ internal class WindGustBlow : ModProjectile
         if (direction.X == direction.Y)
             curveAmount = Main.rand.NextFloat(0.2f, 0.3f);
 
-        var width = Main.rand.NextFloat(2f, 8f) * 2.1f;
         var second = color.Item2;
 
         dust.customData = new WindParticleData(
@@ -134,7 +130,7 @@ internal class WindGustBlow : ModProjectile
             30,
             direction,
             curveAmount,
-            width);
+            5f);
         dust.fadeIn = 80;
     }
 
