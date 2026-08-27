@@ -75,12 +75,12 @@ public class BellowTileEntity : ModTileEntity
         Dust.QuickDust(dustPosition, Color.Yellow);*/
     }
 
-    public void Interact(int i, int j, int item)
+    public void Interact(int i, int j, bool windGust)
     {
         if (AnimationCounter < ANIMATION_LENGTH)
             return;
 
-        if (item == ModContent.ItemType<Windoplasts>())
+        if (windGust)
         {
             Vector2 position = new Vector2(Position.X, Position.Y).ToWorldCoordinates(17, 15);
             //position += (Vector2.UnitX * 13).RotatedBy(Rotation);
@@ -180,11 +180,36 @@ internal class MechanicalBellow : ModTile, ILoadItem
         player.cursorItemIconID = ModContent.ItemType<Windoplasts>();
     }
 
+
+    public override void HitWire(int i, int j)
+    {
+        if (Entity(i, j) is not BellowTileEntity entity)
+            return;
+
+        var topLeft = TileObjectData.TopLeft(i, j);
+
+        if (topLeft.Y == j)
+            entity.Interact(i, j, true);
+        else
+            entity.Interact(i, j, false);
+
+        Wiring.SkipWire(topLeft.X, topLeft.Y);
+        Wiring.SkipWire(topLeft.X, topLeft.Y + 1);
+        Wiring.SkipWire(topLeft.X + 1, topLeft.Y);
+        Wiring.SkipWire(topLeft.X + 1, topLeft.Y + 1);
+
+        // Avoid trying to send packets in singleplayer.
+        if (Main.netMode != NetmodeID.SinglePlayer)
+        {
+            NetMessage.SendTileSquare(-1, topLeft.X, topLeft.Y, 2,  2, TileChangeType.None);
+        }
+    }
+
     public override bool RightClick(int i, int j)
     {
         if (Entity(i, j) is BellowTileEntity entity)
         {
-            entity.Interact(i, j, Main.LocalPlayer.HeldItem.type);
+            entity.Interact(i, j, Main.LocalPlayer.HeldItem.type == ModContent.ItemType<Windoplasts>());
             return true;
         }
 
