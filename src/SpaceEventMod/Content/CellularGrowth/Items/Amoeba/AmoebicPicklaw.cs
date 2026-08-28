@@ -57,18 +57,16 @@ internal class ExamplePlayerDrawLayer : PlayerDrawLayer
     {
         var texture = Assets.Textures.CellularGrowth.Items.Amoeba.AmoebicPicklaw_HandsOn.Asset.Value;
 
-        Rectangle frame = texture.Frame(1, 20, 0, (int)(drawInfo.drawPlayer.bodyFrame.Y / drawInfo.drawPlayer.bodyFrame.Height));
+        var position = new Vector2(
+            (int)(drawInfo.Position.X - Main.screenPosition.X - drawInfo.drawPlayer.bodyFrame.Width / 2 + drawInfo.drawPlayer.width / 2),
+            (int)(drawInfo.Position.Y - Main.screenPosition.Y + drawInfo.drawPlayer.height - drawInfo.drawPlayer.bodyFrame.Height + 4f)
+        ) + drawInfo.drawPlayer.bodyPosition + drawInfo.bodyVect;
 
-        Vector2 position = drawInfo.Position - Main.screenPosition;
-
-        position += new Vector2((drawInfo.drawPlayer.width - drawInfo.drawPlayer.bodyFrame.Width) / 2f, drawInfo.drawPlayer.height - drawInfo.drawPlayer.bodyFrame.Height + 4f);
-        position = new Vector2((int)position.X, (int)position.Y);
-        position += drawInfo.drawPlayer.bodyPosition + drawInfo.bodyVect;
 
         drawInfo.DrawDataCache.Add(new DrawData(
             texture,
             position,
-            frame,
+            drawInfo.drawPlayer.bodyFrame,
             drawInfo.colorArmorBody,
             drawInfo.drawPlayer.fullRotation,
             drawInfo.bodyVect,
