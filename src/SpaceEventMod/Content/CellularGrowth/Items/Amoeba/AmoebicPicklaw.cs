@@ -176,12 +176,8 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
             GetConnectedTiles(tiles, nearest, searchRadius);
 
-            foreach (var lemon in tiles)
-            {
-                var pickPower = 65;
-
-                PickTile(player, lemon.X, lemon.Y, 55);
-            }
+            foreach (var tile in tiles)
+                PickTile(player, tile.X, tile.Y, player.GetBestPickaxe().pick);
         }
 
         return false;
@@ -196,7 +192,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
         PickTile_DetermineDamage(player, x, y, pickPower, tile, out var bufferIndex, out var damage);
 
-        var addDamage = player.hitTile.AddDamage(bufferIndex, damage == 0 ? 0 : 65);
+        var addDamage = player.hitTile.AddDamage(bufferIndex, damage == 0 ? 0 : 70);
 
         if (addDamage >= 100)
         {
