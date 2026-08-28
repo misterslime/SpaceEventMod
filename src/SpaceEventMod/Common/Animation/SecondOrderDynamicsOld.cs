@@ -12,14 +12,7 @@ public struct Kinematics<T>
     public T Position;
     public T Velocity;
 
-    public Kinematics(T initialInput, T initialVelocity = default)
-    {
-        PreviousPosition = initialInput;
-        Position = initialInput;
-        Velocity = initialVelocity;
-    }
-
-    public Kinematics(T initialInput, T previousPosition, T initialVelocity = default)
+    public Kinematics(T initialInput, T previousPosition = default, T initialVelocity = default)
     {
         PreviousPosition = previousPosition;
         Position = initialInput;

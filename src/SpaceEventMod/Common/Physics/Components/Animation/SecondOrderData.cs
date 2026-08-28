@@ -6,12 +6,12 @@ namespace SpaceEventMod.Common.Physics.Components.Animation;
 
 internal struct SecondOrderData : IComponent
 {
-    public SecondOrderAnimation SecondOrderDynamics { get; }
+    public AnimationParameters SecondOrderDynamics { get; }
     public float DeltaTime { get; }
     public Vector2 InputPosition { get; }
     public Vector2 PreviousInput { get; }
 
-    public SecondOrderData(float deltaTime, SecondOrderAnimation secondOrderDynamics, Vector2 inputPosition)
+    public SecondOrderData(float deltaTime, AnimationParameters secondOrderDynamics, Vector2 inputPosition)
     {
         DeltaTime = deltaTime;
         SecondOrderDynamics = secondOrderDynamics;
@@ -19,7 +19,7 @@ internal struct SecondOrderData : IComponent
         PreviousInput = inputPosition;
     }
 
-    public SecondOrderData(float deltaTime, SecondOrderAnimation secondOrderDynamics, Vector2 inputPosition, Vector2 previousInput)
+    public SecondOrderData(float deltaTime, AnimationParameters secondOrderDynamics, Vector2 inputPosition, Vector2 previousInput)
     {
         DeltaTime = deltaTime;
         SecondOrderDynamics = secondOrderDynamics;

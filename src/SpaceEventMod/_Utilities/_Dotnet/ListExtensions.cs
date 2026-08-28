@@ -42,4 +42,24 @@ internal static class ListExtensions
             list.Add(value);
         }
     }
+
+    /// <summary>
+    /// Remove last element of list.
+    /// </summary>
+    /// <returns>The value that was removed.</returns>
+    public static T Pop<T>(this List<T> values)
+    {
+        return Pop(values, values.Count - 1);
+    }
+
+    /// <summary>
+    /// Remove at index.
+    /// </summary>
+    /// <returns>The value that was removed.</returns>
+    public static T Pop<T>(this List<T> values, int index)
+    {
+        T v = values[index];
+        values.RemoveAt(index);
+        return v;
+    }
 }

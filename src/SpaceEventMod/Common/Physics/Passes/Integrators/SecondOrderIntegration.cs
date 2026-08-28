@@ -26,9 +26,9 @@ internal class SecondOrderIntegration : IPass
         var input = data.InputPosition;
         var previousInput = data.PreviousInput;
 
-        float k1 = dynamics.GetK1;
-        float k2 = dynamics.GetK2;
-        float k3 = dynamics.GetK3;
+        float k1 = dynamics.k1;
+        float k2 = dynamics.k2;
+        float k3 = dynamics.k3;
 
         Vector2 deltaInput = (k3 + 1) * input - k3 * previousInput;
         Vector2 deltaCurrent = k1 * point.PreviousPosition - (k1 + 1) * point.Position;

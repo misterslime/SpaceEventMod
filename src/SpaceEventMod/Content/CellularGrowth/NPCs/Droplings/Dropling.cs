@@ -36,11 +36,11 @@ public enum DroplingState
 
 internal partial class Dropling : BaseStateNPC<DroplingState>
 {
-    private static readonly SecondOrderAnimation s_droplingVelocity = new SecondOrderAnimation(1f / 85f, 0.6f, 0.2f);
+    private static readonly AnimationParameters s_droplingVelocity = new AnimationParameters(1f / 85f, 0.6f, 0.2f);
 
-    private static readonly SecondOrderAnimation s_droplingDeccelerate = new SecondOrderAnimation(1f / 85f, 1f, 0f);
+    private static readonly AnimationParameters s_droplingDeccelerate = new AnimationParameters(1f / 85f, 1f, 0f);
 
-    private static readonly SecondOrderAnimation s_droplingDash = new SecondOrderAnimation(1f / 15f, 1f, 0);
+    private static readonly AnimationParameters s_droplingDash = new AnimationParameters(1f / 15f, 1f, 0);
 
     private readonly static EasingMotion s_dashMotion = new EasingMotion()
         .SetStart(1f)

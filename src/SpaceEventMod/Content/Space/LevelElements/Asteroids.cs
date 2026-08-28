@@ -21,7 +21,7 @@ public class Asteroids : ModSystem
 {
     public static List<Asteroid> List = new List<Asteroid>();
 
-    internal static readonly SecondOrderAnimation AsteroidMovement = new SecondOrderAnimation(1f / 64f, 0.5f, 0.2f);
+    internal static readonly AnimationParameters AsteroidMovement = new AnimationParameters(1f / 64f, 0.5f, 0.2f);
 
     public override void OnWorldUnload()
     {
