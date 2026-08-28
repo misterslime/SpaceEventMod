@@ -83,7 +83,7 @@ Items: {
 
 	AmoebicPicklaw: {
 		DisplayName: Amoebic Picklaw
-		Tooltip: "Uses the pickaxe power of your strongest pickaxe."
+		Tooltip: Uses the pickaxe power of your strongest pickaxe
 	}
 
 	CellWood: {

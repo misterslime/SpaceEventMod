@@ -41,7 +41,6 @@ internal class AmoebicPicklaw : ModItem
         Item.noUseGraphic = true;
         Item.noMelee = true;
         Item.useStyle = ItemUseStyleID.Shoot;
-        Item.accessory = true;
     }
 }
 
