@@ -116,10 +116,8 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
             var targetCenter = new Vector2(targetPosition.X - (Projectile.width / 2), targetPosition.Y - (Projectile.height / 2));
 
-            Projectile.Integrate(new AnimationParameters(2, Projectile.ai[1], Projectile.ai[0]), targetCenter);
+            Projectile.Integrate(new AnimationParameters(2, 0.62f, 0), targetCenter);
 
-            Projectile.ai[0] = MathHelper.Lerp(Projectile.ai[0], 0, 0.2f);
-            Projectile.ai[1] = MathHelper.Lerp(Projectile.ai[1], 0.6f, 0.05f);
             Projectile.netUpdate = true;
         }
         else
@@ -300,7 +298,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
     }
     #endregion
 
-    private static void GetConnectedTiles(HashSet<Point> tiles, Point tilePosition, int depth)
+    private void GetConnectedTiles(HashSet<Point> tiles, Point tilePosition, int depth)
     {
         if (depth < 0)
             return;
@@ -369,7 +367,8 @@ internal class AmoebicPicklawProjectile : ModProjectile
             var v = Vector2.Normalize(begin - end);
             var angle = (float)Math.Acos(Vector2.Dot(v, -Vector2.UnitX));
             if (begin.Y > end.Y) angle = MathHelper.TwoPi - angle;
-            Main.spriteBatch.Draw(texture, r, sourceRect, lightColor, angle, Vector2.Zero + originDisplace, SpriteEffects.None, 0);
+            var col = Lighting.GetColor((begin + Main.screenPosition).ToTileCoordinates());
+            Main.spriteBatch.Draw(texture, r, sourceRect, col, angle, Vector2.Zero + originDisplace, SpriteEffects.None, 0);
         }
 
         var rotationDir = (trailPoints[trailPoints.Count - 1] - trailPoints[trailPoints.Count - 2]).SafeNormalize(Vector2.Zero);
