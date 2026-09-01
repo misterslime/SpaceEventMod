@@ -29,7 +29,10 @@ internal class PaintBatch(GraphicsDevice graphicsDevice) : SpriteBatch(graphicsD
 
         public static void UnloadData(Instance data)
         {
-            data.PaintBatchInstance.Dispose();
+            Main.RunOnMainThread(() =>
+            {
+                data.PaintBatchInstance.Dispose();
+            });
         }
     }
 
