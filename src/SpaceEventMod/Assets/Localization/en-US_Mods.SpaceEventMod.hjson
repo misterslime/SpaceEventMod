@@ -135,6 +135,11 @@ Items: {
 		DisplayName: Cosmostone Wall
 		Tooltip: ""
 	}
+
+	CosmossSeeds: {
+		DisplayName: Cosmoss Seeds
+		Tooltip: ""
+	}
 }
 
 NPCs: {

@@ -91,6 +91,7 @@ public class BellowTileEntity : ModTileEntity
             Vector2 position = new Vector2(Position.X, Position.Y).ToWorldCoordinates(17, 15);
             //position += (Vector2.UnitX * 13).RotatedBy(Rotation);
 
+            // what if wind color was affected by paint,,,,,,
             _windProjectile = Projectile.NewProjectile(new EntitySource_Wiring(i, j), position, Vector2.Zero, ModContent.ProjectileType<WindGustBlow>(), 0, 0, -1, -1, 0, 160);
 
             Main.projectile[_windProjectile].rotation = Rotation;

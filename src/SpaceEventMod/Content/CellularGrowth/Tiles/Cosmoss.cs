@@ -17,10 +17,8 @@ using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
-internal class Cosmoss : FancyTile, ILoadItem
+internal class Cosmoss : FancyTile
 {
-    public void SetItemStaticDefaults(ModItem modItem) => modItem.Item.ResearchUnlockCount = 100;
-
     public override void SetStaticDefaults()
     {
         Main.tileSolid[Type] = true;
