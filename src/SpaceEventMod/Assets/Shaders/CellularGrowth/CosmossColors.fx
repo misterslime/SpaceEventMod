@@ -9,26 +9,14 @@ sampler colorSampler = sampler_state
     AddressV = clamp;
 };
 
-texture noiseTexture;
-sampler noiseSampler = sampler_state
-{
-    Texture = (noiseTexture);
-    Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = clamp; 
-    AddressV = clamp;
-};
-
 uniform float sineAmp; // 0.02
 uniform float sineStrength; // 0.5
 uniform float verticalSineAmp; // 0.05
 uniform float verticalSineStrength; // 0.5
-uniform float noiseScale;
-uniform float noiseStrength;
-uniform float mixQuantization;
 uniform float uTime;
-uniform float2 resolution;
-uniform float2 tilePos;
-uniform float4 sourceRect;
+
+uniform float2 screenPos;
+uniform float2 worldViewDimensions;
 
 float4 PixelShaderFunction(float4 color : COLOR0, float2 uv : TEXCOORD0) : COLOR0 
 {
@@ -39,28 +27,18 @@ float4 PixelShaderFunction(float4 color : COLOR0, float2 uv : TEXCOORD0) : COLOR
     float glowMask = tex2D(glow, uv).a;
 
     // Get world pixel position
-    float2 frameUv = (uv * resolution - sourceRect.xy) / sourceRect.zw;
-    float2 worldPixelPosition = tilePos + frameUv;
+    float2 worldPixelPosition = screenPos + uv * worldViewDimensions;
 
-    // Sample noise to shift sine value a lil
-    float noiseValue = tex2D(noiseSampler, worldPixelPosition * noiseScale - uTime / 15.).r;
-    
     // Use sine waves to mix between red and orange colors
-    float sineY = sin(noiseValue + worldPixelPosition.y * verticalSineAmp - uTime * 0.2);
-    sineY += sin(noiseValue + worldPixelPosition.y * verticalSineAmp + uTime * 0.4);
-    float mixValue = sin(noiseValue + worldPixelPosition.x * sineAmp + sineY * verticalSineStrength + uTime * 1.) * sineStrength;
-    
-    // Mix noise and sine values
-    mixValue += noiseValue * noiseStrength;
-    
-    // Quantize mix value
-    mixValue = floor(mixValue * mixQuantization) / mixQuantization;
+    float sineY = sin(worldPixelPosition.y * verticalSineAmp - uTime * 0.2);
+    sineY += sin(worldPixelPosition.y * verticalSineAmp + uTime * 0.4);
+    float mixValue = sin(worldPixelPosition.x * sineAmp + sineY * verticalSineStrength + uTime * 1.) * sineStrength;
     
     // Sample and mix red and orange palettes
     float4 red = tex2D(colorSampler, float2(glowValue, 0.9999));
 	float4 orange = tex2D(colorSampler, float2(glowValue, 0.));
     
-    return color * lerp(red, orange, mixValue) * glowMask;
+    return color * lerp(red, orange, step(0.5,mixValue)) * glowMask;
 }
 
 technique Technique1 {

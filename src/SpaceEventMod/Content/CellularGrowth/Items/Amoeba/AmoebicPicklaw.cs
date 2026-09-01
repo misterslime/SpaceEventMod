@@ -80,7 +80,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
     private const int DEFAULT_WIDTH_HEIGHT = 26;
     private const int EXPLOSION_WIDTH_HEIGHT = 250;
 
-    private static AnimationParameters s_picklawMovement = new AnimationParameters(4, 0.35f, 0);
+    private static AnimationParameters s_picklawMovement = new AnimationParameters(2, 0.62f, 0);
 
     public override void SetDefaults()
     {
@@ -115,7 +115,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
             var targetCenter = new Vector2(targetPosition.X - (Projectile.width / 2), targetPosition.Y - (Projectile.height / 2));
 
-            Projectile.Integrate(new AnimationParameters(2, 0.62f, 0), targetCenter);
+            Projectile.Integrate(s_picklawMovement, targetCenter);
 
             Projectile.netUpdate = true;
         }

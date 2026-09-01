@@ -1,15 +1,23 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
+using SpaceEventMod.Common.BaseTypes;
 using SpaceEventMod.Common.DataStructures;
+using SpaceEventMod.Core;
+using System;
 using Terraria;
+using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.GameContent.Drawing;
+using Terraria.GameContent.Liquid;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.Utilities;
 using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
-internal class Cosmoss : ModTile, ILoadItem
+internal class Cosmoss : FancyTile, ILoadItem
 {
     public void SetItemStaticDefaults(ModItem modItem) => modItem.Item.ResearchUnlockCount = 100;
 
@@ -33,47 +41,28 @@ internal class Cosmoss : ModTile, ILoadItem
         AddMapEntry(Color.LightCoral);
     }
 
-    public override void PostDraw(int i, int j, SpriteBatch spriteBatch)
+    protected override Asset<Texture2D> GetTextureAsset() => Assets.Textures.CellularGrowth.Tiles.Cosmoss_Glow.Asset;
+
+    protected override Effect PrepareTileShader()
     {
-        Tile tile = Framing.GetTileSafely(i, j);
-        if (!TileDrawing.IsVisible(tile))
-            return;
+        var effect = Assets.Shaders.CellularGrowth.CosmossColors.CreatePass1();
 
-        //Color drawColor = WorldGen.paintColor(Framing.GetTileSafely(i, j).TileColor);
+        var screenCenter = Main.screenPosition + new Vector2(Main.screenWidth / 2f, Main.screenHeight / 2f);
+        var worldViewDimensions = new Vector2(Main.screenWidth, Main.screenHeight);
+        var correctScreenTopLeft = screenCenter - worldViewDimensions / 2f;
 
-        Color drawColor = Lighting.GetColor(i, j);
+        effect.Parameters.colorMap = Assets.Textures.CellularGrowth.Tiles.Cosmoss_Palette.Asset.Value;
+        effect.Parameters.sineAmp = 0.005f;
+        effect.Parameters.sineStrength = 1f;
+        effect.Parameters.verticalSineAmp = 0.0125f;
+        effect.Parameters.verticalSineStrength = 0.5f;
+        effect.Parameters.uTime = Main.GlobalTimeWrappedHourly * 0.15f;
+        effect.Parameters.screenPos = correctScreenTopLeft;
+        effect.Parameters.worldViewDimensions = worldViewDimensions;
 
-        Vector2 drawPosition = new Vector2(i * 16, j * 16) - Main.screenPosition;
-        if (!Main.drawToScreen)
-            drawPosition += new Vector2(Main.offScreenRange);
+        effect.Apply();
 
-        Texture2D glowTexture = Assets.Textures.CellularGrowth.Tiles.Cosmoss_Glow.Asset.Value;
-
-        var cosmossShader = Assets.Shaders.CellularGrowth.CosmossColors.Asset.Value;
-
-        cosmossShader.Parameters["colorMap"].SetValue(Assets.Textures.CellularGrowth.Tiles.Cosmoss_Palette.Asset.Value);
-        cosmossShader.Parameters["noiseTexture"].SetValue(Assets.Textures.Noise.Foam.Asset.Value);
-        cosmossShader.Parameters["sineAmp"].SetValue(0.0075f);
-        cosmossShader.Parameters["sineStrength"].SetValue(0.5f);
-        cosmossShader.Parameters["verticalSineAmp"].SetValue(0.01f);
-        cosmossShader.Parameters["verticalSineStrength"].SetValue(2f);
-        cosmossShader.Parameters["noiseScale"].SetValue(5f);
-        cosmossShader.Parameters["noiseStrength"].SetValue(1f);
-        cosmossShader.Parameters["mixQuantization"].SetValue(3f);
-        cosmossShader.Parameters["uTime"].SetValue(Main.GlobalTimeWrappedHourly * 0.15f);
-        cosmossShader.Parameters["resolution"].SetValue(glowTexture.Size());
-        cosmossShader.Parameters["tilePos"].SetValue(new Vector2(i, j) * 16);
-        cosmossShader.Parameters["sourceRect"].SetValue(new Vector4(tile.TileFrameX, tile.TileFrameY, 16, 16));
-
-        Matrix viewMatrix = Main.GameViewMatrix.TransformationMatrix * Matrix.Invert(Main.GameViewMatrix.ZoomMatrix);
-
-        SpriteBatchSnapshot snapshot;
-
-        spriteBatch.End(out snapshot);
-        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, cosmossShader, viewMatrix);
-        spriteBatch.Draw(glowTexture, drawPosition, new Rectangle(tile.TileFrameX, tile.TileFrameY, 16, 16), drawColor, 0.0f, Vector2.Zero, 1f, SpriteEffects.None, 0.0f);
-        spriteBatch.End();
-        spriteBatch.Begin(snapshot);
+        return effect.Shader;
     }
 
     public override void KillTile(int i, int j, ref bool fail, ref bool effectOnly, ref bool noItem)
