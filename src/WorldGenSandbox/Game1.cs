@@ -57,6 +57,9 @@ class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
+        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            this.Exit();
+
         _cameraManager.UpdateCamera(_graphics.GraphicsDevice.Viewport);
 
         Globals.Update(gameTime);

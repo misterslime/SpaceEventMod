@@ -16,5 +16,5 @@
         <PackageReference Include="FNA.SDL2.NativeAssets" Version="25.2.0" PrivateAssets="all" />
         <PackageReference Include="tModLoader" Version="2026.4.3.0" PrivateAssets="all" />
     </ItemGroup>
-
+    
 </Project>

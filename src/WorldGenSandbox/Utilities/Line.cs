@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using System;
+using WorldGenSandbox.SDFs;
 
 namespace WorldGenSandbox.Utilities;
 
@@ -44,4 +45,6 @@ public struct Line(Vector2 point1, Vector2 point2)
 
         return new Vector2(intersectionX, intersectionY);
     }
+
+    public override int GetHashCode() => HashCode.Combine(Point1, Point2);
 }

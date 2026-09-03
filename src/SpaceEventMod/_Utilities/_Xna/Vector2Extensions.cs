@@ -76,4 +76,8 @@ public static class Vector2Extensions
 
         return null;
     }
+
+    public static Vector2 Sign(this Vector2 v) => new Vector2(MathF.Sign(v.X), MathF.Sign(v.Y));
+
+    public static Vector2 Abs(this Vector2 v) => new Vector2(MathF.Abs(v.X), MathF.Abs(v.Y));
 }

@@ -1,16 +1,14 @@
-using Daybreak.Common.Mathematics;
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Common.DataStructures;
 using SpaceEventMod.Common.Geometry;
+using SpaceEventMod.Common.SDFs;
 using SpaceEventMod.Common.WorldGeneration;
 using SpaceEventMod.Content.CellularGrowth.Tiles;
+using SpaceEventMod.Content.CellularGrowth.Walls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using Terraria;
-using Terraria.Enums;
 using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.WorldBuilding;
@@ -35,8 +33,17 @@ public class CellularGrowthGen : ModSystem
 
 internal class CellularGrowthPass : GenPass
 {
+    private enum InteriorType : byte
+    {
+        Hollow,
+        Caves,
+        HollowCaves,
+        None
+    }
+
     public CellularGrowthPass(string name, float loadWeight) : base(name, loadWeight)
     {
+
     }
 
     protected override void ApplyPass(GenerationProgress progress, GameConfiguration configuration)
@@ -44,11 +51,12 @@ internal class CellularGrowthPass : GenPass
         // Get cellular growth patch sizes and placements
         int patches = 2;
         int worldMargins = 40;
+        float spaceBottom = Main.maxTilesY * 0.35f + worldMargins;
 
         int[] xPositions = new int[patches];
 
-        List<Point> seedDimensions = new List<Point>(patches);
-        List<Vector2> seedPoints = new List<Vector2>(patches);
+        Point[] seedDimensions = new Point[patches];
+        Vector2[] seedPoints = new Vector2[patches];
 
         for (int i = 0; i < patches; i++)
         {
@@ -58,13 +66,44 @@ internal class CellularGrowthPass : GenPass
 
             int y = WorldGen.genRand.Next(36, 50);
 
-            seedPoints.Add(new Vector2(x, y + worldMargins));
-            seedDimensions.Add(new Point(width, height + worldMargins));
+            seedPoints[i] = new Vector2(x, y + worldMargins);
+            seedDimensions[i] = new Point(width, height + worldMargins);
         }
 
-        // Get asteroid positions
-        float spaceBottom = Main.maxTilesY * 0.35f + worldMargins;
+        var asteroidPositions = GetAsteroidPositions(seedPoints, seedDimensions, worldMargins, spaceBottom);
+        var asteroidBounds = GetAsteroidBounds(asteroidPositions, spaceBottom);
 
+        // Paint asteroids
+        FastNoiseLite noise = new FastNoiseLite(WorldGen.genRand.Next());
+
+        int sizeThreshhold = (int)((100 * 0.35f) / MathF.Sqrt(2));
+        int lowestAsteroidYValue = (int)spaceBottom;
+
+        List<Point> asteroidPoints = new List<Point>();
+
+        for (int i = 0; i < asteroidBounds.Count; i++)
+        {
+            bool large = false;
+            var bound = asteroidBounds[i];
+
+            if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
+                large = true;
+
+            GenNoisyPlanetoid(ref asteroidPoints, noise, bound);
+            GenPlanetoidCaves(ref asteroidPoints, noise, bound, large);
+
+            asteroidPoints.Clear();
+
+            progress.Set(i / (asteroidBounds.Count - 1));
+        }
+
+        // connect asteroids (for connective cells)
+        //ConnectAsteroids(poissonSampler, noise, radius);
+    }
+
+    private static List<Sample2D> GetAsteroidPositions(Vector2[] seedPoints, Point[] seedDimensions, int worldMargins, float spaceBottom)
+    {
+        // Get asteroid positions
         bool InBounds(float x, float y)
         {
             Vector2 position = new Vector2(x, y);
@@ -75,11 +114,11 @@ internal class CellularGrowthPass : GenPass
 
             float total = 99999f;
 
-            for (int i = 0; i < seedPoints.Count; i++)
+            for (int i = 0; i < seedPoints.Length; i++)
             {
-                Vector2 relativePosition = position - seedPoints[i];
+                Ellipse ellipse = new Ellipse(seedPoints[i], seedDimensions[i].ToVector2());
 
-                float dist = SdfHelper.Ellipse(relativePosition, seedDimensions[i].ToVector2()).Distance;
+                float dist = ellipse.GetSignedDistance(position).X;
 
                 total = MathF.Min(total, dist);
             }
@@ -108,9 +147,14 @@ internal class CellularGrowthPass : GenPass
         poissonSampler.Generate(LargeAsteroids, InBounds);
         poissonSampler.Generate(NormalAsteroids, InBounds);
 
+        return poissonSampler.Samples;
+    }
+
+    private static List<Rectangle> GetAsteroidBounds(List<Sample2D> asteroidPositions, float spaceBottom)
+    {
         List<Rectangle> bounds = new List<Rectangle>();
 
-        foreach (var sample in poissonSampler.Samples)
+        foreach (var sample in asteroidPositions)
         {
             // add a margin so smaller asteroids r bigger
             float radius = sample.Radius + 15;
@@ -187,43 +231,10 @@ internal class CellularGrowthPass : GenPass
             }
         }
 
-        // Paint asteroids
-        FastNoiseLite noise = new FastNoiseLite(WorldGen.genRand.Next());
-        noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-        noise.SetSeed(WorldGen.genRand.Next());
-
-        int sizeThreshhold = (int)((100 * 0.25f) / MathF.Sqrt(2));
-
-
-        foreach (var bound in bounds)
-        {
-            bool large = false;
-
-            if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
-                large = true;
-
-            // 0 = hollow
-            // 1 = caves
-            // 2 = solid
-            int caveType = WorldGen.genRand.Next(0, large ? 2 : 3);
-
-            GenNoisyPlanetoid(noise, bound);
-
-            /*UniformPoissonSampler2D uniformSampler = new UniformPoissonSampler2D(WorldGen.genRand, 2, bound.Width, bound.Height, 20);
-
-            uniformSampler.Generate();
-
-            foreach (var sample in uniformSampler.SamplesList)
-            {
-                _tiles[(int)sample.X + bound.X, (int)sample.Y + bound.Y] = TileTypes.HerbCell;
-            }*/
-        }
-
-        // connect asteroids (for connective cells)
-        //ConnectAsteroids(poissonSampler, noise, radius);
+        return bounds;
     }
 
-    private void GenNoisyPlanetoid(FastNoiseLite noise, Rectangle asteroid)
+    private static void GenNoisyPlanetoid(ref List<Point> tilePosSet, FastNoiseLite noise, Rectangle asteroid)
     {
         Vector2 center = asteroid.Center.ToVector2() - Vector2.One * 0.5f;
         Vector2 ab = asteroid.Size() * 0.5f;
@@ -237,7 +248,6 @@ internal class CellularGrowthPass : GenPass
         float persistence = 0.5f;
         int noiseLayers = 3;
         Vector2 noiseCenter = WorldGen.genRand.NextVector2Square(-1, 1) * 500;
-
         Vector2 margin = new Vector2(asteroid.Width * (strength + 1), asteroid.Height * (strength + 1));
 
         for (int i = (int)-margin.X; i < asteroid.Width + margin.X; i++)
@@ -250,29 +260,117 @@ internal class CellularGrowthPass : GenPass
                     position.X >= Main.maxTilesX || position.Y >= Main.maxTilesY)
                     continue;
 
-                position -= center;
-
-
                 float elevation = SamplePlanetoidNoise(
-                    noise, position, roughness, baseRoughness, strength, persistence, noiseLayers, noiseCenter);
+                    noise, position - center, noiseCenter, roughness, baseRoughness, strength, persistence, noiseLayers);
                 elevation += 1 - (strength * 0.5f);
 
+                if (Ellipse.GetSignedDistance(position, center, ab * elevation).X <= 0)
+                {
+                    Point point = new Point(i + asteroid.X, j + asteroid.Y);
 
-                if (SdfHelper.Ellipse(position, ab * elevation).Distance <= 0)
-                    TryPlaceTile(i + asteroid.X, j + asteroid.Y, ModContent.TileType<Cosmostone>());
+                    WorldGen.PlaceTile(point.X, point.Y, ModContent.TileType<Cosmostone>(), forced: true);
+                    tilePosSet.Add(point);
+                }
             }
+        }
+
+        // fill not exposed tiles with walls
+        foreach (var position in tilePosSet)
+        {
+            int air = 0;
+
+            foreach (var direction in TileDirections.WithCorners)
+            {
+                var point = position + direction;
+                point = new Point(
+                    Math.Clamp(point.X, 0, Main.maxTilesX),
+                    Math.Clamp(point.Y, 0, Main.maxTilesY));
+
+                if (!Main.tile[point].HasTile)
+                    air++;
+            }
+
+            if (air == 0)
+                WorldGen.PlaceWall(position.X, position.Y, ModContent.WallType<CosmostoneWall>());
         }
     }
 
-    private float SamplePlanetoidNoise(
+    private static void GenPlanetoidCaves(ref List<Point> tilePosSet, FastNoiseLite noise, Rectangle asteroid, bool large)
+    {
+        SdfScene sdfScene = new SdfScene();
+
+        Vector2 center = asteroid.Center.ToVector2() - Vector2.One * 0.5f;
+
+        // Generate entrance sdfs
+        if (WorldGen.genRand.NextBool() || large)
+        {
+            int entrances = WorldGen.genRand.Next(1, large ? 5 : 4);
+
+            var angles = WorldGen.genRand.NextRandomAngles(entrances, 0.5f);
+
+            List<Vector2> points = new List<Vector2>();
+            float current = WorldGen.genRand.NextFloat(0, MathHelper.TwoPi);
+            float length = 500;
+            float radius = large ? 3f : 2f;
+
+            foreach (var angle in angles)
+            {
+                var end = center + length * new Vector2(MathF.Cos(current), MathF.Sin(current));
+                sdfScene.AddPrimitive(new Segment(radius, center, end));
+                current += angle;
+            }
+        }
+
+        // make hollow
+        if (large)
+        {
+            Vector2 ellipseDimensions = asteroid.Size() * 0.5f * WorldGen.genRand.NextFloat(0.4f, 0.6f);
+            ellipseDimensions *= new Vector2(WorldGen.genRand.NextFloat(0.8f, 1.2f), WorldGen.genRand.NextFloat(0.8f, 1.2f));
+            sdfScene.AddPrimitive(new Ellipse(center, ellipseDimensions));
+        }
+
+        float roughness = 3f;
+        float baseRoughness = 1f;
+        float strength = 3f;
+        float persistence = 0.5f;
+        int noiseLayers = 5;
+        Vector2 noiseCenter = WorldGen.genRand.NextVector2Square(-1, 1) * 500;
+
+        // carve out caves
+        foreach (var position in tilePosSet)
+        {
+            var sample = sdfScene.Sample(position.ToVector2(), 1.5f, SmoothMinimum.CircularGeometrical);
+
+            // displace radius based on position
+            // displace radius based on sdf gradient
+
+            // carve out cave
+            if (sample.X <= 0)
+                WorldGen.KillTile(position.X, position.Y);
+        }
+    }
+
+    /// <summary>
+    /// Samples a point of layered noise on a circle.
+    /// </summary>
+    /// <param name="noise">The FastNoiseLite state to use.</param>
+    /// <param name="position">The position to be sampled.</param>
+    /// <param name="roughness">How quickly layers increase in noise frequency.</param>
+    /// <param name="baseRoughness">Noise frequency for the first layer.</param>
+    /// <param name="strength">Value to multiply the sampled noise by.</param>
+    /// <param name="persistence">How quickly layers decrease in amplitude.</param>
+    /// <param name="layers">How many layers of noise to sample. Layers always increase in frequency and decrease in amplitude.</param>
+    /// <param name="displacement">Noise displacement.</param>
+    /// <returns>A number between 0 and 1.</returns>
+    private static float SamplePlanetoidNoise(
         FastNoiseLite noise,
         Vector2 position,
+        Vector2 displacement,
         float roughness,
         float baseRoughness,
         float strength,
         float persistence,
-        int layers,
-        Vector2 center)
+        int layers)
     {
         float noiseValue = 0;
         float frequency = baseRoughness;
@@ -282,31 +380,15 @@ internal class CellularGrowthPass : GenPass
         {
             Vector2 normalized = Vector2.Normalize(position);
             normalized *= 100 * frequency;
-            normalized += center;
+            normalized += displacement;
 
             noiseValue += (1 + noise.GetNoise(normalized.X, normalized.Y)) * 0.5f * amplitude;
 
             frequency *= roughness;
             amplitude *= persistence;
         }
-
+        
         return noiseValue * strength;
-    }
-
-    private void TryPlaceWall(int i, int j, int type)
-    {
-        if (i < 0 || j < 0 || i >= Main.maxTilesX || j >= Main.maxTilesY)
-            return;
-
-        WorldGen.PlaceWall(i, j, type, mute: true);
-    }
-
-    private void TryPlaceTile(int i, int j, int type)
-    {
-        if (i < 0 || j < 0 || i >= Main.maxTilesX || j >= Main.maxTilesY)
-            return;
-
-        WorldGen.PlaceTile(i, j, type, mute: true);
     }
 
 }
