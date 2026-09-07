@@ -140,6 +140,11 @@ Items: {
 		DisplayName: Cosmoss Seeds
 		Tooltip: ""
 	}
+
+	ActiveFunnyTileItem: {
+		DisplayName: Active Funny Tile Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {

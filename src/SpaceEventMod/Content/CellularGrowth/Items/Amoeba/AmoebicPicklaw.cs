@@ -13,6 +13,7 @@ using Terraria.GameContent;
 using Terraria.GameContent.Achievements;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static Terraria.GameContent.Bestiary.BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions;
 
 namespace SpaceEventMod.Content.CellularGrowth.Items.Amoeba;
 
@@ -160,7 +161,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
         if (Projectile.owner == Main.myPlayer)
         {
-            int searchRadius = 7;
+            int searchRadius = 5;
 
             int minTileX = (int)(Projectile.Center.X / 16f - searchRadius);
             int maxTileX = (int)(Projectile.Center.X / 16f + searchRadius);
@@ -169,13 +170,19 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
             var nearest = GetNearestSolid(Projectile.Center, searchRadius, minTileX, maxTileX, minTileY, maxTileY);
 
-            HashSet<Point> tiles = new();
+            /*HashSet<Point> tiles = new();
 
             tiles.Add(nearest);
 
             GetConnectedTiles(tiles, nearest, searchRadius);
 
             foreach (var tile in tiles)
+                PickTile(player, tile.X, tile.Y, player.GetBestPickaxe().pick);*/
+
+            var adjacentTiles = TileDirections.SearchFromTile(nearest.X, nearest.Y, searchRadius, TileDirections.WithCorners,
+                x => WorldGen.SolidOrSlopedTile(x) && x.TileType == Main.tile[nearest].TileType);
+
+            foreach (var tile in adjacentTiles.tilePositions)
                 PickTile(player, tile.X, tile.Y, player.GetBestPickaxe().pick);
         }
 
