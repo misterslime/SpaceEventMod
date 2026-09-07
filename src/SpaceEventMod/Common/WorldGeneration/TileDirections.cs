@@ -59,26 +59,29 @@ internal static class TileDirections
         List<(int depth, Point point)> found = new() { (depth, new Point(i, j)) };
         while (found.Count > 0)
         {
-            var point = found[found.Count - 1];
-            found.RemoveAt(found.Count - 1);
+            for (int n = 0; n < found.Count;)
+            {
+                var point = found[found.Count - 1];
+                found.RemoveAt(found.Count - 1);
 
-            if (tiles.Contains(point.point)) continue;
-            if (point.depth < 0) continue;
-            if (point.point.X < 0 || point.point.X >= Main.maxTilesX ||
-                point.point.Y < 0 || point.point.Y >= Main.maxTilesY) continue;
+                if (tiles.Contains(point.point)) continue;
+                if (point.depth < 0) continue;
+                if (point.point.X < 0 || point.point.X >= Main.maxTilesX ||
+                    point.point.Y < 0 || point.point.Y >= Main.maxTilesY) continue;
 
-            max.X = Math.Max(max.X, point.point.X);
-            max.Y = Math.Max(max.Y, point.point.Y);
+                max.X = Math.Max(max.X, point.point.X);
+                max.Y = Math.Max(max.Y, point.point.Y);
 
-            min.X = Math.Min(min.X, point.point.X);
-            min.Y = Math.Min(min.Y, point.point.Y);
+                min.X = Math.Min(min.X, point.point.X);
+                min.Y = Math.Min(min.Y, point.point.Y);
 
-            if (!condition(Main.tile[point.point])) continue;
+                if (!condition(Main.tile[point.point])) continue;
 
-            tiles.Add(point.point);
+                tiles.Add(point.point);
 
-            foreach (var p in GetConnectedTiles(point.point.X, point.point.Y, searchShape))
-                found.Add((point.depth - 1, p));
+                foreach (var p in GetConnectedTiles(point.point.X, point.point.Y, searchShape))
+                    found.Add((point.depth - 1, p));
+            }
         }
 
         return (tiles.ToArray(), min, max);
