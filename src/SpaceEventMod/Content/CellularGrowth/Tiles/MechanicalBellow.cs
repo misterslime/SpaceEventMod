@@ -1,11 +1,9 @@
-using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Common.Graphics;
+using SpaceEventMod.Common.BaseTypes;
 using SpaceEventMod.Content.CellularGrowth.Items;
 using SpaceEventMod.Content.Miscellaneous.Projectiles;
 using System.IO;
-using System.Runtime.CompilerServices;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
@@ -15,8 +13,6 @@ using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.ObjectData;
 using TileHelper.Common;
-using static Daybreak.Common.Features.Hooks.ModifyItemDrawBasics;
-using static Terraria.GameContent.Bestiary.BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
@@ -117,7 +113,7 @@ public class BellowTileEntity : ModTileEntity
     }
 }
 
-internal class MechanicalBellow : ModTile, ILoadItem
+internal class MechanicalBellow : MaskedTile, ILoadItem
 {
     public void SetItemDefaults(ModItem modItem) => modItem.Item.value = 3000;
 
@@ -225,20 +221,18 @@ internal class MechanicalBellow : ModTile, ILoadItem
         return false;
     }
 
-    public override bool PreDraw(int i, int j, SpriteBatch spriteBatch)
+    protected override bool ShouldDrawShaderedMask(int i, int j)
     {
-        if (TileObjectData.IsTopLeft(i, j))
-        {
-            Main.instance.TilesRenderer.AddSpecialPoint(i, j, TileDrawing.TileCounterType.CustomSolid);
-            return true;
-        }
-        return true;
+        return TileObjectData.IsTopLeft(i, j);
     }
 
-    public override void SpecialDraw(int i, int j, SpriteBatch spriteBatch)
+    protected override bool PreDrawMask(int i, int j, SpriteBatch spriteBatch)
     {
-        using var _ = Main.spriteBatch.Scope();
+        return false;
+    }
 
+    protected override void PostDrawMask(int i, int j, SpriteBatch spriteBatch)
+    {
         Texture2D texture = TextureAssets.Tile[Type].Value;
 
         Tile tile = Main.tile[i, j];
@@ -251,44 +245,19 @@ internal class MechanicalBellow : ModTile, ILoadItem
 
         if (drawingTop && Entity(i, j) is BellowTileEntity entity)
         {
-            var paintShader = PaintBatch.PrepareShader(tile.TileColor, TreePaintSystemData.GetTileSettings(-1, 0));
+            int frame = (int)((entity.AnimationCounter / 4) % 8);
 
-            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullNone, null, Main.GameViewMatrix.TransformationMatrix);
-            {
-                PrepareShader(tile.TileColor, TreePaintSystemData.GetTileSettings(-1, 0));
+            Rectangle billowSource = new(0, 36 + 36 * frame, 52, 36);
+            Vector2 billowPosition = new Vector2(i, j).ToWorldCoordinates(17, 15) - Main.screenPosition;
+            //Vector2 billowOrigin = billowSource.Size() / 2;
+            Vector2 billowOrigin = new Vector2(37, 17);
 
-                int frame = (int)((entity.AnimationCounter / 4) % 8);
+            float rotation = entity.Rotation;
 
-                Rectangle billowSource = new(0, 36 + 36 * frame, 52, 36);
-                Vector2 billowPosition = new Vector2(i, j).ToWorldCoordinates(17, 15) - Main.screenPosition;
-                //Vector2 billowOrigin = billowSource.Size() / 2;
-                Vector2 billowOrigin = new Vector2(37, 17);
+            var tileLight = Main.instance.TilesRenderer.DrawTiles_GetLightOverride(i, j, tile, Type, tile.TileFrameX, tile.TileFrameY, Lighting.GetColor(i, j));
+            var finalColor = TileDrawing.GetFinalLight(tile, Type, tileLight, Color.White);
 
-                float rotation = entity.Rotation;
-
-                var tileLight = Main.instance.TilesRenderer.DrawTiles_GetLightOverride(i, j, tile, Type, tile.TileFrameX, tile.TileFrameY, Lighting.GetColor(i, j));
-                var finalColor = TileDrawing.GetFinalLight(tile, Type, tileLight, Color.White);
-
-                spriteBatch.Draw(texture, billowPosition, billowSource, finalColor, rotation, billowOrigin, 1, default, 0);
-            }
-            Main.spriteBatch.End();
+            spriteBatch.Draw(texture, billowPosition, billowSource, finalColor, rotation, billowOrigin, 1, default, 0);
         }
-    }
-
-    // copied from Terraria.GameContent.TilePaintSystemV2.ARenderTargetHolder
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Effect PrepareShader(int paintColor, TreePaintingSettings settings)
-    {
-        Effect tileShader = Main.tileShader;
-        tileShader.Parameters["leafHueTestOffset"]?.SetValue(settings.HueTestOffset);
-        tileShader.Parameters["leafMinHue"]?.SetValue(settings.SpecialGroupMinimalHueValue);
-        tileShader.Parameters["leafMaxHue"]?.SetValue(settings.SpecialGroupMaximumHueValue);
-        tileShader.Parameters["leafMinSat"]?.SetValue(settings.SpecialGroupMinimumSaturationValue);
-        tileShader.Parameters["leafMaxSat"]?.SetValue(settings.SpecialGroupMaximumSaturationValue);
-        tileShader.Parameters["invertSpecialGroupResult"]?.SetValue(settings.InvertSpecialGroupResult);
-        int index = Main.ConvertPaintIdToTileShaderIndex(paintColor, settings.UseSpecialGroups, settings.UseWallShaderHacks);
-        tileShader.CurrentTechnique.Passes[index].Apply();
-
-        return tileShader;
     }
 }

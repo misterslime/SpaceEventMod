@@ -17,7 +17,7 @@ using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
-internal class Cosmoss : FancyTile
+internal class Cosmoss : MaskedTile
 {
     public override void SetStaticDefaults()
     {
