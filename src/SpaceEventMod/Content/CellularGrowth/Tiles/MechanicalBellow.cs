@@ -7,6 +7,7 @@ using SpaceEventMod.Content.Miscellaneous.Projectiles;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Terraria;
+using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.GameContent.Drawing;
@@ -107,6 +108,7 @@ public class BellowTileEntity : ModTileEntity
             Rotation += MathHelper.PiOver4 / 2;
 
         Rotation = Rotation % MathHelper.TwoPi;
+        SoundEngine.PlaySound(SoundID.MenuTick with { Volume = 0.5f }, new Point(i, j).ToWorldCoordinates());
         SyncTileEntity();
     }
 

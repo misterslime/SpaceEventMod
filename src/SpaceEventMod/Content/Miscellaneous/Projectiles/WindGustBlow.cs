@@ -1,6 +1,7 @@
 using Daybreak.Common.Features.Hooks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Utilities;
 using SpaceEventMod.Common.Geometry;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
 using System;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -20,6 +22,7 @@ namespace SpaceEventMod.Content.Miscellaneous.Projectiles;
 
 internal class WindGustBlow : ModProjectile
 {
+    private SlotId _blowSoundSlot;
     private Queue _windDirections = new Queue();
 
     private int Owner => (int)Projectile.ai[0];
@@ -49,6 +52,17 @@ internal class WindGustBlow : ModProjectile
         _windDirections.Enqueue(new Point(1, -1));
         _windDirections.Enqueue(new Point(1, 1));
         _windDirections.Enqueue(new Point(-1, 1));
+
+        SoundEngine.PlaySound(SoundID.Item45 with { Volume = 0.75f }, Projectile.Center);
+    }
+
+    public override void OnKill(int timeLeft)
+    {
+        if (SoundEngine.TryGetActiveSound(_blowSoundSlot, out var soundOut))
+        {
+            soundOut.Stop();
+            SoundEngine.PlaySound(SoundID.Item104 with { Volume = 0.5f }, Projectile.Center);
+        }
     }
 
     public override void AI()
@@ -59,6 +73,9 @@ internal class WindGustBlow : ModProjectile
             Projectile.velocity = Main.npc[Owner].velocity;
             Projectile.rotation = Main.npc[Owner].rotation;
         }
+
+        if (!SoundEngine.TryGetActiveSound(_blowSoundSlot, out var blowingSound) || !blowingSound.IsPlaying)
+            _blowSoundSlot = SoundEngine.PlaySound(SoundID.Item34 with { Volume = 0.75f, IsLooped = true }, Projectile.Center);
 
         Timer++;
 

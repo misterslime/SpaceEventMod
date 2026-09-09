@@ -170,7 +170,7 @@ internal class WindoplastProjectile : ModProjectile
 
     public override void OnKill(int timeLeft)
     {
-        SoundEngine.PlaySound(SoundID.Item14, Projectile.position);
+        SoundEngine.PlaySound(SoundID.Item45, Projectile.position);
 
         Projectile.Resize(DEFAULT_WIDTH_HEIGHT, DEFAULT_WIDTH_HEIGHT);
 
