@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using ReLogic.Utilities;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
 using System;
 using System.Collections.Generic;
@@ -76,14 +77,17 @@ internal class EnchantedToolGlovesPlayer : ModPlayer
         {
             DoMistVisual = false;
             DoManaDrain = false;
+
             return;
         }
 
         if (Player.toolTime > 0)
         {
+            SoundEngine.PlaySound(SoundID.Pixie with { Volume = 1f }, Player.Center);
+
             if (DoManaDrain && _frameCounter++ % 5 == 0)
             {
-                Player.CheckMana(1, true, false);
+                Player.CheckMana(5, true, false);
                 Player.manaRegenDelay = Player.maxRegenDelay;
             }
 
