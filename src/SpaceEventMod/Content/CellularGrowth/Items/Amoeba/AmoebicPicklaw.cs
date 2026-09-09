@@ -37,7 +37,7 @@ internal class AmoebicPicklaw : ModItem
         Item.channel = true;
         Item.shootSpeed = 12f;
         Item.shoot = ModContent.ProjectileType<AmoebicPicklawProjectile>();
-        Item.UseSound = SoundID.Item7;
+        Item.UseSound = SoundID.Item152;
         Item.useTime = Item.useAnimation = 40;
         Item.noUseGraphic = true;
         Item.noMelee = true;
@@ -145,7 +145,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
         bool onGround = oldVelocity.X * Projectile.velocity.X != 0 && oldVelocity.Y * Projectile.velocity.Y != 0;
 
         if (onGround)
-            SoundEngine.PlaySound(SoundID.Tink, Projectile.position);
+            SoundEngine.PlaySound(SoundID.Item56, Projectile.position);
 
         if (!Projectile.TryGetOwner(out Player player))
         {
@@ -184,6 +184,9 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
             foreach (var tile in adjacentTiles.tilePositions)
                 PickTile(player, tile.X, tile.Y, player.GetBestPickaxe().pick);
+
+            WorldGen.KillTile(nearest.X, nearest.Y, true, true, true);
+            SoundEngine.PlaySound(SoundID.Item153 with { Volume = 0.4f }, Projectile.position);
         }
 
         return false;
