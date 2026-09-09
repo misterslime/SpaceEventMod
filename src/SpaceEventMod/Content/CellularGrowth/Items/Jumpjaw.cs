@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -180,6 +181,8 @@ internal class JumpjawProjectile : ModProjectile
 
     private void OnHitEntity(Entity target)
     {
+        SoundEngine.PlaySound(SoundID.NPCDeath9, target.Center);
+
         var direction = target.Center - Owner.MountedCenter;
 
         var belowThreshold = MathF.Abs(direction.Y) > Owner.height * 0.5f - 6;
