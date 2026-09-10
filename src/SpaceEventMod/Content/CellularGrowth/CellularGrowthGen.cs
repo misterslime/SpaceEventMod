@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Common.BaseTypes;
 using SpaceEventMod.Common.Geometry;
 using SpaceEventMod.Common.SDFs;
 using SpaceEventMod.Common.WorldGeneration;
@@ -6,14 +7,11 @@ using SpaceEventMod.Content.CellularGrowth.Tiles;
 using SpaceEventMod.Content.CellularGrowth.Walls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using Terraria;
 using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.WorldBuilding;
-using static Daybreak.Common.Features.Hooks.ModifyItemDrawBasics;
 
 namespace SpaceEventMod.Content.CellularGrowth;
 
@@ -60,6 +58,9 @@ internal class CellularGrowthPass : GenPass
 
     protected override void ApplyPass(GenerationProgress progress, GameConfiguration configuration)
     {
+        progress.Message = "Undergoing Cellular Division";
+
+
         // Get cellular growth patch sizes and placements
         int patches = 2;
         int worldMargins = 40;
@@ -93,6 +94,8 @@ internal class CellularGrowthPass : GenPass
 
         List<Point> asteroidPoints = new List<Point>();
 
+        progress.Set(0.5);
+
         for (int i = 0; i < asteroidBounds.Count; i++)
         {
             bool large = false;
@@ -104,10 +107,11 @@ internal class CellularGrowthPass : GenPass
             GenNoisyPlanetoid(ref asteroidPoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
             GenPlanetoidCaves(ref asteroidPoints, noise, bound, large);
             PlugCaveEntrances(ref asteroidPoints);
+            GrowMossAndCells(ref asteroidPoints);
 
             asteroidPoints.Clear();
 
-            progress.Set(i / (asteroidBounds.Count - 1));
+            progress.Set(i / (asteroidBounds.Count - 1f));
         }
 
         // connect asteroids (for connective cells)
@@ -382,8 +386,66 @@ internal class CellularGrowthPass : GenPass
                     air++;
             }
 
-            if (air >= 6 && !Main.tile[position].HasTile)
+            if (air >= 5 && !Main.tile[position].HasTile)
                 WorldGen.PlaceTile(position.X, position.Y, funnyTile, forced: true);
+        }
+    }
+
+    private void GrowMossAndCells(ref List<Point> tilePosSet)
+    {
+        int herbCell = ModContent.TileType<HerbCell>();
+        int cosmoss = ModContent.TileType<Cosmoss>();
+        int funnyTile = ModContent.TileType<ActiveFunnyTile>();
+
+        // Place Cosmoss
+        foreach (var position in tilePosSet)
+        {
+            if (Main.tile[position].TileType == funnyTile ||
+                !Main.tile[position].HasTile)
+                continue;
+
+            int air = 0;
+
+            foreach (var connectedPosition in TileDirections.NoCorners)
+            {
+                var newPosition = position + connectedPosition;
+
+                if (newPosition.X < 0 || newPosition.X >= Main.maxTilesX ||
+                    newPosition.Y < 0 || newPosition.Y >= Main.maxTilesY)
+                    continue;
+
+                if (!Main.tile[newPosition].HasTile)
+                    air++;
+            }
+
+            if (air == 0 && WorldGen.genRand.NextBool(5))
+                WorldGen.PlaceTile(position.X, position.Y, cosmoss, forced: true);
+        }
+
+        // Place Herb Cells
+        foreach (var position in tilePosSet)
+        {
+            int air = 0;
+
+            if (Main.tile[position].wall == 0 ||
+                Main.tile[position].TileType == funnyTile ||
+                !Main.tile[position].HasTile)
+                continue;
+
+            foreach (var connectedPosition in TileDirections.WithCorners)
+            {
+                var newPosition = position + connectedPosition;
+
+                if (newPosition.X < 0 || newPosition.X >= Main.maxTilesX ||
+                    newPosition.Y < 0 || newPosition.Y >= Main.maxTilesY)
+                    continue;
+
+                if (!Main.tile[newPosition].HasTile)
+                    air++;
+            }
+
+            if (air >= 2)
+                WorldGen.PlaceTile(position.X, position.Y, herbCell, forced: true);
         }
     }
 
