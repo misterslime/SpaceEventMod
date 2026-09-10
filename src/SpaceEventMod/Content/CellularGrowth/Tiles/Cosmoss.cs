@@ -72,4 +72,11 @@ internal class Cosmoss : FancyTile
             Framing.GetTileSafely(i, j).TileType = (ushort)ModContent.TileType<Cosmostone>();
         }
     }
+
+    public override bool CanExplode(int i, int j)
+    {
+        WorldGen.KillTile(i, j);
+
+        return true;
+    }
 }
