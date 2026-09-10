@@ -35,14 +35,14 @@ internal class ActiveFunnyTile : ModTile, ILoadItem
 
     public override void RandomUpdate(int i, int j)
     {
-        if (Filters.Scene["SeaDistortFog"].IsActive())
-        {
-            var adjacentTiles = TileDirections.SearchFromTile(i, j, 7, TileDirections.WithCorners,
+        if ((int)(SpaceEvent.Sea.SeaPos.Height.Position / 16f) <= j)
+            return;
+
+        var adjacentTiles = TileDirections.SearchFromTile(i, j, 7, TileDirections.WithCorners,
                 x => x.HasTile && x.TileType == ModContent.TileType<ActiveFunnyTile>());
 
-            foreach (var tile in adjacentTiles.tilePositions)
-                TryActuate(tile.X, tile.Y);
-        }
+        foreach (var tile in adjacentTiles.tilePositions)
+            TryActuate(tile.X, tile.Y);
     }
 
     public override void HitWire(int i, int j)
@@ -97,14 +97,14 @@ internal class InactiveFunnyTile : ModTile
 
     public override void RandomUpdate(int i, int j)
     {
-        if (!Filters.Scene["SeaDistortFog"].IsActive())
-        {
-            var adjacentTiles = TileDirections.SearchFromTile(i, j, 7, TileDirections.WithCorners,
+        if ((int)(SpaceEvent.Sea.SeaPos.Height.Position / 16f) > j)
+            return;
+
+        var adjacentTiles = TileDirections.SearchFromTile(i, j, 7, TileDirections.WithCorners,
                 x => x.HasTile && x.TileType == ModContent.TileType<InactiveFunnyTile>());
 
-            foreach (var tile in adjacentTiles.tilePositions)
-                TryActuate(tile.X, tile.Y);
-        }
+        foreach (var tile in adjacentTiles.tilePositions)
+            TryActuate(tile.X, tile.Y);
     }
 
     private void TryActuate(int i, int j)
