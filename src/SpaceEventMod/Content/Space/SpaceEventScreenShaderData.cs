@@ -44,7 +44,7 @@ internal class SpaceEventScreenShaderData : ScreenShaderData
         base.Shader.Parameters["fogColor"]?.SetValue(new Vector4(0.0f, 0.25f, 1.0f, 0.35f));
         base.Shader.Parameters["fogStart"]?.SetValue(0.15f);
         base.Shader.Parameters["fogEnd"]?.SetValue(0.65f);
-        base.Shader.Parameters["distortIntensity"]?.SetValue(0.07f);
+        base.Shader.Parameters["distortIntensity"]?.SetValue(0f);
         base.Shader.Parameters["distortNoiseScale"]?.SetValue(0.001f);
         base.Shader.Parameters["timeScale"]?.SetValue(0.02f);
         base.Shader.Parameters["blurMulti"]?.SetValue(0.0005f);
