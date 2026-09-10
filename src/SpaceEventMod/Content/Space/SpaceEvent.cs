@@ -51,8 +51,8 @@ public class SpaceEvent : ModSystem
             .PropagateWaves(0.04f)
             .UpdateSprings(0.1f, 0.005f);
 
-        SpawnAsteroids();
-        SpawnStars();
+        //SpawnAsteroids();
+        //SpawnStars();
     }
 
     private void SpawnStars()
