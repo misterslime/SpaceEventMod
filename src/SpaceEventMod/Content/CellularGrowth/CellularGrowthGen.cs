@@ -11,6 +11,7 @@ using System.Threading;
 using Terraria;
 using Terraria.IO;
 using Terraria.ModLoader;
+using Terraria.ModLoader.IO;
 using Terraria.WorldBuilding;
 using static Daybreak.Common.Features.Hooks.ModifyItemDrawBasics;
 
@@ -19,6 +20,7 @@ namespace SpaceEventMod.Content.CellularGrowth;
 public class CellularGrowthGen : ModSystem
 {
     public static Line[] _connectiveCells;
+    public static int LowestAsteroidTile;
 
     public override void ModifyWorldGenTasks(List<GenPass> tasks, ref double totalWeight)
     {
@@ -28,6 +30,16 @@ public class CellularGrowthGen : ModSystem
         {
             tasks.Insert(islandsIndex - 1, new CellularGrowthPass("Cellular Growth", 100f));
         }
+    }
+
+    public override void SaveWorldData(TagCompound tag)
+    {
+        tag[nameof(LowestAsteroidTile)] = LowestAsteroidTile; 
+    }
+
+    public override void LoadWorldData(TagCompound tag)
+    {
+        LowestAsteroidTile = tag.GetInt(nameof(LowestAsteroidTile));
     }
 }
 
@@ -89,8 +101,9 @@ internal class CellularGrowthPass : GenPass
             if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
                 large = true;
 
-            GenNoisyPlanetoid(ref asteroidPoints, noise, bound);
+            GenNoisyPlanetoid(ref asteroidPoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
             GenPlanetoidCaves(ref asteroidPoints, noise, bound, large);
+            PlugCaveEntrances(ref asteroidPoints);
 
             asteroidPoints.Clear();
 
@@ -234,7 +247,7 @@ internal class CellularGrowthPass : GenPass
         return bounds;
     }
 
-    private static void GenNoisyPlanetoid(ref List<Point> tilePosSet, FastNoiseLite noise, Rectangle asteroid)
+    private static void GenNoisyPlanetoid(ref List<Point> tilePosSet, ref int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
     {
         Vector2 center = asteroid.Center.ToVector2() - Vector2.One * 0.5f;
         Vector2 ab = asteroid.Size() * 0.5f;
@@ -268,6 +281,7 @@ internal class CellularGrowthPass : GenPass
                 {
                     Point point = new Point(i + asteroid.X, j + asteroid.Y);
 
+                    lowestAsteroidTile = Math.Max(lowestAsteroidTile, point.Y);
                     WorldGen.PlaceTile(point.X, point.Y, ModContent.TileType<Cosmostone>(), forced: true);
                     tilePosSet.Add(point);
                 }
@@ -348,6 +362,44 @@ internal class CellularGrowthPass : GenPass
             if (sample.X <= 0)
                 WorldGen.KillTile(position.X, position.Y);
         }
+    }
+
+    private void PlugCaveEntrances(ref List<Point> tilePosSet)
+    {
+        int funnyTile = ModContent.TileType<ActiveFunnyTile>();
+
+        foreach (var position in tilePosSet)
+        {
+            int air = 0;
+
+            foreach (var connectedPosition in GetConnectedTiles(position.X, position.Y))
+            {
+                if (connectedPosition.X < 0 || connectedPosition.X >= Main.maxTilesX ||
+                    connectedPosition.Y < 0 || connectedPosition.Y >= Main.maxTilesY)
+                    continue;
+
+                if (Main.tile[connectedPosition].wall == 0)
+                    air++;
+            }
+
+            if (air >= 6 && !Main.tile[position].HasTile)
+                WorldGen.PlaceTile(position.X, position.Y, funnyTile, forced: true);
+        }
+    }
+
+    private static Point[] GetConnectedTiles(int i, int j)
+    {
+        i -= 2;
+        j -= 2;
+        var ret = new Point[25];
+        for (int y = 0; y < 5; y++)
+        {
+            for (int x = 0; x < 5; x++)
+            {
+                ret[x + y * 5] = new Point(x + i, y + j);
+            }
+        }
+        return ret;
     }
 
     /// <summary>

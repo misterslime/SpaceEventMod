@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Animation;
 using SpaceEventMod.Common.Geometry;
+using SpaceEventMod.Content.CellularGrowth;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -102,7 +103,7 @@ public struct FirmamentSea
         if (Despawning)
             newSea.SeaPos.Height = despawn.Update(1f, SeaPos.Height, 0f);
         else
-            newSea.SeaPos.Height = spawn.Update(1f, SeaPos.Height, (float)(Main.worldSurface * 0.35f * 16f));
+            newSea.SeaPos.Height = spawn.Update(1f, SeaPos.Height, (float)(CellularGrowthGen.LowestAsteroidTile * 16f));
 
         return newSea;
     }
