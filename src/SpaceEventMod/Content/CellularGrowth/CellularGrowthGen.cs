@@ -26,7 +26,7 @@ public class CellularGrowthGen : ModSystem
 
         if (islandsIndex != -1)
         {
-            tasks.Insert(islandsIndex - 1, new CellularGrowthPass("Cellular Growth", 100f));
+            tasks.Insert(islandsIndex - 1, new CellularGrowthPass("Cellular Growth", 5f));
         }
     }
 
@@ -59,7 +59,7 @@ internal class CellularGrowthPass : GenPass
     protected override void ApplyPass(GenerationProgress progress, GameConfiguration configuration)
     {
         progress.Message = "Undergoing Cellular Division";
-
+        progress.Set(0.0f);
 
         // Get cellular growth patch sizes and placements
         int patches = 2;
@@ -94,7 +94,8 @@ internal class CellularGrowthPass : GenPass
 
         List<Point> asteroidPoints = new List<Point>();
 
-        progress.Set(0.5);
+        float part2 = 0.8f;
+        progress.Set(0.2f);
 
         for (int i = 0; i < asteroidBounds.Count; i++)
         {
@@ -111,7 +112,7 @@ internal class CellularGrowthPass : GenPass
 
             asteroidPoints.Clear();
 
-            progress.Set(i / (asteroidBounds.Count - 1f));
+            progress.Set(0.2f + part2 *(float)((float)i / (float)asteroidBounds.Count));
         }
 
         // connect asteroids (for connective cells)
