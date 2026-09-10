@@ -83,8 +83,6 @@ internal class EnchantedToolGlovesPlayer : ModPlayer
 
         if (Player.toolTime > 0)
         {
-            SoundEngine.PlaySound(SoundID.Pixie with { Volume = 1f }, Player.Center);
-
             if (DoManaDrain && _frameCounter++ % 5 == 0)
             {
                 Player.CheckMana(5, true, false);
@@ -107,6 +105,8 @@ internal class EnchantedToolGlovesPlayer : ModPlayer
                 mist.scale = smokeSize;
                 mist.customData = new MistData(Main.rand.Next(3), 0.02f);
                 mist.rotation = Main.rand.NextFloat(MathHelper.TwoPi);
+
+                SoundEngine.PlaySound(SoundID.Pixie with { Volume = 1f }, Player.Center);
             }
         }
     }
