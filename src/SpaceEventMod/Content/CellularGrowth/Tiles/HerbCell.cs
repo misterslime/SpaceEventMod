@@ -19,7 +19,7 @@ internal class HerbCell : ModTile, ILoadItem
 
         TileID.Sets.ChecksForMerge[Type] = true;
 
-        DustType = -1;
+        DustType = DustID.Cloud;
         MineResist = 0.5f;
 
         AddMapEntry(new Color(30, 255, 241));
