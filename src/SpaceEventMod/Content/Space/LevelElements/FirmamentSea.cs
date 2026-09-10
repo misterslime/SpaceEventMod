@@ -4,6 +4,9 @@ using SpaceEventMod.Common.Geometry;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.Audio;
+using Terraria.ID;
+using static Terraria.ModLoader.BackupIO;
 
 namespace SpaceEventMod.Content.Space.LevelElements;
 
@@ -20,6 +23,8 @@ public struct SeaPosition(int left)
 
 public struct FirmamentSea
 {
+    private static readonly SoundStyle FishSplash = SoundID.CreateTrackable("fish_splash").WithVolume(1f).WithPitchVariance(0.02f);
+
     public FirmamentSea(float nodeWidth, int chunkSize, int chunks)
     {
         NodeWidth = nodeWidth;
@@ -237,7 +242,18 @@ public struct FirmamentSea
                 {
                     if (player.getRect().Contains(new Point((int)nodePosition.X, (int)nodePosition.Y)))
                     {
+
+                        PlaySplash(player.Center, MathF.Sign(player.velocity.Y));
                         node.Velocity = player.velocity.Y * 1.7f;
+                    }
+                }
+
+                foreach (var npc in Main.ActiveNPCs)
+                {
+                    if (npc.getRect().Contains(new Point((int)nodePosition.X, (int)nodePosition.Y)))
+                    {
+                        PlaySplash(npc.Center, MathF.Sign(npc.velocity.Y), 0.4f);
+                        node.Velocity = npc.velocity.Y * 1.7f;
                     }
                 }
 
@@ -261,12 +277,16 @@ public struct FirmamentSea
                         {
                             if (line.Intersects(projectileLine))
                             {
+                                SoundEngine.PlaySound(FishSplash, projectile.Center);
+
                                 node.Velocity = projectile.velocity.Y;
                                 projectile.Kill();
                             }
 
                             if (line.Intersects(projectile.getRect()))
                             {
+                                SoundEngine.PlaySound(FishSplash, projectile.Center);
+
                                 node.Velocity = projectile.velocity.Y;
                                 projectile.Kill();
                             }
@@ -280,6 +300,21 @@ public struct FirmamentSea
         }
 
         return newSea;
+    }
+
+    public void PlaySplash(Vector2 position, int yVelocitySign, float volume = 1f)
+    {
+        switch (yVelocitySign)
+        {
+            case 1:
+                SoundEngine.PlaySound(SoundID.Shimmer2 with { Volume = volume }, position);
+                break;
+            case -1:
+                SoundEngine.PlaySound(SoundID.Shimmer1 with { Volume = volume }, position);
+                break;
+            default:
+                break;
+        }
     }
 
     public FirmamentSea CheckIfShouldDeactivate()

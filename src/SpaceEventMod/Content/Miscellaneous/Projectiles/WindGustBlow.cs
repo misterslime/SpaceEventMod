@@ -22,6 +22,8 @@ namespace SpaceEventMod.Content.Miscellaneous.Projectiles;
 
 internal class WindGustBlow : ModProjectile
 {
+    public static readonly SoundStyle BlizzardStrongLoop = SoundID.CreateTrackable("blizzard_strong_loop", SoundType.Ambient).WithVolume(3f);
+
     private SlotId _blowSoundSlot;
     private Queue _windDirections = new Queue();
 
@@ -75,7 +77,7 @@ internal class WindGustBlow : ModProjectile
         }
 
         if (!SoundEngine.TryGetActiveSound(_blowSoundSlot, out var blowingSound) || !blowingSound.IsPlaying)
-            _blowSoundSlot = SoundEngine.PlaySound(SoundID.Item34 with { Volume = 0.75f, IsLooped = true }, Projectile.Center);
+            _blowSoundSlot = SoundEngine.PlaySound(BlizzardStrongLoop, Projectile.Center);
 
         Timer++;
 
