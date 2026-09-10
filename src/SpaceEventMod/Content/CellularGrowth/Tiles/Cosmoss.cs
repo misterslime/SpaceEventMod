@@ -36,7 +36,7 @@ internal class Cosmoss : FancyTile
         TileID.Sets.NeedsGrassFraming[Type] = true;
         TileID.Sets.ChecksForMerge[Type] = true;
 
-        MineResist = .5f;
+        MineResist = 2f;
         HitSound = SoundID.Tink;
 
         AddMapEntry(Color.LightCoral);
@@ -90,6 +90,7 @@ internal class Cosmoss : FancyTile
                 return;
 
             Framing.GetTileSafely(i, j).TileType = (ushort)ModContent.TileType<Cosmostone>();
+            WorldGen.SquareTileFrame(i, j);
             NetMessage.SendTileSquare(-1, i, j, 3);
 
             return;

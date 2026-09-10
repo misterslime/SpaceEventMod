@@ -31,6 +31,8 @@ internal class ActiveFunnyTile : ModTile, ILoadItem
 
         DustType = DustID.Stone;
         HitSound = SoundID.Tink;
+        MineResist = 2f;
+        MinPick = 110;
     }
 
     public override void RandomUpdate(int i, int j)
@@ -88,6 +90,8 @@ internal class InactiveFunnyTile : ModTile
 
         DustType = DustID.Stone;
         HitSound = SoundID.Tink;
+        MineResist = 2f;
+        MinPick = 110;
     }
 
     public override void HitWire(int i, int j)

@@ -21,6 +21,8 @@ internal class Cosmostone : ModTile, ILoadItem
 
         DustType = DustID.Stone;
         HitSound = SoundID.Tink;
+        MineResist = 2f;
+        MinPick = 110;
 
         AddMapEntry(Color.Gray);
     }
