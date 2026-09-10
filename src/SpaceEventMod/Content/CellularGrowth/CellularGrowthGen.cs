@@ -61,6 +61,8 @@ internal class CellularGrowthPass : GenPass
         progress.Message = "Undergoing Cellular Division";
         progress.Set(0.0f);
 
+        CellularGrowthGen.LowestAsteroidTile = 0;
+
         // Get cellular growth patch sizes and placements
         int patches = 2;
         int worldMargins = 40;
