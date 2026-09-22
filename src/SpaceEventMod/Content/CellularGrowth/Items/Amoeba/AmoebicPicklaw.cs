@@ -168,7 +168,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
             int minTileY = (int)(Projectile.Center.Y / 16f - searchRadius);
             int maxTileY = (int)(Projectile.Center.Y / 16f + searchRadius);
 
-            var nearest = GetNearestSolid(Projectile.Center, searchRadius, minTileX, maxTileX, minTileY, maxTileY);
+            var nearest = TileDirections.GetNearestSolid(Projectile.Center, searchRadius, minTileX, maxTileX, minTileY, maxTileY);
 
             /*HashSet<Point> tiles = new();
 
@@ -276,30 +276,6 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
         if (player.DoesPickTargetTransformOnKill(player.hitTile, damage, x, y, pickPower, bufferIndex, tileTarget))
             damage = 0;
-    }
-
-    private Point GetNearestSolid(Vector2 compareSpot, int radius, int minI, int maxI, int minJ, int maxJ)
-    {
-        var points = new List<Vector2>();
-
-        for (int i = minI; i <= maxI; i++)
-        {
-            for (int j = minJ; j <= maxJ; j++)
-            {
-                float num = Math.Abs((float)i - compareSpot.X / 16f);
-                float num2 = Math.Abs((float)j - compareSpot.Y / 16f);
-                if (!(Math.Sqrt(num * num + num2 * num2) < (double)radius))
-                    continue;
-
-                Tile tile = Main.tile[i, j];
-                if (tile != null && tile.active() && WorldGen.SolidOrSlopedTile(tile))
-                    points.Add(new Point(i, j).ToWorldCoordinates());
-            }
-        }
-
-        var nearest = points.OrderBy(x => Math.Abs((x - compareSpot).LengthSquared())).First().ToTileCoordinates();
-
-        return nearest;
     }
     #endregion
 

@@ -1,22 +1,13 @@
-using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SpaceEventMod.Content.Miscellaneous.Dusts;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.GameContent;
-using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using static log4net.Appender.ColoredConsoleAppender;
-using static Terraria.GameContent.Animations.Actions.NPCs;
 
 namespace SpaceEventMod.Content.CellularGrowth.Items;
 
@@ -39,12 +30,12 @@ internal class Windoplasts : ModItem
         Item.rare = ItemRarityID.Blue;
         Item.value = Item.sellPrice(silver: 2);
 
-        Item.shootSpeed = 12f;
+        Item.shootSpeed = 18f;
         Item.shoot = ModContent.ProjectileType<WindoplastProjectile>();
         Item.consumable = true;
         Item.UseSound = SoundID.Item1;
-        Item.useAnimation = 40;
-        Item.useTime = 40;
+        Item.useAnimation = 8;
+        Item.useTime = 8;
         Item.noUseGraphic = true;
         Item.noMelee = true;
         Item.useStyle = ItemUseStyleID.Swing;
@@ -109,8 +100,7 @@ internal class WindoplastProjectile : ModProjectile
 {
     public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/Windoplasts";
 
-    private const int DEFAULT_WIDTH_HEIGHT = 15;
-    private const int EXPLOSION_WIDTH_HEIGHT = 250;
+    private const int BURST_RADIUS = 250;
     private const float KNOCKBACK_STRENGTH = 15f;
 
     public override void SetStaticDefaults()
@@ -121,8 +111,8 @@ internal class WindoplastProjectile : ModProjectile
 
     public override void SetDefaults()
     {
-        Projectile.width = DEFAULT_WIDTH_HEIGHT;
-        Projectile.height = DEFAULT_WIDTH_HEIGHT;
+        Projectile.width = 1;
+        Projectile.height = 1;
         Projectile.friendly = true;
         Projectile.penetrate = 1;
 
@@ -142,75 +132,84 @@ internal class WindoplastProjectile : ModProjectile
         if (Projectile.owner == Main.myPlayer && Projectile.timeLeft <= 3)
             Projectile.PrepareBombToBlow();
 
-        // collide with npcs
-        if (Projectile.owner == Main.myPlayer)
-        {
-            foreach (var npc in Main.ActiveNPCs)
-            {
-                if (npc.Hitbox.Intersects(Projectile.Hitbox))
-                {
-                    Projectile.PrepareBombToBlow();
-                    Projectile.ai[0] = 1;
-                }
-            }
-        }
-
         Projectile.rotation += Projectile.velocity.X * 0.01f;
+
+        if (Projectile.owner != Main.myPlayer)
+            return;
+
+        // collide with npcs
+        foreach (var npc in Main.ActiveNPCs)
+        {
+            if (!npc.Hitbox.Intersects(Projectile.Hitbox))
+                continue;
+
+            Projectile.PrepareBombToBlow();
+            Projectile.ai[0] = 1;
+        }
     }
 
 
     public override void PrepareBombToBlow()
     {
         Projectile.timeLeft = 0;
-        Projectile.tileCollide = false;
         Projectile.alpha = 255;
-
-        Projectile.Resize(EXPLOSION_WIDTH_HEIGHT, EXPLOSION_WIDTH_HEIGHT);
+        Projectile.netUpdate = true;
+        Projectile.tileCollide = false;
     }
 
     public override void OnKill(int timeLeft)
     {
         SoundEngine.PlaySound(SoundID.Item45, Projectile.position);
-
-        Projectile.Resize(DEFAULT_WIDTH_HEIGHT, DEFAULT_WIDTH_HEIGHT);
+        SoundEngine.PlaySound(SoundID.NPCDeath11, Projectile.position);
 
         if (Projectile.owner != Main.myPlayer)
             return;
 
-        // Example Mod code
-        // Smoke Dust spawn
-        for (int i = 0; i < 50; i++)
+        var spawnPos = new Vector2(Projectile.position.X + Projectile.width / 2 - 24f, Projectile.position.Y + Projectile.height / 2 - 24f);
+
+        spawnPos = Projectile.Center;
+
+        Dust dust = Dust.NewDustDirect(spawnPos, 0, 0, ModContent.DustType<Azasplosion>(), 0f, 0f, 100, default, 2f);
+        dust.velocity = Projectile.velocity.SafeNormalize(Vector2.Zero) * 1.2f;
+        //dust.velocity = Vector2.Zero;
+        //dust.rotation = Main.rand.NextFloat(MathHelper.TwoPi);
+        dust.rotation = 0f;
+        dust.fadeIn = 4 * Main.rand.Next(0, 3);
+        dust.customData = (int)Main.rand.Next(0, 3);
+
+        for (int i = 0; i < 5; i++)
         {
-            Dust dust = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0f, 0f, 100, default, 2f);
-            dust.velocity *= 1.4f;
+            float radius = Main.rand.NextFloat(1, 2);
+
+            var speed = Main.rand.NextVector2Unit();
+
+            dust = Dust.NewDustDirect(spawnPos, 0, 0, ModContent.DustType<Azasplosion>(), 0f, 0f, 100, default, 2f);
+            dust.velocity = speed * radius + Projectile.velocity.SafeNormalize(Vector2.Zero) * 1.2f;
+            //dust.velocity = Vector2.Zero;
+            //dust.rotation = Main.rand.NextFloat(MathHelper.TwoPi);
+            dust.rotation = 0f;
+            dust.fadeIn = 4 * Main.rand.Next(0, 3);
+            dust.customData = (int)Main.rand.Next(0, 3);
         }
 
-        // Large Smoke Gore spawn
-        for (int g = 0; g < 2; g++)
+        float velocityRotation = Main.rand.NextFloat(MathHelper.TwoPi);
+
+        int[] gores = new int[4];
+
+        for (int i = 0; i < 4; i++)
         {
-            var goreSpawnPosition = new Vector2(Projectile.position.X + Projectile.width / 2 - 24f, Projectile.position.Y + Projectile.height / 2 - 24f);
-            Gore gore = Gore.NewGoreDirect(Projectile.GetSource_FromThis(), goreSpawnPosition, default, Main.rand.Next(61, 64), 1f);
-            gore.scale = 1.5f;
-            gore.velocity.X += 1.5f;
-            gore.velocity.Y += 1.5f;
-            gore = Gore.NewGoreDirect(Projectile.GetSource_FromThis(), goreSpawnPosition, default, Main.rand.Next(61, 64), 1f);
-            gore.scale = 1.5f;
-            gore.velocity.X -= 1.5f;
-            gore.velocity.Y += 1.5f;
-            gore = Gore.NewGoreDirect(Projectile.GetSource_FromThis(), goreSpawnPosition, default, Main.rand.Next(61, 64), 1f);
-            gore.scale = 1.5f;
-            gore.velocity.X += 1.5f;
-            gore.velocity.Y -= 1.5f;
-            gore = Gore.NewGoreDirect(Projectile.GetSource_FromThis(), goreSpawnPosition, default, Main.rand.Next(61, 64), 1f);
-            gore.scale = 1.5f;
-            gore.velocity.X -= 1.5f;
-            gore.velocity.Y -= 1.5f;
+            gores[i] = Mod.Find<ModGore>($"WindoplastGore{Projectile.frame}_{i}").Type;
         }
+
+        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.5f, 1.5f).RotatedBy(velocityRotation), gores[0], 1f);
+        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, 1.5f).RotatedBy(velocityRotation), gores[1], 1f);
+        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.5f, -1.5f).RotatedBy(velocityRotation), gores[2], 1f);
+        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[3], 1f);
 
         foreach (var npc in Main.ActiveNPCs)
         {
             Vector2 kbVector = npc.Center - Projectile.Hitbox.Bottom();
-            float distance = InvLerp(EXPLOSION_WIDTH_HEIGHT * 0.5f, 0, kbVector.Length());
+            float distance = InvLerp(BURST_RADIUS * 0.5f, 0, kbVector.Length());
 
             if (Projectile.ai[0] == 1)
                 kbVector = Projectile.velocity;
@@ -225,7 +224,7 @@ internal class WindoplastProjectile : ModProjectile
         foreach (var player in Main.ActivePlayers)
         {
             Vector2 kbVector = player.Center - Projectile.Hitbox.Bottom();
-            float distance = InvLerp(EXPLOSION_WIDTH_HEIGHT * 0.5f, 0, kbVector.Length());
+            float distance = InvLerp(BURST_RADIUS * 0.5f, 0, kbVector.Length());
 
             kbVector = kbVector.SafeNormalize(Vector2.Zero);
             kbVector -= Vector2.UnitY;
@@ -233,10 +232,6 @@ internal class WindoplastProjectile : ModProjectile
 
             player.velocity += kbVector * KNOCKBACK_STRENGTH * MathHelper.Clamp(distance, 0, 1);
         }
-
-
-        int peeb = 5;
-        peeb -= 2;
     }
 
     private float InvLerp(float a, float b, float v) => (v - a) / (b - a);

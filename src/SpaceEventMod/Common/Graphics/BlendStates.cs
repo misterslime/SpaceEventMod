@@ -14,8 +14,8 @@ internal static class BlendStates
         Name = "BlendState.Stencil",
         ColorSourceBlend = Blend.DestinationAlpha,
         AlphaSourceBlend = Blend.DestinationAlpha,
-        ColorDestinationBlend = Blend.InverseSourceAlpha,
-        AlphaDestinationBlend = Blend.InverseSourceAlpha,
+        ColorDestinationBlend = Blend.One,
+        AlphaDestinationBlend = Blend.One,
         ColorBlendFunction = BlendFunction.Add,
         AlphaBlendFunction = BlendFunction.Add
     };

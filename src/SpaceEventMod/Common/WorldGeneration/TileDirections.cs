@@ -86,5 +86,29 @@ internal static class TileDirections
 
         return (tiles.ToArray(), min, max);
     }
+
+    public static Point GetNearestSolid(Vector2 compareSpot, int radius, int minI, int maxI, int minJ, int maxJ)
+    {
+        var points = new List<Vector2>();
+
+        for (int i = minI; i <= maxI; i++)
+        {
+            for (int j = minJ; j <= maxJ; j++)
+            {
+                float num = Math.Abs((float)i - compareSpot.X / 16f);
+                float num2 = Math.Abs((float)j - compareSpot.Y / 16f);
+                if (!(Math.Sqrt(num * num + num2 * num2) < (double)radius))
+                    continue;
+
+                Tile tile = Main.tile[i, j];
+                if (tile != null && tile.active() && WorldGen.SolidOrSlopedTile(tile))
+                    points.Add(new Point(i, j).ToWorldCoordinates());
+            }
+        }
+
+        var nearest = points.OrderBy(x => Math.Abs((x - compareSpot).LengthSquared())).First().ToTileCoordinates();
+
+        return nearest;
+    }
 }
 
