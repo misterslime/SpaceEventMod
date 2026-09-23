@@ -4,20 +4,44 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WorldGenSandbox.Creatures;
 
 namespace WorldGenSandbox.Managers;
 
-internal class DrawManager(GraphicsDevice gd, ContentManager content) : IDisposable
+internal class DrawEventArgs(SpriteBatch spriteBatch, Texture2D pixel, Matrix transform) : EventArgs
 {
-    private SpriteBatch _batch = new SpriteBatch(gd);
-    private Texture2D _pixel = content.Load<Texture2D>("WhitePixel");
+    public SpriteBatch SpriteBatch { get; } = spriteBatch;
+    public Texture2D Pixel { get; } = pixel;
+    public Matrix Transform { get; } = transform;
+}
+
+internal class DrawManager : IDisposable
+{
+    public event EventHandler<DrawEventArgs> OnDraw;
+
+    public static DrawManager Instance;
+
+    private SpriteBatch _batch;
+    private Texture2D _pixel;
+
+    public DrawManager(GraphicsDevice gd, ContentManager content)
+    {
+        if (Instance is not null)
+            throw new Exception("Cannot create a second draw manager.");
+
+        _batch = new SpriteBatch(gd);
+        _pixel = content.Load<Texture2D>("WhitePixel");
+
+        Instance = this;
+    }
 
     public void Dispose()
     {
         _pixel.Dispose();
+        _batch.Dispose();
     }
 
-    public void Draw(GraphicsDevice gd, Matrix transform)
+    public void Draw(GraphicsDevice gd, Matrix transform, List<BaseCreature> creatures)
     {
         gd.Clear(Color.Black);
 
@@ -33,38 +57,13 @@ internal class DrawManager(GraphicsDevice gd, ContentManager content) : IDisposa
             rasterizerState: RasterizerState.CullCounterClockwise,
             transformMatrix: transform);
 
-        _batch.Draw(_pixel, new Rectangle(0, 0, Globals.World.MaxTilesX, Globals.World.MaxTilesY), Color.DarkBlue * 0.5f);
-
-        Dictionary<TileTypes, Color> colors = new Dictionary<TileTypes, Color>();
-
-        Color wallColor = Color.Gray * 0.6f;
-        wallColor.A = 255;
-
-        colors.Add(TileTypes.Empty, Color.Black);
-        colors.Add(TileTypes.Cosmostone, Color.Gray);
-        colors.Add(TileTypes.CosmostoneWall, wallColor);
-        colors.Add(TileTypes.Cosmoss, Color.LightCoral);
-        colors.Add(TileTypes.HerbCell, Color.Turquoise);
-        colors.Add(TileTypes.Stone, Color.White);
-        colors.Add(TileTypes.Mud, new Color(92, 68, 73));
-        colors.Add(TileTypes.SlimeMold, Color.Yellow);
-
-        for (int i = 0; i < Globals.World.MaxTilesX; ++i)
-        {
-            for (int j = 0; j < Globals.World.MaxTilesY; ++j)
-            {
-                if (Globals.World.Tiles[i, j] == TileTypes.Empty)
-                    continue;
-
-                _batch.Draw(_pixel, new Vector2(i, j), colors[Globals.World.Tiles[i, j]]);
-            }
-        }
-
-        _batch.Draw(_pixel, new Rectangle(0, 0, Globals.World.MaxTilesX, 40), Color.White * 0.25f);
-        _batch.Draw(_pixel, new Rectangle(0, 0, 40, Globals.World.MaxTilesY), Color.White * 0.25f);
-        _batch.Draw(_pixel, new Rectangle(0, Globals.World.MaxTilesY - 40, Globals.World.MaxTilesX, 40), Color.White * 0.25f);
-        _batch.Draw(_pixel, new Rectangle(Globals.World.MaxTilesX - 40, 0, 40, Globals.World.MaxTilesY), Color.White * 0.25f);
+        OnDrawCalled(new DrawEventArgs(_batch, _pixel, transform));
 
         _batch.End();
+    }
+
+    protected virtual void OnDrawCalled(DrawEventArgs e)
+    {
+        OnDraw?.Invoke(this, e);
     }
 }

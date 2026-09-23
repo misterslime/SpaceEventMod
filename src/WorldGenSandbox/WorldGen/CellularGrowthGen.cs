@@ -37,7 +37,13 @@ internal class CellularGrowthGen
         Point[] seedDimensions = new Point[patches];
         Vector2[] seedPoints = new Vector2[patches];
 
-        for (int i = 0; i < patches; i++)
+        //int width = (int)(Globals.World.MaxTilesX / 4200f * 225); //Automatically scales based on world size
+        //int height = (int)(Globals.World.MaxTilesY / 1200f * 100);
+
+        seedPoints[0] = new Vector2(Globals.World.MaxTilesX / 2, 50 + worldMargins);
+        seedDimensions[0] = new Point(225, 100 + worldMargins);
+
+        /*for (int i = 0; i < patches; i++)
         {
             int width = (int)(Globals.World.MaxTilesX / 4200f * 225); //Automatically scales based on world size
             int height = (int)(Globals.World.MaxTilesY / 1200f * 100);
@@ -47,7 +53,7 @@ internal class CellularGrowthGen
 
             seedPoints[i] = new Vector2(x, y + worldMargins);
             seedDimensions[i] = new Point(width, height + worldMargins);
-        }
+        }*/
 
         var asteroidPositions = GetAsteroidPositions(seedPoints, seedDimensions, worldMargins, spaceBottom);
         var asteroidBounds = GetAsteroidBounds(asteroidPositions, spaceBottom);
