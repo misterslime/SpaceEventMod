@@ -9,7 +9,7 @@ using WorldGenSandbox.Utilities;
 namespace WorldGenSandbox.Creatures;
 
 
-internal class StaticAnimatedTentacle(int segments, float segmentLength)
+internal class Angelatin(int segments, float segmentLength)
 {
     public Vector2 Anchor { get; set; }
 

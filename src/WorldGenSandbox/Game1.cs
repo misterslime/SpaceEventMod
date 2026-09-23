@@ -30,7 +30,7 @@ partial class Game1 : Game
 
     private Vector2 _mouseWorld;
     private MouseState _previousState;
-    private StaticAnimatedTentacle _tentacle;
+    private Angelatin _tentacle;
 
     public Vector2 MouseWorld { get => _mouseWorld * 16f; }
 
@@ -74,7 +74,7 @@ partial class Game1 : Game
         _creatureList = new List<BaseCreature>();
         _previousState = Mouse.GetState();
 
-        _tentacle = new StaticAnimatedTentacle(5, 10);
+        _tentacle = new Angelatin(5, 10);
 
         SubscribeDrawEvents(Globals.World);
     }
