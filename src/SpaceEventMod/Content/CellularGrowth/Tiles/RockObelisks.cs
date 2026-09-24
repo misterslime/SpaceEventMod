@@ -13,6 +13,16 @@ namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
 internal class RockObeliskLoader : ModSystem
 {
+    public static HashSet<int> RockObeliskTiles = new HashSet<int>
+    {
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk1x1").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk1x2").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk1x3").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk2x1").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk2x2").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk2x3").Type
+    };
+
     public override void Load()
     {
         Mod.AddContent(new RockObelisk("RockObelisk1x1", 1, 1));
@@ -110,9 +120,6 @@ internal class RockObelisk : ModTile
         {
             if (!active)
                 frameYAdjustment = (short)-styleYHeight;
-
-            if (!grown && Main.rand.NextBool(3))
-                frameXAdjustment = styleXWidth;
         }
 
         for (int x = topX; x < topX + width; x++)
@@ -159,6 +166,35 @@ internal class RockObelisk : ModTile
         {
             for (int y = topY; y < topY + data.Height; y++)
                 Main.tile[x, y].TileFrameY += frameYAdjustment;
+        }
+
+        if (Main.netMode != NetmodeID.SinglePlayer)
+            NetMessage.SendTileSquare(-1, topX, topY, 2, 2);
+    }
+
+    /// <inheritdoc cref="RockObelisk.SetInactive(int, int)"/>
+    internal static void GrowPlants(int i, int j)
+    {
+        Tile tile = Main.tile[i, j];
+        TileObjectData data = TileObjectData.GetTileData(tile.type, 0);
+
+        if (data is null)
+            return;
+
+        (int topX, int topY) = TileObjectData.TopLeft(i, j);
+
+        short styleXWidth = (short)(data.Width * 18 * 2);
+        bool grown = tile.TileFrameX >= styleXWidth;
+
+        if (grown)
+            return;
+
+        short frameXAdjustment = styleXWidth;
+
+        for (int x = topX; x < topX + data.Width; x++)
+        {
+            for (int y = topY; y < topY + data.Height; y++)
+                Main.tile[x, y].TileFrameX += frameXAdjustment;
         }
 
         if (Main.netMode != NetmodeID.SinglePlayer)

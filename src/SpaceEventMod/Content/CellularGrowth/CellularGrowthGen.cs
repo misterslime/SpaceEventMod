@@ -77,7 +77,7 @@ internal class CellularGrowthPass : GenPass
 
     protected override void ApplyPass(GenerationProgress progress, GameConfiguration configuration)
     {
-        progress.Message = "Undergoing Cellular Division";
+        progress.Message = "Dividing cells";
         progress.Set(0.0f);
 
         CellularGrowthGen.LowestAsteroidTile = 0;
@@ -126,7 +126,7 @@ internal class CellularGrowthPass : GenPass
             if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
                 large = true;
 
-            GenNoisyPlanetoid(asteroidPoints, CellularGrowthGen.LowestAsteroidTile, noise, bound);
+            GenNoisyPlanetoid(asteroidPoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
             GenPlanetoidCaves(asteroidPoints, noise, bound, large);
             PlugCaveEntrances(asteroidPoints);
             GrowMossAndCells(ref asteroidPoints);
@@ -135,6 +135,30 @@ internal class CellularGrowthPass : GenPass
 
             progress.Set(0.2f + part2 *(float)((float)i / (float)asteroidBounds.Count));
         }
+
+        // the freak of nature
+        // this makes worldgen take like no time whatsoever at the cost of 10 million unexplained worldgen artifacts
+        // MAKE SURE TO DISABLE THE FASTPARALLEL IN THE CAVES GEN
+        /*FastParallel.For(0, asteroidBounds.Count, delegate (int start, int end, object context)
+        {
+            for (int i = start; i < end; i++)
+            {
+                List<Point> asteroidPoints = new List<Point>();
+
+                bool large = false;
+                var bound = asteroidBounds[i];
+
+                if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
+                    large = true;
+
+                GenNoisyPlanetoid(asteroidPoints, CellularGrowthGen.LowestAsteroidTile, noise, bound);
+                GenPlanetoidCaves(asteroidPoints, noise, bound, large);
+                PlugCaveEntrances(asteroidPoints);
+                GrowMossAndCells(ref asteroidPoints);
+
+                asteroidPoints.Clear();
+            }
+        });*/
 
         // connect asteroids (for connective cells)
         //ConnectAsteroids(poissonSampler, noise, radius);
@@ -273,7 +297,7 @@ internal class CellularGrowthPass : GenPass
         return bounds;
     }
 
-    private static void GenNoisyPlanetoid(List<Point> tilePosSet, int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
+    private static void GenNoisyPlanetoid(List<Point> tilePosSet, ref int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
     {
         Vector2 center = asteroid.Center.ToVector2() - Vector2.One * 0.5f;
         Vector2 ab = asteroid.Size() * 0.5f;
@@ -425,27 +449,6 @@ internal class CellularGrowthPass : GenPass
         int cosmoss = ModContent.TileType<Cosmoss>();
         int funnyTile = ModContent.TileType<ActiveFunnyTile>();
         int cosmostone = ModContent.TileType<Cosmostone>();
-
-        // Place Cosmoss
-        foreach (var position in tilePosSet)
-        {
-            int air = 0;
-
-            foreach (var connectedPosition in TileDirections.NoCorners)
-            {
-                var newPosition = position + connectedPosition;
-
-                if (newPosition.X < 0 || newPosition.X >= Main.maxTilesX ||
-                    newPosition.Y < 0 || newPosition.Y >= Main.maxTilesY)
-                    continue;
-
-                if (!Main.tile[newPosition].HasTile)
-                    air++;
-            }
-
-            if (air == 0 && WorldGen.genRand.NextBool(5) && Main.tile[position].TileType == cosmostone)
-                WorldGen.PlaceTile(position.X, position.Y, cosmoss, forced: true);
-        }
 
         // Place Herb Cells
         foreach (var position in tilePosSet)

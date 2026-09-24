@@ -141,6 +141,8 @@ internal class Cosmoss : FancyTile
                 }
                 else if (neighbor.TileType == ModContent.TileType<Cosmoss>())
                     WorldGen.SpreadGrass(i2, j2, ModContent.TileType<Cosmoss>(), grassType, repeat: false, tileColor);
+                else if (RockObeliskLoader.RockObeliskTiles.Contains(neighbor.TileType))
+                    RockObelisk.GrowPlants(i2, j2);
             }
         }
 
