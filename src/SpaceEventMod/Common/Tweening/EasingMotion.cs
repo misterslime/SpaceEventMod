@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using System.Collections.Generic;
 using System.Linq;

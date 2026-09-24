@@ -5,7 +5,6 @@ using SpaceEventMod.Common.Physics;
 using SpaceEventMod.Common.Physics.Components;
 using SpaceEventMod.Common.Splines;
 using SpaceEventMod.Common.Tweening;
-using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using System.Collections.Generic;
 using Terraria;

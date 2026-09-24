@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpaceEventMod.Core.Animation.Tweening;
+namespace SpaceEventMod.Common.Tweening;
 
 internal static partial class EasingFunctions
 {

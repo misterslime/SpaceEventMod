@@ -1,7 +1,6 @@
 using Microsoft.Build.Utilities;
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.Graphics;
-using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using System.Collections.Generic;
 using Terraria;

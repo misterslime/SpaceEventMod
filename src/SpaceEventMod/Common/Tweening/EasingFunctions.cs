@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace SpaceEventMod.Core.Animation.Tweening;
+namespace SpaceEventMod.Common.Tweening;
 
 // Made with the help of this great post: https://joshondesign.com/2013/03/01/improvedEasingEquations
 

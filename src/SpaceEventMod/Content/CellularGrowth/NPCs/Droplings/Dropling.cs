@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Content.CellularGrowth.Items;
-using SpaceEventMod.Core.Animation.Tweening;
 using System;
 using System.Linq;
 using Terraria;
