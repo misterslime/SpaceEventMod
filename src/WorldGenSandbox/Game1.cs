@@ -7,6 +7,7 @@ using Terraria;
 using Terraria.Utilities;
 using WorldGenSandbox.Creatures;
 using WorldGenSandbox.Managers;
+using WorldGenSandbox.Physics;
 
 namespace WorldGenSandbox;
 
@@ -30,7 +31,7 @@ partial class Game1 : Game
 
     private Vector2 _mouseWorld;
     private MouseState _previousState;
-    private Angelatin _tentacle;
+    private Angelatin _angelatin;
 
     public Vector2 MouseWorld { get => _mouseWorld * 16f; }
 
@@ -74,7 +75,8 @@ partial class Game1 : Game
         _creatureList = new List<BaseCreature>();
         _previousState = Mouse.GetState();
 
-        _tentacle = new Angelatin(5, 10);
+        _angelatin = new Angelatin(12, 10);
+
 
         SubscribeDrawEvents(Globals.World);
     }
@@ -93,7 +95,7 @@ partial class Game1 : Game
 
         Globals.Update(gameTime);
 
-        foreach(var creature in _creatureList.ToArray())
+        foreach (var creature in _creatureList.ToArray())
         {
             if (!creature.Active)
                 _creatureList.Remove(creature);
@@ -117,8 +119,7 @@ partial class Game1 : Game
 
         _previousState = mouseState;
 
-        _tentacle.Anchor = _mouseWorld;
-
+        _angelatin.Anchor = _mouseWorld;
         base.Update(gameTime);
     }
 

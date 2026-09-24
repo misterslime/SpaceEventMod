@@ -1,13 +1,23 @@
 using Daybreak.Common.Rendering;
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Physics;
+using SpaceEventMod.Common.SDFs;
+using SpaceEventMod.Content.Miscellaneous.Dusts;
+using SpaceEventMod.Core.Animation.Tweening;
 using System;
+using System.Net;
+using System.Security.Cryptography;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.GameContent;
+using Terraria.GameContent.Animations;
+using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static tModPorter.ProgressUpdate;
 
 namespace SpaceEventMod.Content.Space.NPCs;
 
@@ -22,7 +32,8 @@ internal class Angelatin : ModNPC
     private int _headVariant = 0;
     private int _dressVariant = 0;
     private int[] _starVariants = [];
-    private int[] _segmentNumber = [];
+    private int[] _segments = [];
+    private Tentacle[] _tentacles = [];
 
     public override void SetDefaults()
     {
@@ -33,7 +44,7 @@ internal class Angelatin : ModNPC
         NPC.lifeMax = 250;
         NPC.HitSound = SoundID.NPCHit1;
         NPC.DeathSound = SoundID.NPCDeath1;
-        NPC.knockBackResist = 0.5f;
+        NPC.knockBackResist = 1f;
         NPC.aiStyle = -1;
 
         NPC.noGravity = true;
@@ -43,12 +54,28 @@ internal class Angelatin : ModNPC
         _dressVariant = Main.rand.Next(0, 4);
 
         _starVariants = new int[TENTACLES];
-        _segmentNumber = new int[TENTACLES];
+        _tentacles = new Tentacle[TENTACLES];
+        _segments = new int[TENTACLES];
 
         for (int i = 0; i < TENTACLES; i++)
         {
             _starVariants[i] = Main.rand.Next(0, 4);
-            _segmentNumber[i] = Main.rand.Next(4, 9);
+            _segments[i] = Main.rand.Next(4, 14);
+        }
+    }
+
+    public override void OnSpawn(IEntitySource source)
+    {
+
+        for (int i = 0; i < TENTACLES; i++)
+        {
+            _tentacles[i] = new Tentacle(NPC.Center, _segments[i], 10, MathHelper.PiOver2);
+
+            var segment = _tentacles[i][0];
+            segment.Locked = true;
+            _tentacles[i][0] = segment;
+
+            _tentacles[i].Gravity = Vector2.UnitY * 0.8f;
         }
     }
 
@@ -73,7 +100,7 @@ internal class Angelatin : ModNPC
             var toPlayer = player.Center - NPC.Center;
 
 
-            NPC.velocity += player.velocity * 0.5f;
+            NPC.velocity += player.velocity;
             NPC.velocity.X -= MathHelper.Clamp(toPlayer.X, -3, 3);
 
 
@@ -87,6 +114,27 @@ internal class Angelatin : ModNPC
         }
 
         NPC.velocity *= 0.96f;
+
+        var dressDimensions = new Vector2(40, 14);
+
+        int tentacles = 2;
+        float baseLineLength = 32f;
+        float wavelength = 2f * MathF.PI / 5f;
+        float speed = 0.015f * MathF.PI;
+        float amplitude = 0.15f;
+
+        Vector2 baseLineStart = new Vector2(baseLineLength * -0.5f, dressDimensions.Y * 0.75f);
+        NPC.rotation = -NPC.velocity.X * 0.05f ;
+
+        for (int i = 0; i < TENTACLES; i++)
+        {
+
+
+            _tentacles[i].AnchorStart = NPC.Center + (baseLineStart + Vector2.UnitX * ((1f + (float)i) / ((float)tentacles + 1f)) * baseLineLength).RotatedBy(-NPC.rotation * 0.5f);
+            WaveMotion(_tentacles[i], i, wavelength, speed, amplitude, NPC.velocity);
+            _tentacles[i].Update(8, 0.05f);
+        }
+
 
         return; // remove this line to make them hate you
 
@@ -103,7 +151,6 @@ internal class Angelatin : ModNPC
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
     {
-        using var _ = spriteBatch.Scope();
 
         // transform matrix
 
@@ -113,10 +160,18 @@ internal class Angelatin : ModNPC
         var wobbleSine = MathF.Sin(Timer * MathF.PI * 0.02f) * 0.04f * (1f - _spring.X);
         var shearStrength = NPC.velocity.X * _spring.X * springScale;
 
-        var angelatinTransform = Matrix.Identity with { M12 = 0.4f * shearStrength, M21 = 0.08f * shearStrength }
-             * Matrix.CreateScale(1f - _spring.X * springScale + wobbleSine, 1f + _spring.X * springScale - wobbleSine, 1f)
-             * Matrix.CreateTranslation(drawPosition.X - Main.screenPosition.X, drawPosition.Y - Main.screenPosition.Y, 0f);
+        // copied slr code
+        Main.instance.TilesRenderer.Wind.GetWindTime((int)NPC.Center.X / 16, (int)NPC.Center.Y / 16, 20, out int windTimeLeft, out int directionX, out int directionY);
+        Vector2 wind = new Vector2(directionX, directionY) * (windTimeLeft / 20f) * 2f;
+        wind.X += (Main.windSpeedCurrent + MathF.Sin(Main.windCounter * 0.12f + NPC.Center.X * 0.01f) * Main.windSpeedCurrent * 0.3f) * (Math.Abs(NPC.Center.Y) / 180f);
 
+        var translate = Matrix.CreateTranslation(drawPosition.X - Main.screenPosition.X, drawPosition.Y - Main.screenPosition.Y, 0f);
+        var angelatinTransform = Matrix.Identity with { M12 = 0.4f * shearStrength, M21 = 0.08f * shearStrength }
+             * Matrix.CreateScale(1f - _spring.X * springScale + wobbleSine, 1f + _spring.X * springScale - wobbleSine, 1f);
+        
+        var rotation = Matrix.CreateRotationZ(0.02f * (-wind.X / MathHelper.TwoPi) % MathHelper.TwoPi);
+
+        using var _ = spriteBatch.Scope();
         spriteBatch.Begin(
             sortMode: SpriteSortMode.Deferred,
             effect: null,
@@ -124,7 +179,7 @@ internal class Angelatin : ModNPC
             samplerState: SamplerState.PointClamp,
             depthStencilState: DepthStencilState.None,
             rasterizerState: RasterizerState.CullCounterClockwise,
-            transformMatrix: angelatinTransform * Main.GameViewMatrix.TransformationMatrix);
+            transformMatrix: angelatinTransform * rotation * translate * Main.GameViewMatrix.TransformationMatrix);
 
         var headTexture = TextureAssets.Npc[Type].Value;
         var dressTexture = Assets.Textures.Space.NPCs.AngelatinDress.Asset.Value;
@@ -137,84 +192,129 @@ internal class Angelatin : ModNPC
         var segmentDimensions = new Vector2(4, 10);
         var starDimensions = new Vector2(14, 12);
 
-        int segmentLength = 10;
-        float wavelength = 4f * MathF.PI / 5f;
-        float speed = 0.015f * MathF.PI;
-        float amplitude = 0.4f;
         float baseLineLength = 16f;
         var color = new Color(Lighting.GetSubLight(NPC.Center));
 
-        Vector2 baseLineStart = new Vector2(baseLineLength * -0.5f, dressDimensions.Y);
-        var rotation = -NPC.velocity.X * 0.05f;
+        Vector2 baseLineStart = NPC.Hitbox.Bottom() - Vector2.Transform(new Vector2(0f, dressTexture.Size().Y + 4f), angelatinTransform);
 
-        int segmentVariant = 0;
+        int variant = 0;
 
-        for (int tentacle = 0; tentacle < TENTACLES; tentacle++)
+        for (int i = 0; i < TENTACLES; i++)
         {
-            // tentacle movement displacement
-            float tentaclePolynomial = (2f * ((float)tentacle / (float)(TENTACLES - 1f)) - 1f);
+            if (_tentacles[i] is null)
+                continue;
 
-            // tentacle position
-            Vector2 position = baseLineStart + Vector2.UnitX * ((1f + (float)tentacle) / ((float)TENTACLES + 1f)) * baseLineLength;
-            position = position.RotatedBy(-rotation * 0.5f);
-            //position += _position;
-
-            // progress and start angle
-            float tentProgress = ((float)tentacle / (float)TENTACLES);
-            float angle = MathHelper.PiOver2 + -rotation * 0.5f;
-
-            for (int i = 0; i < _segmentNumber[tentacle]; i++)
-            {
-                float progress = i / (float)_segmentNumber[tentacle];
-
-                // tentacle sine wave
-                float segmentWave = (2f / wavelength) * (MathF.PI * progress - Timer * speed);
-                float wave = MathF.Sin(segmentWave + tentProgress * MathF.PI * 0.5f) * progress;
-
-                // add up angles
-                angle += wave * tentaclePolynomial * amplitude;
-
-                //Vector2 end = position + Vector2.UnitY * segmentLength + Vector2.UnitX * wave * tentaclePolynomial * amplitude;
-
-                Vector2 end = position + angle.ToRotationVector2() * segmentLength;
-
-                var segmentFrame = strandLeftTexture.Frame(3, 1, segmentVariant % 3, 0);
-                //angle = position.AngleTo(end);
-
-                // texture scaling
-                Vector2 scale = new Vector2(1, position.Distance(end) / segmentFrame.Height);
-                Vector2 segmentOrigin = segmentFrame.Size() * new Vector2(0.5f, 0f);
-
-                if (tentacle + 1 <= TENTACLES * 0.5f)
-                    spriteBatch.Draw(strandLeftTexture, end, segmentFrame, color, angle + MathHelper.PiOver2, segmentOrigin, 1f, 0, 0);
-                else
-                    spriteBatch.Draw(strandRightTexture, end, segmentFrame, color, angle + MathHelper.PiOver2, segmentOrigin, 1f, 0, 0);
-
-                position = end;
-
-                segmentVariant++;
-
-                if (i != _segmentNumber[tentacle] - 1)
-                    continue;
-
-                var starFrame = starTexture.Frame(4, 1, _starVariants[tentacle], 0);
-
-                spriteBatch.Draw(starTexture, position, starFrame, color, angle - MathHelper.PiOver2, starFrame.Size() * 0.5f, 1f, 0, 0);
-            }
+            DrawTentacle(spriteBatch, _tentacles[i], i, true, baseLineStart, color, ref variant);
         }
 
         var frame = dressTexture.Frame(4, 1, _dressVariant, 0);
         var origin = frame.Size() * new Vector2(0.5f, 1f);
 
-        spriteBatch.Draw(dressTexture, Vector2.Zero, frame, color, -rotation * 0.66f, origin with { Y = 0 }, 1f, 0, 0);
+        spriteBatch.Draw(dressTexture, Vector2.Zero, frame, color, -NPC.rotation * 0.66f, origin with { Y = 0 }, 1f, 0, 0);
 
         frame = headTexture.Frame(4, 1, _headVariant, 0);
         origin = frame.Size() * new Vector2(0.5f, 1f);
 
-        spriteBatch.Draw(headTexture, Vector2.Zero, frame, color, rotation, origin, 1f, 0, 0);
+        spriteBatch.Draw(headTexture, Vector2.Zero, frame, color, NPC.rotation, origin, 1f, 0, 0);
 
         spriteBatch.End();
 
         return false;
+    }
+
+    private void DrawTentacle(SpriteBatch spriteBatch, Tentacle tentacle, int tentacleIndex, bool left, Vector2 displace, Color lightColor, ref int segmentVariant)
+    {
+        var pixel = Assets.Textures.WhitePixel.Asset.Value;
+        var starTexture = Assets.Textures.Space.NPCs.AngelatinStrandStars.Asset.Value;
+        var strandLeftTexture = Assets.Textures.Space.NPCs.AngelatinStrandLeft.Asset.Value;
+        var strandRightTexture = Assets.Textures.Space.NPCs.AngelatinStrandLeft.Asset.Value;
+
+
+        for (int i = 0; i < tentacle.Count; i++)
+        {
+            var currentPosition = tentacle[i].Position;
+
+            if (i == tentacle.Count - 1)
+            {
+                var previousPosition = tentacle[i - 1].Position;
+
+                float starAngle = tentacle[i].Position.DirectionFrom(previousPosition).ToRotation();
+                var starFrame = starTexture.Frame(4, 1, _starVariants[tentacleIndex], 0);
+
+
+                spriteBatch.Draw(starTexture, currentPosition - displace, starFrame, lightColor, starAngle - MathHelper.PiOver2, starFrame.Size() * 0.5f, 1f, 0, 0);
+
+                continue;
+            }
+
+            var nextPosition = tentacle[i + 1].Position;
+
+            float angle = nextPosition.DirectionTo(currentPosition).ToRotation();
+
+
+            var segmentFrame = strandLeftTexture.Frame(3, 1, segmentVariant % 3, 0);
+
+            // texture scaling
+            Vector2 scale = new Vector2(1f, currentPosition.Distance(nextPosition) / segmentFrame.Height);
+            Vector2 segmentOrigin = segmentFrame.Size() * new Vector2(0.5f, 0f);
+
+            spriteBatch.Draw(left ? strandLeftTexture : strandRightTexture, nextPosition - displace, segmentFrame, lightColor, angle - MathHelper.PiOver2, segmentOrigin, scale, 0, 0);
+        }
+    }
+
+    private void WaveMotion(Tentacle tentacle, int tentacleIndex, float wavelength, float speed, float amplitude, Vector2 tentacleVel)
+    {
+        // tentacle movement displacement
+        float animDisplacement = (2f * ((float)tentacleIndex / (float)(TENTACLES - 1f)) - 1f);
+
+        // progress and start angle
+        float tentProgress = ((float)tentacleIndex / (float)TENTACLES);
+
+        // wave effect
+        for (int i = 0; i < tentacle.Count - 1; i++)
+        {
+            var next = tentacle[i + 1];
+
+            float progress = EasingFunctions.InCubic(i / (float)tentacle.Count);
+
+            // tentacle sine wave
+            float transverse = (2f / wavelength) * (MathF.PI * progress - Timer * speed) - tentProgress * MathF.PI * 0.5f;
+            float newRot = Math.Clamp(tentacleVel.Y * 0.015f, -1f, 1f) * animDisplacement * (1f - progress);
+
+            float angularAcceleration = animDisplacement * amplitude * (wavelength * MathF.Sin(transverse) + 2 * MathF.PI * progress * MathF.Cos(transverse));
+            angularAcceleration /= wavelength;
+            angularAcceleration += newRot;
+
+            // add up angles
+            // angle += wave * animDisplacement * amplitude;
+
+            var angle = (next.Position - tentacle[i].Position).PerpendicularClockwise().SafeNormalize(Vector2.Zero);
+
+            var linearAcceleration = angularAcceleration * angle;
+
+            next.Acceleration -= linearAcceleration;
+
+            tentacle[i + 1] = next;
+        }
+
+        // wind
+
+        for (int i = 0; i < tentacle.Count; i++)
+        {
+            var current = tentacle[i];
+            float progress = i / (float)tentacle.Count;
+
+            float res = EasingFunctions.InSine(progress);
+
+            // copied slr code
+            Vector2 lerped = Vector2.Lerp(NPC.Hitbox.Bottom(), tentacle.AnchorStart, progress);
+            Main.instance.TilesRenderer.Wind.GetWindTime((int)current.Position.X / 16, (int)current.Position.Y / 16, 20, out int windTimeLeft, out int directionX, out int directionY);
+            Vector2 wind = new Vector2(directionX, directionY) * (windTimeLeft / 20f) * 2f;
+            wind.X += (Main.windSpeedCurrent + MathF.Sin(Main.windCounter * 0.12f + current.Position.X * 0.01f) * Main.windSpeedCurrent * 0.8f) * (Math.Abs(current.Position.Y - lerped.Y) / 180f);
+
+            current.Acceleration += wind * res;
+
+            tentacle[i] = current;
+        }
     }
 }

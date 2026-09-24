@@ -19,9 +19,8 @@ partial class Game1
 
         OnClick += (object? sender, ClickEventArgs e) =>
         {
-            _tentacle.DoFuckingThing(-0.25f);
+            _angelatin.DoFuckingThing(-0.25f);
         };
-
         return;
         OnClick += (object? sender, ClickEventArgs e) =>
         {
@@ -48,6 +47,6 @@ partial class Game1
             creature.Draw(e.SpriteBatch, e.Pixel);
         }
 
-        _tentacle.Draw(e.SpriteBatch, e.Pixel, e.Transform);
+        _angelatin.Draw(e.SpriteBatch, e.Pixel, e.Transform);
     }
 }
