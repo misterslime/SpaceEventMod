@@ -8,6 +8,7 @@ using SpaceEventMod.Content.CellularGrowth.Walls;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -423,6 +424,9 @@ internal class CellularGrowthPass : GenPass
 
             if (air == 0 && WorldGen.genRand.NextBool(5))
                 WorldGen.PlaceTile(position.X, position.Y, cosmoss, forced: true);
+            
+            if (air != 0 && position.X > 1 && position.X < Main.maxTilesX - 1 && position.Y > 1 && position.Y < Main.maxTilesY - 1 && !WorldGen.genRand.NextBool(5))
+                Tile.SmoothSlope(position.X, position.Y, false);
         }
 
         // Place Herb Cells
@@ -449,6 +453,10 @@ internal class CellularGrowthPass : GenPass
 
             if (air >= 2)
                 WorldGen.PlaceTile(position.X, position.Y, herbCell, forced: true);
+
+            if (position.X > 1 && position.X < Main.maxTilesX - 1 && position.Y > 1 && position.Y < Main.maxTilesY - 1
+                && WorldGen.genRand.NextBool(3) && Main.tile[position].TopSlope)
+                WorldGen.PoundTile(position.X, position.Y);
         }
     }
 
