@@ -7,6 +7,7 @@ using SpaceEventMod.Common.SDFs;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
 using SpaceEventMod.Core.Animation.Tweening;
 using System;
+using System.IO;
 using System.Net;
 using System.Security.Cryptography;
 using Terraria;
@@ -49,6 +50,7 @@ internal class Angelatin : ModNPC
 
         NPC.noGravity = true;
         NPC.noTileCollide = true;
+        NPC.netUpdate = true;
 
         _headVariant = Main.rand.Next(0, 4);
         _dressVariant = Main.rand.Next(0, 4);
@@ -76,6 +78,30 @@ internal class Angelatin : ModNPC
             _tentacles[i][0] = segment;
 
             _tentacles[i].Gravity = Vector2.UnitY * 0.8f;
+        }
+    }
+
+    public override void SendExtraAI(BinaryWriter writer)
+    {
+        writer.Write(_headVariant);
+        writer.Write(_dressVariant);
+
+        for (int i = 0; i < TENTACLES; i++)
+        {
+            writer.Write(_starVariants[i]);
+            writer.Write(_segments[i]);
+        }
+    }
+
+    public override void ReceiveExtraAI(BinaryReader reader)
+    {
+        _headVariant = reader.ReadInt32();
+        _dressVariant = reader.ReadInt32();
+
+        for (int i = 0; i < TENTACLES; i++)
+        {
+            _starVariants[i] = reader.ReadInt32();
+            _segments[i] = reader.ReadInt32();
         }
     }
 
