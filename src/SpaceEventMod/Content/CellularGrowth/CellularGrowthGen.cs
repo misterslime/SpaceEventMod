@@ -126,9 +126,9 @@ internal class CellularGrowthPass : GenPass
             if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
                 large = true;
 
-            GenNoisyPlanetoid(ref asteroidPoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
-            GenPlanetoidCaves(ref asteroidPoints, noise, bound, large);
-            PlugCaveEntrances(ref asteroidPoints);
+            GenNoisyPlanetoid(asteroidPoints, CellularGrowthGen.LowestAsteroidTile, noise, bound);
+            GenPlanetoidCaves(asteroidPoints, noise, bound, large);
+            PlugCaveEntrances(asteroidPoints);
             GrowMossAndCells(ref asteroidPoints);
 
             asteroidPoints.Clear();
@@ -273,7 +273,7 @@ internal class CellularGrowthPass : GenPass
         return bounds;
     }
 
-    private static void GenNoisyPlanetoid(ref List<Point> tilePosSet, ref int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
+    private static void GenNoisyPlanetoid(List<Point> tilePosSet, int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
     {
         Vector2 center = asteroid.Center.ToVector2() - Vector2.One * 0.5f;
         Vector2 ab = asteroid.Size() * 0.5f;
@@ -289,7 +289,7 @@ internal class CellularGrowthPass : GenPass
         Vector2 noiseCenter = WorldGen.genRand.NextVector2Square(-1, 1) * 500;
         Vector2 margin = new Vector2(asteroid.Width * (strength + 1), asteroid.Height * (strength + 1));
 
-        for (int i = (int)-margin.X; i < asteroid.Width + margin.X; i++)
+        for (int i = (int)-margin.X; i < (int)(asteroid.Width + margin.X); i++)
         {
             for (int j = (int)-margin.Y; j < asteroid.Height + margin.Y; j++)
             {
@@ -335,7 +335,7 @@ internal class CellularGrowthPass : GenPass
         }
     }
 
-    private static void GenPlanetoidCaves(ref List<Point> tilePosSet, FastNoiseLite noise, Rectangle asteroid, bool large)
+    private static void GenPlanetoidCaves(List<Point> tilePosSet, FastNoiseLite noise, Rectangle asteroid, bool large)
     {
         SdfScene sdfScene = new SdfScene();
 
@@ -377,20 +377,26 @@ internal class CellularGrowthPass : GenPass
         Vector2 noiseCenter = WorldGen.genRand.NextVector2Square(-1, 1) * 500;
 
         // carve out caves
-        foreach (var position in tilePosSet)
+        // really slow so i parallelize it
+        FastParallel.For(0, tilePosSet.Count, delegate (int start, int end, object context) 
         {
-            var sample = sdfScene.Sample(position.ToVector2(), 1.5f, SmoothMinimum.CircularGeometrical);
+            for (int i = start; i < end; i++)
+            {
+                var position = tilePosSet[i];
 
-            // displace radius based on position
-            // displace radius based on sdf gradient
+                var sample = sdfScene.Sample(position.ToVector2(), 1.5f, SmoothMinimum.CircularGeometrical);
 
-            // carve out cave
-            if (sample.X <= 0)
-                WorldGen.KillTile(position.X, position.Y);
-        }
+                // displace radius based on position
+                // displace radius based on sdf gradient
+
+                // carve out cave
+                if (sample.X <= 0)
+                    WorldGen.KillTile(position.X, position.Y);
+            }
+        });
     }
 
-    private void PlugCaveEntrances(ref List<Point> tilePosSet)
+    private void PlugCaveEntrances(List<Point> tilePosSet)
     {
         int funnyTile = ModContent.TileType<ActiveFunnyTile>();
 
