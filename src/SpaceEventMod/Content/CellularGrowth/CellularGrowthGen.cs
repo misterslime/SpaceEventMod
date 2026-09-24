@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using ReLogic.Threading;
 using SpaceEventMod.Common.BaseTypes;
 using SpaceEventMod.Common.Geometry;
 using SpaceEventMod.Common.SDFs;
@@ -7,12 +8,15 @@ using SpaceEventMod.Content.CellularGrowth.Tiles;
 using SpaceEventMod.Content.CellularGrowth.Walls;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Terraria;
+using Terraria.Graphics.Renderers;
 using Terraria.ID;
 using Terraria.IO;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.WorldBuilding;
+using static Terraria.GameContent.Animations.Actions.NPCs;
 
 namespace SpaceEventMod.Content.CellularGrowth;
 
@@ -51,6 +55,20 @@ internal class CellularGrowthPass : GenPass
         HollowCaves,
         None
     }
+
+    private List<int> _rockObelisk1xTiles = new List<int>
+    {
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk1x1").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk1x2").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk1x3").Type
+    };
+
+    private List<int> _rockObelisk2xTiles = new List<int>
+    {
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk2x1").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk2x2").Type,
+        SpaceEventMod.Instance.Find<ModTile>("RockObelisk2x3").Type
+    };
 
     public CellularGrowthPass(string name, float loadWeight) : base(name, loadWeight)
     {
@@ -400,14 +418,11 @@ internal class CellularGrowthPass : GenPass
         int herbCell = ModContent.TileType<HerbCell>();
         int cosmoss = ModContent.TileType<Cosmoss>();
         int funnyTile = ModContent.TileType<ActiveFunnyTile>();
+        int cosmostone = ModContent.TileType<Cosmostone>();
 
         // Place Cosmoss
         foreach (var position in tilePosSet)
         {
-            if (Main.tile[position].TileType == funnyTile ||
-                !Main.tile[position].HasTile)
-                continue;
-
             int air = 0;
 
             foreach (var connectedPosition in TileDirections.NoCorners)
@@ -422,11 +437,8 @@ internal class CellularGrowthPass : GenPass
                     air++;
             }
 
-            if (air == 0 && WorldGen.genRand.NextBool(5))
+            if (air == 0 && WorldGen.genRand.NextBool(5) && Main.tile[position].TileType == cosmostone)
                 WorldGen.PlaceTile(position.X, position.Y, cosmoss, forced: true);
-            
-            if (air != 0 && position.X > 1 && position.X < Main.maxTilesX - 1 && position.Y > 1 && position.Y < Main.maxTilesY - 1 && !WorldGen.genRand.NextBool(5))
-                Tile.SmoothSlope(position.X, position.Y, false);
         }
 
         // Place Herb Cells
@@ -455,10 +467,54 @@ internal class CellularGrowthPass : GenPass
                 WorldGen.PlaceTile(position.X, position.Y, herbCell, forced: true);
 
             if (position.X > 1 && position.X < Main.maxTilesX - 1 && position.Y > 1 && position.Y < Main.maxTilesY - 1
-                && WorldGen.genRand.NextBool(3) && Main.tile[position].TopSlope)
+                && WorldGen.genRand.NextBool(3) &&
+                (!Main.tile[position + new Point(-1, 0)].HasTile || !Main.tile[position + new Point(1, 0)].HasTile))
+                WorldGen.PoundTile(position.X, position.Y);
+        }
+
+        // create decorations
+        foreach (var position in tilePosSet)
+        {
+            if (!(position.X > 1 && position.X < Main.maxTilesX - 1 && position.Y > 1 && position.Y < Main.maxTilesY - 1))
+                continue;
+
+            var tile = Main.tile[position];
+
+            if (!tile.HasTile || tile.BlockType != BlockType.Solid || (tile.TileType != cosmoss && tile.TileType != cosmostone))
+                continue;
+
+            var tileAbove = Main.tile[position + new Point(0, -1)];
+            var tileBelow = Main.tile[position + new Point(0, 1)];
+
+            // this code fucking sucks
+            if (!tileAbove.HasTile && WorldGen.genRand.NextBool(30))
+            {
+                int tileType = WorldGen.genRand.Next(_rockObelisk2xTiles.ToArray());
+
+                //WorldGen.PlaceTile(position.X, position.Y - 1, TileID.Adamantite, forced: true);
+                bool placeTile = WorldGen.PlaceTile(position.X, position.Y - 1, tileType, mute: true);
+
+                if (!placeTile)
+                {
+                    tileType = WorldGen.genRand.Next(_rockObelisk1xTiles.ToArray());
+                    placeTile = WorldGen.PlaceTile(position.X, position.Y - 1, tileType, mute: true);
+                }
+
+                if (placeTile)
+                    RockObelisk.SetInactive(position.X, position.Y - 1);
+            }
+
+            // smoothen
+            if ((!tileAbove.HasTile || !tileBelow.HasTile) && !WorldGen.genRand.NextBool(5))
+                Tile.SmoothSlope(position.X, position.Y, false);
+
+            // ensure smoothen
+            if ((!Main.tile[position + new Point(-1, 0)].HasTile || !Main.tile[position + new Point(1, 0)].HasTile) &&
+                tileBelow.HasTile && !tileAbove.HasTile && tile.BlockType == BlockType.Solid)
                 WorldGen.PoundTile(position.X, position.Y);
         }
     }
+
 
     private static Point[] GetConnectedTiles(int i, int j)
     {
