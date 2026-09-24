@@ -1,4 +1,6 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
 using SpaceEventMod.Content.Space;
 using System.Collections.Generic;
 using Terraria;
@@ -28,7 +30,7 @@ internal class RockObeliskLoader : ModSystem
         Mod.AddContent(new RockObelisk("RockObelisk1x1", 1, 1));
         Mod.AddContent(new RockObelisk("RockObelisk1x2", 1, 2));
         Mod.AddContent(new RockObelisk("RockObelisk1x3", 1, 3));
-        Mod.AddContent(new RockObelisk("RockObelisk2x1", 2, 1));
+        Mod.AddContent(new RockObelisk("RockObelisk2x1", 2, 1, false));
         Mod.AddContent(new RockObelisk("RockObelisk2x2", 2, 2));
         Mod.AddContent(new RockObelisk("RockObelisk2x3", 2, 3));
     }
@@ -37,21 +39,27 @@ internal class RockObeliskLoader : ModSystem
 [Autoload(false)]
 internal class RockObelisk : ModTile
 {
-    private string internalName;
-    private string tileTexture;
+    private string _internalName;
+    private string _tileTexture;
 
-    private int width;
-    private int height;
+    private int _width;
+    private int _height;
 
-    public override string Name => internalName;
-    public override string Texture => tileTexture;
+    private bool _hasGlow;
 
-    public RockObelisk(string internalName, int width, int height)
+    private Asset<Texture2D> _glowTexture;
+
+
+    public override string Name => _internalName;
+    public override string Texture => _tileTexture;
+
+    public RockObelisk(string internalName, int width, int height, bool hasGlow = true)
     {
-        this.internalName = internalName;
-        this.tileTexture = "SpaceEventMod/Assets/Textures/CellularGrowth/Tiles/" + internalName;
-        this.width = width;
-        this.height = height;
+        this._internalName = internalName;
+        this._tileTexture = "SpaceEventMod/Assets/Textures/CellularGrowth/Tiles/" + internalName;
+        this._width = width;
+        this._height = height;
+        this._hasGlow = hasGlow;
     }
 
     public override void SetStaticDefaults()
@@ -64,21 +72,23 @@ internal class RockObelisk : ModTile
         Main.tileSolidTop[Type] = false;
         Main.tileSolid[Type] = false;
 
-        TileObjectData.newTile.Width = width;
-        TileObjectData.newTile.Height = height;
+        TileObjectData.newTile.Width = _width;
+        TileObjectData.newTile.Height = _height;
 
         TileObjectData.newTile.CoordinateWidth = 16;
 
         List<int> coordinateHeights = new List<int>();
 
-        for (int i = 0; i < height; i++)
+        for (int i = 0; i < _height - 1; i++)
         {
             coordinateHeights.Add(16);
         }
 
+        coordinateHeights.Add(18);
+
         TileObjectData.newTile.CoordinateHeights = coordinateHeights.ToArray();
         TileObjectData.newTile.CoordinatePadding = 2;
-        TileObjectData.newTile.Origin = new Point16(0, height - 1);
+        TileObjectData.newTile.Origin = new Point16(0, _height - 1);
         TileObjectData.newTile.StyleHorizontal = true;
 
         TileObjectData.newTile.UsesCustomCanPlace = true;
@@ -92,17 +102,46 @@ internal class RockObelisk : ModTile
         HitSound = SoundID.Dig;
         RegisterItemDrop(ItemID.Wood);
         AddMapEntry(new Color(80, 55, 74));
+
+        if (_hasGlow && !Main.dedServ)
+            _glowTexture = ModContent.Request<Texture2D>(_tileTexture + "_Glow");
+    }
+
+    public override void PostDraw(int i, int j, SpriteBatch spriteBatch)
+    {
+        if (!_hasGlow)
+            return;
+
+        Tile tile = Framing.GetTileSafely(i, j);
+        
+        Texture2D glowmask = _glowTexture.Value;
+        Vector2 drawPosition = new Vector2(i * 16, j * 16) - Main.screenPosition;
+
+        if (!Main.drawToScreen)
+            drawPosition += new Vector2(Main.offScreenRange);
+
+        Color paintColor = WorldGen.paintColor(tile.TileColor);
+        Color drawColor = Color.White;
+
+        drawColor.R *= (byte)(paintColor.R / 255);
+        drawColor.G *= (byte)(paintColor.G / 255);
+        drawColor.B *= (byte)(paintColor.B / 255);
+
+        Rectangle frame = new Rectangle(tile.TileFrameX, tile.TileFrameY, 16, 18);
+
+        Main.spriteBatch.Draw(glowmask, drawPosition, frame, drawColor, 0.0f, Vector2.Zero, 1f, SpriteEffects.None, 0.0f);
     }
 
     public override void RandomUpdate(int i, int j)
     {
         Tile tile = Main.tile[i, j];
         (int topX, int topY) = TileObjectData.TopLeft(i, j);
+        TileObjectData data = TileObjectData.GetTileData(tile.type, 0);
 
-        short styleXWidth = (short)(width * 18 * 2);
-        short styleYHeight = (short)(height * 18);
+        short styleXWidth = (short)data.CoordinateFullWidth;
+        short styleYHeight = (short)data.CoordinateFullHeight;
 
-        bool active = tile.TileFrameY < styleYHeight;
+        bool active = tile.TileFrameY >= styleYHeight;
         bool grown = tile.TileFrameX >= styleXWidth;
 
         short frameYAdjustment = 0;
@@ -111,7 +150,7 @@ internal class RockObelisk : ModTile
         if ((int)(SpaceEvent.Sea.SeaPos.Height.Position / 16f) <= j)
         {
             if (active)
-                frameYAdjustment = styleYHeight;
+                frameYAdjustment = (short)-styleYHeight;
 
             if (grown && Main.rand.NextBool(10))
                 frameXAdjustment = (short)-styleXWidth;
@@ -119,12 +158,12 @@ internal class RockObelisk : ModTile
         else
         {
             if (!active)
-                frameYAdjustment = (short)-styleYHeight;
+                frameYAdjustment = styleYHeight;
         }
 
-        for (int x = topX; x < topX + width; x++)
+        for (int x = topX; x < topX + _width; x++)
         {
-            for (int y = topY; y < topY + height; y++)
+            for (int y = topY; y < topY + _height; y++)
             {
                 Main.tile[x, y].TileFrameY += frameYAdjustment;
                 Main.tile[x, y].TileFrameX += frameXAdjustment;
@@ -144,35 +183,6 @@ internal class RockObelisk : ModTile
     /// <summary>
     /// THIS THING DOESNT CHECK IF ITS THE RIGHT TILE TYPE PLEASE DONT USE THIS EVER PLEASE
     /// </summary>
-    internal static void SetInactive(int i, int j)
-    {
-        Tile tile = Main.tile[i, j];
-        TileObjectData data = TileObjectData.GetTileData(tile.type, 0);
-
-        if (data is null)
-            return;
-
-        (int topX, int topY) = TileObjectData.TopLeft(i, j);
-
-        short styleYHeight = (short)(data.Height * 18);
-        bool active = tile.TileFrameY < styleYHeight;
-
-        if (!active)
-            return;
-
-        short frameYAdjustment = styleYHeight;
-
-        for (int x = topX; x < topX + data.Width; x++)
-        {
-            for (int y = topY; y < topY + data.Height; y++)
-                Main.tile[x, y].TileFrameY += frameYAdjustment;
-        }
-
-        if (Main.netMode != NetmodeID.SinglePlayer)
-            NetMessage.SendTileSquare(-1, topX, topY, 2, 2);
-    }
-
-    /// <inheritdoc cref="RockObelisk.SetInactive(int, int)"/>
     internal static void GrowPlants(int i, int j)
     {
         Tile tile = Main.tile[i, j];
@@ -183,7 +193,7 @@ internal class RockObelisk : ModTile
 
         (int topX, int topY) = TileObjectData.TopLeft(i, j);
 
-        short styleXWidth = (short)(data.Width * 18 * 2);
+        short styleXWidth = (short)data.CoordinateFullWidth;
         bool grown = tile.TileFrameX >= styleXWidth;
 
         if (grown)

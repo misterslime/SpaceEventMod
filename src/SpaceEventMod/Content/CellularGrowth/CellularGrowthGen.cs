@@ -508,9 +508,6 @@ internal class CellularGrowthPass : GenPass
                     tileType = WorldGen.genRand.Next(_rockObelisk1xTiles.ToArray());
                     placeTile = WorldGen.PlaceTile(position.X, position.Y - 1, tileType, mute: true);
                 }
-
-                if (placeTile)
-                    RockObelisk.SetInactive(position.X, position.Y - 1);
             }
 
             // smoothen
