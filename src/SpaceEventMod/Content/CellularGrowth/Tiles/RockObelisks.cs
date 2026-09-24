@@ -126,6 +126,7 @@ internal class RockObelisk : ModTile
         drawColor.R *= (byte)(paintColor.R / 255);
         drawColor.G *= (byte)(paintColor.G / 255);
         drawColor.B *= (byte)(paintColor.B / 255);
+        drawColor.A = 0;
 
         Rectangle frame = new Rectangle(tile.TileFrameX, tile.TileFrameY, 16, 18);
 
