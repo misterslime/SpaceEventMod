@@ -145,6 +145,11 @@ Items: {
 		DisplayName: Active Funny Tile Item
 		Tooltip: ""
 	}
+
+	StarsapArrow: {
+		DisplayName: Starsap Arrow
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -193,6 +198,7 @@ Projectiles: {
 	WindoplastProjectile.DisplayName: Windoplast Projectile
 	WindGustBlow.DisplayName: Wind Gust Blow
 	AmoebicPicklawProjectile.DisplayName: Amoebic Picklaw Projectile
+	StarsapArrowProjectile.DisplayName: Starsap Arrow Projectile
 }
 
 Buffs: {
