@@ -13,7 +13,7 @@ namespace SpaceEventMod.Content.Space.NPCs;
 
 internal class RainWorld : ModNPC
 {
-    private Tentacle _body;
+    private VerletString _body;
 
     public override void SetDefaults()
     {
@@ -33,7 +33,7 @@ internal class RainWorld : ModNPC
 
         int segments = 20;
 
-        _body = new Tentacle(NPC.Center, segments, 96 / segments, MathHelper.PiOver2);
+        _body = new VerletString(NPC.Center, segments, 96 / segments, MathHelper.PiOver2);
         _body.Lock(0); // replace locking with bias?
         _body.Gravity = Vector2.UnitY * 2f;
     }
@@ -45,7 +45,7 @@ internal class RainWorld : ModNPC
         NPC.Center = Main.MouseWorld - Vector2.UnitY * 16 * 10;
 
         _body.AnchorStart = NPC.Center;
-        _body.Update(8, 0.15f);
+        _body.Update(8, 0.15f, true);
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)

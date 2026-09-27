@@ -32,7 +32,7 @@ internal class Angelatin : ModNPC
     private int _dressVariant = 0;
     private int[] _starVariants = [];
     private int[] _segments = [];
-    private Tentacle[] _tentacles = [];
+    private VerletString[] _tentacles = [];
 
     public override void SetDefaults()
     {
@@ -54,7 +54,7 @@ internal class Angelatin : ModNPC
         _dressVariant = Main.rand.Next(0, 4);
 
         _starVariants = new int[TENTACLES];
-        _tentacles = new Tentacle[TENTACLES];
+        _tentacles = new VerletString[TENTACLES];
         _segments = new int[TENTACLES];
 
         for (int i = 0; i < TENTACLES; i++)
@@ -69,7 +69,7 @@ internal class Angelatin : ModNPC
 
         for (int i = 0; i < TENTACLES; i++)
         {
-            _tentacles[i] = new Tentacle(NPC.Center, _segments[i], 10, MathHelper.PiOver2);
+            _tentacles[i] = new VerletString(NPC.Center, _segments[i], 10, MathHelper.PiOver2);
             _tentacles[i].Lock(0);
             _tentacles[i].Gravity = Vector2.UnitY * 0.8f;
         }
@@ -152,7 +152,8 @@ internal class Angelatin : ModNPC
 
             _tentacles[i].AnchorStart = NPC.Center + (baseLineStart + Vector2.UnitX * ((1f + (float)i) / ((float)tentacles + 1f)) * baseLineLength).RotatedBy(-NPC.rotation * 0.5f);
             WaveMotion(_tentacles[i], i, wavelength, speed, amplitude, NPC.velocity);
-            _tentacles[i].Update(8, 0.05f);
+            _tentacles[i].Update(8, 0.05f, false);
+
         }
 
 
@@ -242,7 +243,7 @@ internal class Angelatin : ModNPC
         return false;
     }
 
-    private void DrawTentacle(SpriteBatch spriteBatch, Tentacle tentacle, int tentacleIndex, bool left, Vector2 displace, Color lightColor, ref int segmentVariant)
+    private void DrawTentacle(SpriteBatch spriteBatch, VerletString tentacle, int tentacleIndex, bool left, Vector2 displace, Color lightColor, ref int segmentVariant)
     {
         var pixel = Assets.Textures.WhitePixel.Asset.Value;
         var starTexture = Assets.Textures.Space.NPCs.AngelatinStrandStars.Asset.Value;
@@ -282,7 +283,7 @@ internal class Angelatin : ModNPC
         }
     }
 
-    private void WaveMotion(Tentacle tentacle, int tentacleIndex, float wavelength, float speed, float amplitude, Vector2 tentacleVel)
+    private void WaveMotion(VerletString tentacle, int tentacleIndex, float wavelength, float speed, float amplitude, Vector2 tentacleVel)
     {
         // tentacle movement displacement
         float animDisplacement = (2f * ((float)tentacleIndex / (float)(TENTACLES - 1f)) - 1f);
