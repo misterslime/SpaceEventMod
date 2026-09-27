@@ -4,6 +4,10 @@ using Terraria;
 
 namespace SpaceEventMod.Common.Physics;
 
+// feature ideas:
+// rotation constraints
+// spring constraints instead of rigid constraints?
+// replace locking with bias?
 internal class Tentacle
 {
     private float _segmentLength;
@@ -39,6 +43,7 @@ internal class Tentacle
     public Vector2 Gravity { get; set; }
 
     public int Count { get => _numSegments; }
+    public ReadOnlySpan<Vector2> Positions { get => _positions; }
 
 
     public (Vector2 Position, Vector2 OldPosition, Vector2 Acceleration, bool Locked) this[int i]
@@ -51,6 +56,11 @@ internal class Tentacle
             _accelerations[i] = value.Acceleration;
             _locked[i] = value.Locked;
         }
+    }
+
+    public void Lock(int index)
+    {
+        _locked[index] = true;
     }
 
     public void Update(int steps, float velocityDamping)

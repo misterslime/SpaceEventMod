@@ -70,11 +70,7 @@ internal class Angelatin : ModNPC
         for (int i = 0; i < TENTACLES; i++)
         {
             _tentacles[i] = new Tentacle(NPC.Center, _segments[i], 10, MathHelper.PiOver2);
-
-            var segment = _tentacles[i][0];
-            segment.Locked = true;
-            _tentacles[i][0] = segment;
-
+            _tentacles[i].Lock(0);
             _tentacles[i].Gravity = Vector2.UnitY * 0.8f;
         }
     }

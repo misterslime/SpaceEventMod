@@ -180,6 +180,7 @@ NPCs: {
 
 	Starstriker.DisplayName: Starstriker
 	Angelatin.DisplayName: Angelatin
+	RainWorld.DisplayName: Rain World
 }
 
 Projectiles: {
