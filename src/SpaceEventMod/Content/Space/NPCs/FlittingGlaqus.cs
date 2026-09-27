@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Geometry;
 using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Physics;
 using SpaceEventMod.Common.Physics.Passes;
@@ -47,33 +48,43 @@ internal class FlittingGlaqus : ModNPC
         _body = new VerletString(NPC.Center, segments, 96 / segments, MathHelper.PiOver2);
         _body.Lock(0); // replace locking with bias?
         _body.Gravity = Vector2.Zero;
+
+        NPC.ai[0] = 0;
     }
 
     public override void AI()
     {
         NPC.TargetClosest();
 
-        for (int i = 0; i < _body.Count; i++)
+
+        _body.AnchorStart = NPC.Center;
+
+        for (int i = 1; i < _body.Count; i++)
         {
             var point = _body[i];
-            point.Acceleration += (Vector2.UnitY * 20f) / ((i + 1) * (i + 1));
+
+            var wiggleTime = NPC.ai[0];
+
+            var gravity = (Vector2.UnitY * 20f) / ((i + 1) * (i + 1));
+
+            point.Acceleration += gravity;
             _body[i] = point;
         }
 
-        _body.AnchorStart = NPC.Center;
-        _body.Update(16, 0.1f, true);
+        _body.Update(8, 0.1f, true);
 
         
 
         NPC.ai[1] = MathHelper.Lerp(NPC.ai[1], NPC.ai[0] == 0f ? 1f : 50f, 0.67f);
-        
+        NPC.ai[0]++;
         if (!NPC.HasValidTarget)
         {
-            NPC.ai[0] = 0;
             return;
         }
 
         _target = Main.player[NPC.target].Center;
+
+        NPC.velocity = Vector2.Lerp(NPC.velocity, Vector2.Zero, 0.05f);
 
         return;
 
@@ -97,23 +108,44 @@ internal class FlittingGlaqus : ModNPC
         if (_body is null)
             return true;
 
+        var color = drawColor;
+
+        // get body points
+        var bodyPoints = _body.Positions.ToArray();
+
+        for (int i = 1; i < bodyPoints.Length; i++)
+        {
+            var point = bodyPoints[i];
+
+            var wiggleVector = (point - bodyPoints[i - 1]).SafeNormalize(Vector2.Zero).PerpendicularClockwise();
+            var wiggleMult = MathF.Sin(((float)i / (float)bodyPoints.Length) * MathF.PI);
+
+            wiggleVector *= MathF.Sin(i * MathF.PI / 5 + NPC.ai[0] * 0.03f) * 6 * wiggleMult * ((float)i / (float)bodyPoints.Length);
+
+            bodyPoints[i] += wiggleVector;
+        }
+
+        var trailPoints = new List<Vector2>(bodyPoints.Length + 1);
+
+        ReadOnlySpan<Vector2> controlPoints = bodyPoints;
+        using (var curve = new BezierCurve(controlPoints))
+            trailPoints = curve.GetPoints(bodyPoints.Length + 1);
+
         // draw wings
         var wingTexture = Assets.Textures.Space.NPCs.FlittingGlaqusWing.Asset.Value;
 
-        int wingSegmentOrigin = 4;
+        int wingSegmentOrigin = 3;
         var wingRotationTotal = (_body[wingSegmentOrigin].Position - _body[wingSegmentOrigin + 1].Position).ToRotation();
-        wingRotationTotal -= MathHelper.PiOver2;
+        wingRotationTotal += MathHelper.PiOver2;
 
         Vector2 wingOrigin = new Vector2(55, 9);
 
-        Vector2 wingPosition = _body[wingSegmentOrigin].Position;
+        Vector2 wingPosition = trailPoints[wingSegmentOrigin + 1];
 
-        var lerpValue = (MathF.Sin(1 * Main.GlobalTimeWrappedHourly) * 0.5f) + 0.5f;
+        var lerpValue = (MathF.Sin(5 * Main.GlobalTimeWrappedHourly) * 0.5f) + 0.5f;
         int wingFrame = (int)Math.Round(MathHelper.Lerp(0, 7, Main.GlobalTimeWrappedHourly * 0.5f % 1f));
 
         var wingRect = wingTexture.Frame(1, 8, 0, wingFrame);
-
-        var color = drawColor;
 
         spriteBatch.Draw(wingTexture, wingPosition - screenPos, wingRect, color, wingRotationTotal, wingOrigin, NPC.scale, 0, 0);
 
@@ -123,11 +155,6 @@ internal class FlittingGlaqus : ModNPC
 
         // draw body
         var bodyTexture = TextureAssets.Npc[Type].Value;
-        var trailPoints = new List<Vector2>(_body.Positions.Length + 1);
-
-        ReadOnlySpan<Vector2> controlPoints = _body.Positions;
-        using (var curve = new BezierCurve(controlPoints))
-            trailPoints = curve.GetPoints(_body.Positions.Length + 1);
 
         Graphics.BeginPipeline()
             .DrawTrail(
@@ -170,5 +197,36 @@ internal class FlittingGlaqus : ModNPC
 
 
         return false;
+    }
+
+    private Vector2[] WiggleBody(Vector2[] trailPoints, float timer, float wiggleStrength, float sineLimit)
+    {
+        var newTrailPoints = trailPoints;
+
+        for (var i = 0; i < trailPoints.Length; i++)
+        {
+            if (i < trailPoints.Length - 1)
+            {
+                var point = trailPoints[i];
+                var nextPoint = trailPoints[i + 1];
+
+                var displacement = point - nextPoint;
+                displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
+
+                newTrailPoints[i] = point + displacement * wiggleStrength *  MathF.Sin(((sineLimit * i) / trailPoints.Length) + timer);
+            }
+            else
+            {
+                var point = trailPoints[i];
+                var previousPoint = trailPoints[i - 1];
+
+                var displacement = previousPoint - point;
+                displacement = new Vector2(-displacement.Y, displacement.X).SafeNormalize(Vector2.Zero);
+
+                newTrailPoints[i] = point + displacement * wiggleStrength * MathF.Sin(((sineLimit * i) / trailPoints.Length) + timer);
+            }
+        }
+
+        return newTrailPoints;
     }
 }
