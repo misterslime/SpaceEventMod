@@ -181,6 +181,7 @@ NPCs: {
 	Starstriker.DisplayName: Starstriker
 	Angelatin.DisplayName: Angelatin
 	RainWorld.DisplayName: Rain World
+	FlittingGlaqus.DisplayName: Flitting Glaqus
 }
 
 Projectiles: {

@@ -98,8 +98,8 @@ internal class VerletString
         {
             for (int i = 1; i < _positions.Length - 1; i++)
             {
-                ConstrainPoints(i, i - 1, true);
-                ConstrainPoints(i + 1, i, true);
+                ConstrainPoints(i, i - 1, collideWithTiles);
+                ConstrainPoints(i + 1, i, collideWithTiles);
             }
         }
 
