@@ -2,6 +2,7 @@ using Daybreak.Common.Mathematics;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Terraria;
 
 namespace SpaceEventMod.Common.Physics;
@@ -106,6 +107,7 @@ internal class VerletString
         // apply angular constraints
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ConstrainPoints(int i1, int i2, bool tileCollide)
     {
         var vectorFrom = _positions[i1] - _positions[i2];

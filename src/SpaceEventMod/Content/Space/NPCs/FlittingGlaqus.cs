@@ -86,6 +86,17 @@ internal class FlittingGlaqus : ModNPC
 
         NPC.velocity = Vector2.Lerp(NPC.velocity, Vector2.Zero, 0.05f);
 
+        // we're trying to make the velocity go up and down in a wave of form ae^sin(bx)
+        // where b is frequency and a is amplitude
+        // first derivative and acceleration of that is abcos(bx)e^sin(bx)
+
+        float frequency = 0.01f;
+        float amplitude = 0.35f;
+        float acceleration = MathF.Exp(MathF.Sin(NPC.ai[0] * frequency));
+        acceleration *= frequency * amplitude * MathF.Cos(frequency * NPC.ai[0]);
+
+        NPC.velocity -= acceleration * Vector2.UnitY;
+
         return;
 
         var toTarget = _target - (NPC.Center + NPC.velocity);
@@ -142,8 +153,7 @@ internal class FlittingGlaqus : ModNPC
 
         Vector2 wingPosition = trailPoints[wingSegmentOrigin + 1];
 
-        var lerpValue = (MathF.Sin(5 * Main.GlobalTimeWrappedHourly) * 0.5f) + 0.5f;
-        int wingFrame = (int)Math.Round(MathHelper.Lerp(0, 7, Main.GlobalTimeWrappedHourly * 0.5f % 1f));
+        int wingFrame = (int)Math.Floor(NPC.ai[0] * 0.12f) % 8;
 
         var wingRect = wingTexture.Frame(1, 8, 0, wingFrame);
 
@@ -190,8 +200,6 @@ internal class FlittingGlaqus : ModNPC
         var frame = headTexture.Frame(1, 13, 0, 6 + frameY);
 
         var origin = new Vector2(19, 23);
-        var LRWEOWPINM = MathHelper.Clamp(NPC.velocity.Length() / 5f, 0, 1);
-        origin = Vector2.Lerp(new Vector2(19, 23), frame.Size() * 0.5f, LRWEOWPINM);
 
         spriteBatch.Draw(headTexture, _body[0].Position - screenPos, frame, color, targetRotation, origin, NPC.scale, 0, 0);
 
