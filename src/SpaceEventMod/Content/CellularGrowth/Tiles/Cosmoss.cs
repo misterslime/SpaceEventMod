@@ -7,6 +7,7 @@ using SpaceEventMod.Common.WorldGeneration;
 using SpaceEventMod.Content.Space;
 using SpaceEventMod.Core;
 using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent;
@@ -14,9 +15,6 @@ using Terraria.GameContent.Drawing;
 using Terraria.GameContent.Liquid;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.Utilities;
-using TileHelper.Common;
-using static Daybreak.Common.Features.Hooks.GlobalItemHooks;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
@@ -97,6 +95,7 @@ internal class Cosmoss : FancyTile
         }
 
         AttemptMossSpread(tile, i, j);
+        AttemptGrowPlant(i, j);
     }
 
     private void AttemptMossSpread(Tile tile, int i, int j)
@@ -150,6 +149,35 @@ internal class Cosmoss : FancyTile
         {
             NetMessage.SendTileSquare(-1, i, j, 3);
         }
+    }
+
+    private void AttemptGrowPlant(int i, int j)
+    {
+        if (Main.tile[i, j].BlockType != BlockType.Solid)
+            return;
+
+        List<Point> validPlacePositions = new();
+        var current = new Point(i, j);
+
+        for (int i2 = 0; i2 < TileDirections.NoCorners.Length; i2++)
+        {
+            Point point = new Point(i, j) + TileDirections.NoCorners[i2];
+            Tile tile = Framing.GetTileSafely(point);
+
+            if (!tile.HasTile)
+                validPlacePositions.Add(point);
+        }
+
+        if (validPlacePositions.Count == 0)
+            return;
+
+        Point newTilePosition = Main.rand.Next(validPlacePositions);
+
+        var successful = WorldGen.PlaceObject(newTilePosition.X, newTilePosition.Y, ModContent.TileType<CosmossPlants>(), style: Main.rand.Next(6), mute: true);
+        WorldGen.Reframe(newTilePosition.X, newTilePosition.Y);
+
+        if (Main.netMode == NetmodeID.Server && Main.tile[newTilePosition].TileType == ModContent.TileType<CosmossPlants>())
+            NetMessage.SendTileSquare(-1, newTilePosition.X, newTilePosition.Y, 3);
     }
 
     public override void KillTile(int i, int j, ref bool fail, ref bool effectOnly, ref bool noItem)

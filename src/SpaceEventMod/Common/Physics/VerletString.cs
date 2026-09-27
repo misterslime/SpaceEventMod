@@ -11,8 +11,10 @@ namespace SpaceEventMod.Common.Physics;
 // rotation constraints
 // spring constraints instead of rigid constraints?
 // replace locking with bias?
-// tile collision and wind grid physics
+// wind grid physics
 // ability to apply linear and angular forces?
+// ability to make any shape instead of exclusively ropes/strings
+// make this inverse kinematics-able if possible
 internal class VerletString
 {
     private float _segmentLength;
