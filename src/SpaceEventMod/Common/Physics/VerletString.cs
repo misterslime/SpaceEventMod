@@ -28,7 +28,6 @@ internal class VerletString
         _positions = new Vector2[numSegments];
         _oldPositions = new Vector2[numSegments];
         _accelerations = new Vector2[numSegments];
-        _angles = new float[numSegments];
         _locked = new bool[numSegments];
         _numSegments = numSegments;
 
@@ -83,8 +82,8 @@ internal class VerletString
 
             var oldPosition = _positions[i];
             var velocity = _positions[i] - _oldPositions[i];
-            velocity *= velocityMult; // dampen movement
             velocity += _accelerations[i];
+            velocity *= velocityMult; // dampen movement
 
             if (collideWithTiles)
                 velocity = TileCollision(_positions[i], velocity, true);
@@ -99,32 +98,41 @@ internal class VerletString
         {
             for (int i = 1; i < _positions.Length - 1; i++)
             {
-                var midPoint = (_positions[i] + _positions[i + 1]) * 0.5f;
-                var direction = (_positions[i] - _positions[i + 1]).SafeNormalize(Vector2.Zero);
-
-                ConstrainPointTo(i + 1, midPoint - direction * _segmentLength * 0.5f, collideWithTiles);
-                ConstrainPointTo(i, midPoint + direction * _segmentLength * 0.5f, collideWithTiles);
-
-                midPoint = (_positions[i - 1] + _positions[i]) * 0.5f;
-                direction = (_positions[i - 1] - _positions[i]).SafeNormalize(Vector2.Zero);
-
-                ConstrainPointTo(i - 1, midPoint + direction * _segmentLength * 0.5f, collideWithTiles);
-                ConstrainPointTo(i, midPoint - direction * _segmentLength * 0.5f, collideWithTiles);
+                ConstrainPoints(i, i - 1, true);
+                ConstrainPoints(i + 1, i, true);
             }
         }
 
         // apply angular constraints
     }
 
-    private void ConstrainPointTo(int i, Vector2 position, bool tileCollide)
+    private void ConstrainPoints(int i1, int i2, bool tileCollide)
     {
-        if (_locked[i])
-            return;
-        
+        var vectorFrom = _positions[i1] - _positions[i2];
+        float distance = Vector2.Distance(_positions[i1], _positions[i2]);
+        float signedDistance = 0;
+
+        if (distance > 0)
+            signedDistance = (_segmentLength / distance) - 1f;
+
+        Vector2 translation = vectorFrom * (signedDistance * 0.5f);
+
         if (tileCollide)
-            _positions[i] += TileCollision(_positions[i], position - _positions[i], true);
+        {
+            if (!_locked[i1])
+                _positions[i1] += TileCollision(_positions[i1], translation, true);
+
+            if (!_locked[i2])
+                _positions[i2] -= TileCollision(_positions[i1], translation, true);
+        }
         else
-            _positions[i] = position;
+        {
+            if (!_locked[i1])
+                _positions[i1] += translation;
+
+            if (!_locked[i2])
+                _positions[i2] -= translation;
+        }
     }
 
     private static Vector2 TileCollision(Vector2 position, Vector2 velocity, bool fallThrough)
