@@ -161,22 +161,36 @@ internal class Cosmoss : FancyTile
 
         for (int i2 = 0; i2 < TileDirections.NoCorners.Length; i2++)
         {
-            Point point = new Point(i, j) + TileDirections.NoCorners[i2];
+            Point point = current + TileDirections.NoCorners[i2];
             Tile tile = Framing.GetTileSafely(point);
 
             if (!tile.HasTile)
-                validPlacePositions.Add(point);
+                validPlacePositions.Add(TileDirections.NoCorners[i2]);
         }
 
         if (validPlacePositions.Count == 0)
             return;
 
-        Point newTilePosition = Main.rand.Next(validPlacePositions);
+        Point newTileDirection = Main.rand.Next(validPlacePositions);
+        Point newTilePosition = newTileDirection + current;
 
-        var successful = WorldGen.PlaceObject(newTilePosition.X, newTilePosition.Y, ModContent.TileType<CosmossPlants>(), style: Main.rand.Next(6), mute: true);
+        List<(int Type, int RandomStyles)> types = [ (ModContent.TileType<CosmossPlants>(), 6) ];
+
+        if (newTileDirection == TileDirections.NoCorners[2] || newTileDirection == TileDirections.NoCorners[3]) // left and right
+            types.Add((ModContent.TileType<HorizontalPlants>(), 6));
+        else if (newTileDirection == TileDirections.NoCorners[1])
+            types.Add((ModContent.TileType<HangingPlants>(), 3));
+        else if (newTileDirection == TileDirections.NoCorners[0])
+            types.Add((ModContent.TileType<TallPlants>(), 16));
+
+
+
+        var type = Main.rand.Next(types);
+
+        var successful = WorldGen.PlaceObject(newTilePosition.X, newTilePosition.Y, type.Type, style: Main.rand.Next(type.RandomStyles), mute: true);
         WorldGen.Reframe(newTilePosition.X, newTilePosition.Y);
 
-        if (Main.netMode == NetmodeID.Server && Main.tile[newTilePosition].TileType == ModContent.TileType<CosmossPlants>())
+        if (Main.netMode == NetmodeID.Server && Main.tile[newTilePosition].TileType == type.Type)
             NetMessage.SendTileSquare(-1, newTilePosition.X, newTilePosition.Y, 3);
     }
 

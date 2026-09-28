@@ -1,8 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using SpaceEventMod.Common.Physics.Joints;
-using System;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Enums;
@@ -10,16 +7,13 @@ using Terraria.GameContent;
 using Terraria.GameContent.Drawing;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.ModLoader.IO;
 using Terraria.ObjectData;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
 // I FUCKING HATE TILEOBJECTDATA I FUCKING HATE TILEOBJECTDATA I FUCKING HATE TILEOBJECTDATA
-internal class CosmossPlants : ModTile
+internal class HorizontalPlants : ModTile
 {
-    private const int STYLE_RANGE = 6;
-
     public override void SetStaticDefaults()
     {
         Main.tileFrameImportant[Type] = true;
@@ -29,31 +23,24 @@ internal class CosmossPlants : ModTile
         Main.tileCut[Type] = true;
 
         TileObjectData.newTile.UsesCustomCanPlace = true;
-        TileObjectData.newTile.CoordinateWidth = 16;
+        TileObjectData.newTile.Width = 1;
+        TileObjectData.newTile.Height = 1;
+        TileObjectData.newTile.CoordinateWidth = 20;
         TileObjectData.newTile.CoordinateHeights = [16];
-        TileObjectData.newTile.CoordinatePadding = 2;
         TileObjectData.newTile.Origin = new Point16(0, 0);
+        TileObjectData.newTile.CoordinatePadding = 2;
 
-        TileObjectData.newTile.RandomStyleRange = STYLE_RANGE;
-        TileObjectData.newTile.StyleWrapLimit = STYLE_RANGE;
-        TileObjectData.newTile.StyleHorizontal = true;
+        TileObjectData.newTile.StyleMultiplier = 6;
+        TileObjectData.newTile.RandomStyleRange = 6;
+        TileObjectData.newTile.StyleWrapLimit = 6;
+
         TileObjectData.newTile.AnchorValidTiles = [ModContent.TileType<Cosmoss>()];
-        TileObjectData.newTile.AnchorBottom = new AnchorData(AnchorType.SolidTile | AnchorType.SolidSide, TileObjectData.newTile.Width, 0);
-
-        TileObjectData.newAlternate.CopyFrom(TileObjectData.newTile);
-        TileObjectData.newAlternate.AnchorRight = new AnchorData(AnchorType.SolidTile | AnchorType.SolidSide | AnchorType.AlternateTile, TileObjectData.newTile.Height, 0);
-        TileObjectData.newAlternate.AnchorBottom = AnchorData.Empty;
-        TileObjectData.addAlternate(STYLE_RANGE);
+        TileObjectData.newTile.AnchorRight = new AnchorData(AnchorType.SolidTile | AnchorType.SolidSide | AnchorType.AlternateTile, TileObjectData.newTile.Height, 0);
 
         TileObjectData.newAlternate.CopyFrom(TileObjectData.newTile);
         TileObjectData.newAlternate.AnchorLeft = new AnchorData(AnchorType.SolidTile | AnchorType.SolidSide | AnchorType.AlternateTile, TileObjectData.newTile.Height, 0);
-        TileObjectData.newAlternate.AnchorBottom = AnchorData.Empty;
-        TileObjectData.addAlternate(STYLE_RANGE * 2);
-
-        TileObjectData.newAlternate.CopyFrom(TileObjectData.newTile);
-        TileObjectData.newAlternate.AnchorTop = new AnchorData(AnchorType.SolidTile | AnchorType.SolidSide | AnchorType.AlternateTile, TileObjectData.newTile.Height, 0);
-        TileObjectData.newAlternate.AnchorBottom = AnchorData.Empty;
-        TileObjectData.addAlternate(STYLE_RANGE * 3);
+        TileObjectData.newAlternate.AnchorRight = AnchorData.Empty;
+        TileObjectData.addAlternate(6);
 
         TileObjectData.addTile(Type);
 
@@ -62,30 +49,19 @@ internal class CosmossPlants : ModTile
         AddMapEntry(Color.LightCoral);
     }
 
-    public override void RandomUpdate(int i, int j)
-    {
-        // this is here bc it hates me
-        WorldGen.Reframe(i, j);
-    }
-
     public override bool TileFrame(int i, int j, ref bool resetFrame, ref bool noBreak)
     {
         var tile = Main.tile[i, j];
 
         if (resetFrame)
         {
-            tile.TileFrameX = (short)(Main.rand.Next(STYLE_RANGE) * 18);
-            return false;
+            tile.TileFrameY = (short)(Main.rand.Next(6) * 18);
         }
 
-        if (ValidSurface(i, j + 1))
-            tile.TileFrameY = 0 * 18;
-        else if (ValidSurface(i, j - 1))
-            tile.TileFrameY = 3 * 18;
-        else if (ValidSurface(i + 1, j))
-            tile.TileFrameY = 1 * 18;
+        if (ValidSurface(i + 1, j))
+            tile.TileFrameX = 0;
         else if (ValidSurface(i - 1, j))
-            tile.TileFrameY = 2 * 18;
+            tile.TileFrameX = 20;
         else
             WorldGen.KillTile(i, j);
 
@@ -123,7 +99,7 @@ internal class CosmossPlants : ModTile
         tileRenderer.DrawAnimatedTile_AdjustForVisionChangers(i, j, tile, type, tileFrameX, tileFrameY, ref tileLight, Main.rand.Next(4) == 0);
         tileLight = tileRenderer.DrawTiles_GetLightOverride(j, i, tile, type, tileFrameX, tileFrameY, tileLight);
 
-        Vector2 position = new Vector2(i * 16 - (int)unscaledPosition.X + 8, j* 16 - (int)unscaledPosition.Y + 16);
+        Vector2 position = new Vector2(i * 16 - (int)unscaledPosition.X + 8, j * 16 - (int)unscaledPosition.Y + 16);
         float windStrength = tileRenderer.GetWindCycle(i, j, tileRenderer._grassWindCounter);
         if (!WallID.Sets.AllowsWind[tile.wall])
             windStrength = 0f;
@@ -134,51 +110,31 @@ internal class CosmossPlants : ModTile
         tileRenderer.GetWindGridPush2Axis(i, j, 20, 0.35f, out var pushX, out var pushY);
         int multX = 0;
         int multY = 0;
-        Vector2 origin = new Vector2(tileWidth / 2, 16 - halfBrickHeight - tileTop);
+        Vector2 origin = new Vector2(tileWidth / 2, 18 - halfBrickHeight - tileTop);
 
         Texture2D tileDrawTexture = TextureAssets.Tile[type].Value;
 
         pushX += windStrength;
         pushY += windStrength;
 
-        switch (tileFrameY / 18)
+        switch (tileFrameX / 20)
         {
-            case 0:
-                multX = 1;
-                multY = 0;
-                origin = new Vector2(tileWidth / 2, 16 - halfBrickHeight - tileTop);
-                position.X += 8f;
-				position.Y += 18f;
-                position.X += pushX;
-                position.Y += Math.Abs(pushY);
-                break;
-            case 3:
-                pushX *= -1f;
-                multX = -1;
-                multY = 0;
-                origin = new Vector2(tileWidth / 2, -tileTop);
-                position.Y -= 2f;
-                position.X += 8f;
-                position.X += -pushX;
-                position.Y += 0f - Math.Abs(pushY);
-                break;
-            case 2:
+            case 1:
                 multX = 0;
                 multY = 1;
-                origin = new Vector2(0f, (16 - halfBrickHeight - tileTop) / 2);
-                position.X -= 2f;
+                origin = new Vector2(0f, 16 / 2);
                 position.Y += 8f;
                 position.Y += pushY;
                 position.X += pushX;
                 break;
-            case 1:
-                pushY *= -1f;
+            case 0:
+                pushX *= -1f;
                 multX = 0;
                 multY = -1;
-                origin = new Vector2(16f, (16 - halfBrickHeight - tileTop) / 2);
-                position.X += 18f;
+                origin = new Vector2(18f, 16 / 2);
+                position.X += 16;
                 position.Y += 8f;
-                position.Y += - pushY;
+                position.Y += -pushY;
                 position.X += pushX;
                 break;
         }
