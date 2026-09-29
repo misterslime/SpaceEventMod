@@ -122,17 +122,6 @@ internal class SiphoningBowHeld : ModProjectile
         Projectile.rotation = _direction.ToRotation();
         Projectile.netUpdate = true;
 
-        CompositeArmStretchAmount frontStretch = Charge switch
-        {
-            < 0.25f => CompositeArmStretchAmount.Full,
-            < 0.5f => CompositeArmStretchAmount.ThreeQuarters,
-            < 0.75f => CompositeArmStretchAmount.Quarter,
-            _ => CompositeArmStretchAmount.None
-        };
-
-        player.SetCompositeArmFront(true, frontStretch, player.itemRotation);
-        player.SetCompositeArmBack(true, CompositeArmStretchAmount.Full, player.itemRotation);
-
         if (player.channel)
         {
             Charge = MathF.Min(Charge + (1 / ChargeTime), 1f);

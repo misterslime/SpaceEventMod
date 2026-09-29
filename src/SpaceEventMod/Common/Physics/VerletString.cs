@@ -1,9 +1,17 @@
 using Daybreak.Common.Mathematics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Transactions;
 using Terraria;
+using Terraria.GameContent;
+using Terraria.ID;
+using Terraria.ModLoader.IO;
+using static tModPorter.ProgressUpdate;
 
 namespace SpaceEventMod.Common.Physics;
 
@@ -11,28 +19,32 @@ namespace SpaceEventMod.Common.Physics;
 // rotation constraints
 // spring constraints instead of rigid constraints?
 // replace locking with bias?
-// wind grid physics
 // ability to apply linear and angular forces?
 // ability to make any shape instead of exclusively ropes/strings
 // make this inverse kinematics-able if possible
+// player/entity collision?
 internal class VerletString
 {
     private float _segmentLength;
     private int _numSegments;
+    private float _segmentMass;
     private Vector2[] _positions;
     private Vector2[] _oldPositions;
     private Vector2[] _accelerations;
     private bool[] _locked;
-    private float[] _angles;
 
-    public VerletString(Vector2 startPos, int numSegments, float segmentLength, float startRotation)
+    // segment mass only affects wind speed btw
+    public VerletString(Vector2 startPos, int numSegments, float segmentLength, float startRotation, float segmentMass = 1f)
     {
+        Debug.Assert(segmentMass != 0);
+
         _segmentLength = segmentLength;
         _positions = new Vector2[numSegments];
         _oldPositions = new Vector2[numSegments];
         _accelerations = new Vector2[numSegments];
         _locked = new bool[numSegments];
         _numSegments = numSegments;
+        _segmentMass = segmentMass;
 
         var direction = startRotation.ToRotationVector2();
         var position = startPos;
@@ -70,8 +82,13 @@ internal class VerletString
     {
         _locked[index] = true;
     }
-    
-    public void Update(int steps, float damping = 0f, bool collideWithTiles = false)
+
+    public void Unlock(int index)
+    {
+        _locked[index] = false;
+    }
+
+    public void Update(int steps, float damping = 0f, bool collideWithTiles = false, bool windAffected = false)
     {
         float velocityMult = 1f - damping;
 
@@ -83,13 +100,33 @@ internal class VerletString
 
             _accelerations[i] += Gravity;
 
+            if (windAffected)
+            {
+                var point = _positions[i].ToTileCoordinates();
+
+                float windStrength = Main.instance.TilesRenderer.GetWindCycle(point.X, point.Y, Main.instance.TilesRenderer._grassWindCounter);
+
+                if (!Main.instance.TilesRenderer.InAPlaceWithWind(point.X, point.Y, 1, 1))
+                    windStrength = 0f;
+
+                Main.instance.TilesRenderer.GetWindGridPush2Axis(point.X, point.Y, 20, 0.35f, out var pushX, out var pushY);
+
+                // following 4 lines r from slr
+                var phase = Main.windCounter * 0.12f;
+                var frequency = 0.01f;
+                var amplitude = 0.8f;
+                pushX += (Main.windSpeedCurrent + MathF.Sin(phase + _positions[i].X * frequency) * Main.windSpeedCurrent * amplitude);
+
+                _accelerations[i] += new Vector2(pushX, pushY) / _segmentMass;
+            }
+
             var oldPosition = _positions[i];
             var velocity = _positions[i] - _oldPositions[i];
             velocity += _accelerations[i];
             velocity *= velocityMult; // dampen movement
 
             if (collideWithTiles)
-                velocity = TileCollision(_positions[i], velocity, true);
+                velocity = TileCollision(_positions[i], velocity, false);
 
             _positions[i] += velocity;
             _oldPositions[i] = oldPosition;
@@ -127,7 +164,7 @@ internal class VerletString
                 _positions[i1] += TileCollision(_positions[i1], translation, true);
 
             if (!_locked[i2])
-                _positions[i2] -= TileCollision(_positions[i1], translation, true);
+                _positions[i2] += TileCollision(_positions[i2], -translation, true);
         }
         else
         {
