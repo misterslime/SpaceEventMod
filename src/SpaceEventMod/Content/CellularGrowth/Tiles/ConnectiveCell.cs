@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.DataStructures;
 using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Physics;
+using SpaceEventMod.Content.Space;
+using SpaceEventMod.Content.Space.LevelElements;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,6 +35,12 @@ internal class ConnectiveCellSystem : ModSystem
     private static Dictionary<Point16, Point16> s_connectionMap = new Dictionary<Point16, Point16>();
     private static Dictionary<Point16, (bool IsStart, VerletString Rope)> s_ropes = new Dictionary<Point16, (bool IsStart, VerletString Rope)>();
     private static List<(int TimeLeft, VerletString Rope)> s_despawningRopes = new List<(int TimeLeft, VerletString Rope)>();
+
+    public override void Load()
+    {
+        On_Main.DoDraw_WallsAndBlacks += On_Main_DoDraw_WallsAndBlacks;
+        On_Collision.SlopeCollision += On_Collision_SlopeCollision;
+    }
 
     /// <summary>
     /// Attempts to place a connective cell at the specified tile coordinate.
@@ -220,12 +228,7 @@ internal class ConnectiveCellSystem : ModSystem
     #endregion
 
     #region Rendering
-    public override void Load()
-    {
-        On_Main.DoDraw_WallsAndBlacks += DrawConnectiveCells;
-    }
-
-    private void DrawConnectiveCells(On_Main.orig_DoDraw_WallsAndBlacks orig, Main self)
+    private void On_Main_DoDraw_WallsAndBlacks(On_Main.orig_DoDraw_WallsAndBlacks orig, Main self)
     {
         orig(self);
 
@@ -326,6 +329,54 @@ internal class ConnectiveCellSystem : ModSystem
                 ("spriteRotation", 1));
     }
 
+    #endregion
+
+    #region Collision
+
+    private Vector4 On_Collision_SlopeCollision(On_Collision.orig_SlopeCollision orig, Vector2 position, Vector2 velocity, int width, int height, float gravity, bool fall)
+    {
+        var result = orig(position, velocity, width, height, gravity, fall);
+
+        if (!fall && !SpaceEvent.Sea.Despawning)
+            result = CheckCollision(result.XY(), result.ZW(), width, height, gravity);
+
+        return result;
+    }
+
+    private Vector4 CheckCollision(Vector2 position, Vector2 velocity, int width, int height, float gravity)
+    {
+        var originalVector = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
+
+        // make the entity's hitbox only be its bottom half
+        var entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
+
+        foreach (var rope in s_ropes)
+        {
+            var verletString = rope.Value.Rope;
+
+            for (int i = 0; i < verletString.Count; i++)
+            {
+                var point = verletString[i];
+
+                var colliderBox = new Rectangle((int)point.Position.X - 8, (int)point.Position.Y - 8, 16, 16);
+
+                var propCenter = point.Position;
+                var canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
+
+                if (!entityHitbox.Intersects(colliderBox) || velocity.Y < 0 || !(position.X + width > colliderBox.Left && position.X < colliderBox.Right) || !canHit)
+                    continue;
+
+                if (position.Y + height * 0.5f > colliderBox.Y)
+                    continue;
+
+                position.Y = MathHelper.Lerp(position.Y, colliderBox.Y - height + 2, 0.66f);
+                velocity.Y = 0;
+                Collision.sloping = true;
+            }
+        }
+
+        return new Vector4(position.X, position.Y, velocity.X, velocity.Y);
+    }
     #endregion
 
     #region Saving/Loading
