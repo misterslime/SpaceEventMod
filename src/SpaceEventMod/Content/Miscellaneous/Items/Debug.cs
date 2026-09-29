@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using SpaceEventMod.Content.CellularGrowth.Tiles;
 using SpaceEventMod.Content.Space;
 using SpaceEventMod.Content.Space.LevelElements;
 using SpaceEventMod.Core;
@@ -27,6 +28,14 @@ internal class Debug : ModItem
 
     public override bool? UseItem(Player player)
     {
+
+        var point = Main.MouseWorld.ToTileCoordinates();
+
+        ConnectiveCellSystem.TryAddConnectiveCell(point.X, point.Y);
+
+
+        return true;
+
         //Vector2 dustVelocity = Main.rand.NextVector2Circular(1, 1) * 60;
 
         //AmoerphaMetaballRenderer.New(Main.MouseWorld, Main.rand.NextFloat(32, 128), 7, Vector2.Zero);

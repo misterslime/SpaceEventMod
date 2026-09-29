@@ -66,4 +66,10 @@ internal class Cosmostone : ModTile, ILoadItem
                 NetMessage.SendTileSquare(-1, i, j, 3);
         }
     }
+
+    public override void KillTile(int i, int j, ref bool fail, ref bool effectOnly, ref bool noItem)
+    {
+        if (!fail)
+            ConnectiveCellSystem.TryKillConnectiveCell(i, j);
+    }
 }
