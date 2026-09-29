@@ -131,6 +131,8 @@ public class Graphics : ModSystem
             TargetSemaphore.Release();
         });
 
+
+        On_Main.DoDraw_WallsAndBlacks += On_Main_DoDraw_WallsAndBlacks;
         On_Main.DrawNPCs += On_Main_DrawNPCs;
         On_Main.DrawSuperSpecialProjectiles += On_Main_DrawSuperSpecialProjectiles;
         On_Main.DrawPlayers_AfterProjectiles += On_Main_DrawPlayers_AfterProjectiles;
@@ -139,6 +141,7 @@ public class Graphics : ModSystem
 
     public override void Unload()
     {
+        On_Main.DoDraw_WallsAndBlacks -= On_Main_DoDraw_WallsAndBlacks;
         On_Main.DrawNPCs -= On_Main_DrawNPCs;
         On_Main.DrawSuperSpecialProjectiles -= On_Main_DrawSuperSpecialProjectiles;
         On_Main.DrawPlayers_AfterProjectiles -= On_Main_DrawPlayers_AfterProjectiles;
@@ -150,6 +153,12 @@ public class Graphics : ModSystem
             InactiveTarget.Dispose();
             SpriteEffect.Dispose();
         });
+    }
+
+    private void On_Main_DoDraw_WallsAndBlacks(On_Main.orig_DoDraw_WallsAndBlacks orig, Main self)
+    {
+        PreDraw();
+        orig(self);
     }
 
     private void On_Main_DrawSuperSpecialProjectiles(On_Main.orig_DrawSuperSpecialProjectiles orig, Main self, List<int> projCache, bool startSpriteBatch)
@@ -176,7 +185,6 @@ public class Graphics : ModSystem
     {
         if (behindTiles)
         {
-            PreDraw();
             RunCommands(in BeforeTiles);
             orig(self, behindTiles);
         }
