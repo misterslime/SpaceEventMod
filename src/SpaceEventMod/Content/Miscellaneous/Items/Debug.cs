@@ -26,33 +26,33 @@ internal class Debug : ModItem
         Item.rare = ItemRarityID.Green;
     }
 
+    public override bool AltFunctionUse(Player player) => true;
+
     public override bool? UseItem(Player player)
     {
 
-        var point = Main.MouseWorld.ToTileCoordinates();
-
-        ConnectiveCellSystem.TryAddConnectiveCell(point.X, point.Y);
-
-
-        return true;
-
-        //Vector2 dustVelocity = Main.rand.NextVector2Circular(1, 1) * 60;
-
-        //AmoerphaMetaballRenderer.New(Main.MouseWorld, Main.rand.NextFloat(32, 128), 7, Vector2.Zero);
-
-        if (!Filters.Scene["SeaDistortFog"].IsActive())
-            Filters.Scene.Activate("SeaDistortFog");
-        else
-            Filters.Scene.Deactivate("SeaDistortFog");
+        if (player.altFunctionUse == 2)
+        {
+            if (!Filters.Scene["SeaDistortFog"].IsActive())
+                Filters.Scene.Activate("SeaDistortFog");
+            else
+                Filters.Scene.Deactivate("SeaDistortFog");
 
 
-        if (!SpaceEvent.Sea.Active)
-            SpaceEvent.Sea = new FirmamentSea(16, 64, 3);
+            if (!SpaceEvent.Sea.Active)
+                SpaceEvent.Sea = new FirmamentSea(16, 64, 3);
+            else
+            {
+                var sea = SpaceEvent.Sea;
+                sea.Despawning = sea.Despawning ? false : true;
+                SpaceEvent.Sea = sea;
+            }
+        }
         else
         {
-            var sea = SpaceEvent.Sea;
-            sea.Despawning = sea.Despawning ? false : true;
-            SpaceEvent.Sea = sea;
+            var point = Main.MouseWorld.ToTileCoordinates();
+
+            ConnectiveCellSystem.TryAddConnectiveCell(point.X, point.Y);
         }
 
         return true;
