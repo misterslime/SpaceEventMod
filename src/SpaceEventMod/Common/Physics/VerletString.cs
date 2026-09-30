@@ -11,6 +11,7 @@ using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader.IO;
+using static Daybreak.Common.Mathematics.Angle;
 using static tModPorter.ProgressUpdate;
 
 namespace SpaceEventMod.Common.Physics;
@@ -28,6 +29,7 @@ internal class VerletString
     private float _segmentLength;
     private int _numSegments;
     private float _segmentMass;
+    private Rectangle _bounds;
     private Vector2[] _positions;
     private Vector2[] _oldPositions;
     private Vector2[] _accelerations;
@@ -45,9 +47,15 @@ internal class VerletString
         _locked = new bool[numSegments];
         _numSegments = numSegments;
         _segmentMass = segmentMass;
+        _bounds = new Rectangle();
 
         var direction = startRotation.ToRotationVector2();
         var position = startPos;
+
+        float minX = 999999;
+        float minY = 999999;
+        float maxX = 0;
+        float maxY = 0;
 
         for (int i = 0; i < numSegments; i++)
         {
@@ -55,7 +63,16 @@ internal class VerletString
             _oldPositions[i] = position;
 
             position += direction * segmentLength;
+
+            minX = MathF.Min(minX, _positions[i].X);
+            minY = MathF.Min(minY, _positions[i].Y);
+
+            maxX = MathF.Max(maxX, _positions[i].X);
+            maxY = MathF.Max(maxY, _positions[i].Y);
         }
+
+
+        _bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
     }
 
     public Vector2 AnchorStart { get => _positions[0]; set => _positions[0] = value; }
@@ -143,7 +160,31 @@ internal class VerletString
             }
         }
 
-        // apply angular constraints
+        // update bounding box
+        float minX = 999999;
+        float minY = 999999;
+        float maxX = 0;
+        float maxY = 0;
+
+        for (int i = 0; i < _positions.Length; i++)
+        {
+            // update bounding box
+            minX = MathF.Min(minX, _positions[i].X);
+            minY = MathF.Min(minY, _positions[i].Y);
+
+            maxX = MathF.Max(maxX, _positions[i].X);
+            maxY = MathF.Max(maxY, _positions[i].Y);
+        }
+
+        _bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+    }
+
+    public void DrawBox(SpriteBatch spriteBatch)
+    {
+        spriteBatch.DrawLine(_bounds.TopLeft() - Main.screenPosition, _bounds.TopRight() - Main.screenPosition, Color.White, 3);
+        spriteBatch.DrawLine(_bounds.TopRight() - Main.screenPosition, _bounds.BottomRight() - Main.screenPosition, Color.White, 3);
+        spriteBatch.DrawLine(_bounds.BottomRight() - Main.screenPosition, _bounds.BottomLeft() - Main.screenPosition, Color.White, 3);
+        spriteBatch.DrawLine(_bounds.BottomLeft() - Main.screenPosition, _bounds.TopLeft() - Main.screenPosition, Color.White, 3);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

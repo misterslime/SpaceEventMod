@@ -151,8 +151,7 @@ internal class ConnectiveCellSystem : ModSystem
 
             // add rope string
             var direction = pointB.ToWorldCoordinates() - point.ToWorldCoordinates();
-            int segmentLength = 16; // 16 px bc each segment is the length of a tile.
-            //int padding = 10; // make them a lil loose;
+            int segmentLength = 24;
             int segments = (int)Math.Ceiling(direction.Length() / segmentLength);
 
             var rope = new VerletString(point.ToWorldCoordinates(), segments, segmentLength, direction.ToRotation(), 4f);
@@ -315,7 +314,7 @@ internal class ConnectiveCellSystem : ModSystem
     {
         var texture = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
 
-        var repeats = tentacle.Positions.Length * 16f / texture.Height;
+        var repeats = tentacle.Positions.Length * 24f / texture.Height;
 
         pipeline
             .DrawTrail(
