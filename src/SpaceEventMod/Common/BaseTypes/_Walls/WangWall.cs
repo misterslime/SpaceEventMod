@@ -84,8 +84,6 @@ internal abstract class WangWall : ModWall
             if (!Main.drawToScreen)
                 offset = new Vector2(Main.offScreenRange);
 
-            Main.instance.TilesRenderer.GetScreenDrawArea(Main.screenPosition, offset, out var firstTileX, out var lastTileX, out var firstTileY, out var lastTileY);
-
             Main.spriteBatch.Begin(
                         SpriteSortMode.BackToFront,
                         BlendState.AlphaBlend,
@@ -94,11 +92,6 @@ internal abstract class WangWall : ModWall
                         RasterizerState.CullNone,
                         null,
                         Main.GameViewMatrix.TransformationMatrix);
-
-            Vector2 tileDrawOffset = Vector2.Zero;
-
-            if (!Main.drawToScreen)
-                tileDrawOffset += new Vector2(Main.offScreenRange);
 
             List<(int Type, Rectangle Source, Rectangle Destination, float depthAddition)> framesRectanglesThingsToDraw = new();
 
@@ -158,7 +151,7 @@ internal abstract class WangWall : ModWall
                             botRight.WallType == wallTypes[k],
                             botLeft.WallType == wallTypes[k])];
 
-                        var target = new Rectangle((int)(i * 16 - Main.screenPosition.X + tileDrawOffset.X + 8 + rect.X * 8), (int)(j * 16 - Main.screenPosition.Y + tileDrawOffset.Y + 8 + rect.Y * 8), rect.Width * 8, rect.Height * 8);
+                        var target = new Rectangle((int)(i * 16 - Main.screenPosition.X + offset.X + 8 + rect.X * 8), (int)(j * 16 - Main.screenPosition.Y + offset.Y + 8 + rect.Y * 8), rect.Width * 8, rect.Height * 8);
 
                         sourceRect = new Rectangle(sourceRect.X + rect.X * 8, sourceRect.Y + rect.Y * 8, rect.Width * 8, rect.Height * 8);
 

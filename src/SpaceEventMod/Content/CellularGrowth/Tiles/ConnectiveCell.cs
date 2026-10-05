@@ -103,7 +103,6 @@ internal class ConnectiveCellSystem : ModSystem
             return true;
         }
 
-        Main.NewText($"Removal failed at X={i} Y={j}");
         return false;
     }
 

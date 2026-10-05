@@ -6,6 +6,7 @@ using SpaceEventMod.Common.SDFs;
 using SpaceEventMod.Common.WorldGeneration;
 using SpaceEventMod.Content.CellularGrowth.Tiles;
 using SpaceEventMod.Content.CellularGrowth.Walls;
+using SpaceEventMod.Content.Miscellaneous.Walls;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -355,7 +356,7 @@ internal class CellularGrowthPass : GenPass
             }
 
             if (air == 0)
-                WorldGen.PlaceWall(position.X, position.Y, ModContent.WallType<CosmostoneWall>());
+                WorldGen.PlaceWall(position.X, position.Y, ModContent.WallType<CosmostoneWalls1>());
         }
     }
 
@@ -416,6 +417,12 @@ internal class CellularGrowthPass : GenPass
                 // carve out cave
                 if (sample.X <= 0)
                     WorldGen.KillTile(position.X, position.Y);
+
+                if (sample.X <= -1.5f)
+                    Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls2>();
+
+                if (sample.X <= -3f)
+                    Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls3>();
             }
         });
     }
