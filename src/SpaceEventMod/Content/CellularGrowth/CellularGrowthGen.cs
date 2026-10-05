@@ -418,10 +418,10 @@ internal class CellularGrowthPass : GenPass
                 if (sample.X <= 0)
                     WorldGen.KillTile(position.X, position.Y);
 
-                if (sample.X <= -1.5f)
+                if (sample.X <= -1f)
                     Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls2>();
 
-                if (sample.X <= -3f)
+                if (sample.X <= -2.5f)
                     Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls3>();
             }
         });

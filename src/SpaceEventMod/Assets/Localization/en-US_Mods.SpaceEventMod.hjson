@@ -175,6 +175,16 @@ Items: {
 		DisplayName: Cosmostone Walls3 Item
 		Tooltip: ""
 	}
+
+	HerbCellPrototypeItem: {
+		DisplayName: Herb Cell Prototype Item
+		Tooltip: ""
+	}
+
+	HerbCellPrototype2Item: {
+		DisplayName: Herb Cell Prototype2 Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {

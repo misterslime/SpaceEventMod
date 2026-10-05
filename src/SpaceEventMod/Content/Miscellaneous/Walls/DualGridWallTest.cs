@@ -4,6 +4,25 @@ using TileHelper.Common;
 
 namespace SpaceEventMod.Content.Miscellaneous.Walls;
 
+internal class HerbCellPrototype : WangWall, ILoadItem
+{
+    public override void SetWallDefaults()
+    {
+        AddMapEntry(Color.Green);
+    }
+}
+
+internal class HerbCellPrototype2 : WangWall, ILoadItem
+{
+    protected override float Depth => 0.1f;
+
+    public override void SetWallDefaults()
+    {
+        AddMapEntry(Color.Green);
+    }
+}
+
+
 internal class CosmostoneWalls3 : WangWall, ILoadItem
 {
     protected override int Variants => 3;
