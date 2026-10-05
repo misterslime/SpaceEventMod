@@ -150,6 +150,31 @@ Items: {
 		DisplayName: Starsap Arrow
 		Tooltip: ""
 	}
+
+	DualGridWallTestItem: {
+		DisplayName: Dual Grid Wall Test Item
+		Tooltip: ""
+	}
+
+	RedWallItem: {
+		DisplayName: Red Wall Item
+		Tooltip: ""
+	}
+
+	CosmostoneWalls1Item: {
+		DisplayName: Cosmostone Walls1 Item
+		Tooltip: ""
+	}
+
+	CosmostoneWalls2Item: {
+		DisplayName: Cosmostone Walls2 Item
+		Tooltip: ""
+	}
+
+	CosmostoneWalls3Item: {
+		DisplayName: Cosmostone Walls3 Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
