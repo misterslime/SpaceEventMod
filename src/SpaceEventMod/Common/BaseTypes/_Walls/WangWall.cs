@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.GameContent.Drawing;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Common.BaseTypes;
@@ -59,7 +60,6 @@ internal abstract class WangWall : ModWall
 
     public override void SetStaticDefaults()
     {
-        s_textures.Add(Type, TextureAssets.Wall[Type]);
         s_depth.Add(Type, Depth);
         s_variants.Add(Type, Variants);
 
@@ -83,7 +83,7 @@ internal abstract class WangWall : ModWall
         if (!Main.drawToScreen)
             offset = new Vector2(Main.offScreenRange);
 
-        List<(int Type, Rectangle Source, Rectangle Destination, float depthAddition)> framesRectanglesThingsToDraw = new();
+        List<(Tile Wall, Point WallPosition, Rectangle Source, Rectangle Destination, float DepthAddition)> framesRectanglesThingsToDraw = new();
 
         for (var i = -2 + (int)Main.screenPosition.X / 16; i <= 2 + (int)(Main.screenPosition.X + Main.screenWidth) / 16; i++)
         {
@@ -94,12 +94,13 @@ internal abstract class WangWall : ModWall
 
                 int variantNumber = new Point(i, j * 2).GetHashCode();
 
-                int[] wallTypes = [Main.tile[i, j].WallType, Main.tile[i + 1, j].WallType, Main.tile[i, j + 1].WallType, Main.tile[i + 1, j + 1].WallType,];
+                Tile[] wallTypes = [Main.tile[i, j], Main.tile[i + 1, j], Main.tile[i, j + 1], Main.tile[i + 1, j + 1]];
+                Point[] wallPositions = [new Point(i, j), new Point(i + 1, j), new Point(i, j + 1), new Point(i + 1, j + 1)];
 
                 // this is genuinely bullshit ngl
                 for (int k = 0; k < wallTypes.Length; k++)
                 {
-                    if (!s_textures.ContainsKey(wallTypes[k]))
+                    if (!s_textures.ContainsKey(wallTypes[k].WallType))
                         continue;
 
                     //rectangle variable
@@ -107,28 +108,16 @@ internal abstract class WangWall : ModWall
 
                     // canexpandto will check based on width and height of rectangle
                     if (k % 2 == 1 && CanExpandRectangleLeft(k, rect, ref wallTypes)) // attempt expand left
-                    {
-                        // expand rectangle left
                         rect = new Rectangle(rect.X - 1, rect.Y, rect.Width + 1, rect.Height);
-                    }
 
                     if (k % 2 == 0 && CanExpandRectangleRight(k, rect, ref wallTypes)) // attempt expand right
-                    {
-                        // expand rectangle right
                         rect = new Rectangle(rect.X, rect.Y, rect.Width + 1, rect.Height);
-                    }
 
                     if (k - 2 >= 0 && CanExpandRectangleUp(k, rect, ref wallTypes)) // attempt expand up
-                    {
-                        // expand rectangle up
                         rect = new Rectangle(rect.X, rect.Y - 1, rect.Width, rect.Height + 1);
-                    }
 
                     if (k + 2 <= 4 && CanExpandRectangleDown(k, rect, ref wallTypes)) // attempt expand down
-                    {
-                        // expand rectangle down
                         rect = new Rectangle(rect.X, rect.Y, rect.Width, rect.Height + 1);
-                    }
 
                     var topRight = Main.tile[i + 1, j];
                     var topLeft = Main.tile[i, j];
@@ -136,26 +125,28 @@ internal abstract class WangWall : ModWall
                     var botLeft = Main.tile[i, j + 1];
 
                     var sourceRect = s_frames[(
-                        topLeft.WallType == wallTypes[k],
-                        topRight.WallType == wallTypes[k],
-                        botRight.WallType == wallTypes[k],
-                        botLeft.WallType == wallTypes[k])];
+                        topLeft.WallType == wallTypes[k].WallType,
+                        topRight.WallType == wallTypes[k].WallType,
+                        botRight.WallType == wallTypes[k].WallType,
+                        botLeft.WallType == wallTypes[k].WallType)];
 
                     var target = new Rectangle((int)(i * 16 - Main.screenPosition.X + offset.X + 8 + rect.X * 8), (int)(j * 16 - Main.screenPosition.Y + offset.Y + 8 + rect.Y * 8), rect.Width * 8, rect.Height * 8);
 
                     sourceRect = new Rectangle(sourceRect.X + rect.X * 8, sourceRect.Y + rect.Y * 8, rect.Width * 8, rect.Height * 8);
 
-                    sourceRect.X += variantNumber % s_variants[wallTypes[k]] * 72;
+                    sourceRect.X += variantNumber % s_variants[wallTypes[k].WallType] * 72;
 
-                    framesRectanglesThingsToDraw.Add((wallTypes[k], sourceRect, target, 0.01f * k));
+                    framesRectanglesThingsToDraw.Add((wallTypes[k], wallPositions[k], sourceRect, target, 0.01f * k));
                 }
 
                 if (framesRectanglesThingsToDraw.Count == 0)
                     continue;
 
-                foreach (var rect in framesRectanglesThingsToDraw)
+                foreach (var frames in framesRectanglesThingsToDraw)
                 {
-                    e.SpriteBatch.Draw(s_textures[rect.Type].Value, rect.Destination, rect.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[rect.Type] + rect.depthAddition);
+                    var texture = Main.instance.WallsRenderer.GetTileDrawTexture(frames.Wall, frames.WallPosition.X, frames.WallPosition.Y);
+
+                    e.SpriteBatch.Draw(texture, frames.Destination, frames.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[frames.Wall.WallType] + frames.DepthAddition);
                 }
                 framesRectanglesThingsToDraw.Clear();
 
@@ -163,7 +154,7 @@ internal abstract class WangWall : ModWall
         }
 
         // this is genuinely bullshit ngl
-        bool CanExpandRectangleLeft(int startIndex, Rectangle rectangle, ref int[] wallTypes)
+        bool CanExpandRectangleLeft(int startIndex, Rectangle rectangle, ref Tile[] wallTypes)
         {
             if (startIndex % 2 != 1)
                 return false;
@@ -178,7 +169,7 @@ internal abstract class WangWall : ModWall
             }
         }
 
-        bool CanExpandRectangleRight(int startIndex, Rectangle rectangle, ref int[] wallTypes)
+        bool CanExpandRectangleRight(int startIndex, Rectangle rectangle, ref Tile[] wallTypes)
         {
             if (startIndex % 2 != 0)
                 return false;
@@ -193,7 +184,7 @@ internal abstract class WangWall : ModWall
             }
         }
 
-        bool CanExpandRectangleUp(int startIndex, Rectangle rectangle, ref int[] wallTypes)
+        bool CanExpandRectangleUp(int startIndex, Rectangle rectangle, ref Tile[] wallTypes)
         {
             if (startIndex - 2 < 0)
                 return false;
@@ -208,7 +199,7 @@ internal abstract class WangWall : ModWall
             }
         }
 
-        bool CanExpandRectangleDown(int startIndex, Rectangle rectangle, ref int[] wallTypes)
+        bool CanExpandRectangleDown(int startIndex, Rectangle rectangle, ref Tile[] wallTypes)
         {
             if (startIndex + 2 >= 4)
                 return false;
@@ -223,9 +214,9 @@ internal abstract class WangWall : ModWall
             }
         }
 
-        bool CanExpandToType(int thisType, int toType)
+        bool CanExpandToType(Tile thisType, Tile toType)
         {
-            return thisType == toType || !s_textures.ContainsKey(toType) || s_depth[toType] != s_depth[thisType];
+            return thisType.WallType == toType.WallType || !s_textures.ContainsKey(toType.WallType) || s_depth[toType.WallType] != s_depth[thisType.WallType];
         }
     }
 }
