@@ -3,6 +3,7 @@ using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
+using SpaceEventMod.Common.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,111 +73,94 @@ internal abstract class WangWall : ModWall
     [OnLoad]
     internal static void LoadHook()
     {
-        On_Main.DrawBlack += On_Main_DrawBlack;
+        LightingEngine.PreDrawWalls += DrawWangDualGridWalls;
     }
 
-    private static void On_Main_DrawBlack(On_Main.orig_DrawBlack orig, Main self, bool force)
+    private static void DrawWangDualGridWalls(object? sender, DrawEventArgs e)
     {
-        using (var _ = Main.spriteBatch.Scope())
+        Vector2 offset = Vector2.Zero;
+
+        if (!Main.drawToScreen)
+            offset = new Vector2(Main.offScreenRange);
+
+        List<(int Type, Rectangle Source, Rectangle Destination, float depthAddition)> framesRectanglesThingsToDraw = new();
+
+        for (var i = -2 + (int)Main.screenPosition.X / 16; i <= 2 + (int)(Main.screenPosition.X + Main.screenWidth) / 16; i++)
         {
-            Vector2 offset = Vector2.Zero;
-
-            if (!Main.drawToScreen)
-                offset = new Vector2(Main.offScreenRange);
-
-            Main.spriteBatch.Begin(
-                        SpriteSortMode.BackToFront,
-                        BlendState.AlphaBlend,
-                        Main.DefaultSamplerState,
-                        DepthStencilState.Default,
-                        RasterizerState.CullNone,
-                        null,
-                        Main.GameViewMatrix.TransformationMatrix);
-
-            List<(int Type, Rectangle Source, Rectangle Destination, float depthAddition)> framesRectanglesThingsToDraw = new();
-
-            for (var i = -2 + (int)Main.screenPosition.X / 16; i <= 2 + (int)(Main.screenPosition.X + Main.screenWidth) / 16; i++)
+            for (var j = -2 + (int)Main.screenPosition.Y / 16; j <= 2 + (int)(Main.screenPosition.Y + Main.screenHeight) / 16; j++)
             {
-                for (var j = -2 + (int)Main.screenPosition.Y / 16; j <= 2 + (int)(Main.screenPosition.Y + Main.screenHeight) / 16; j++)
+                if (!WorldGen.InWorld(i, j))
+                    continue;
+
+                int variantNumber = new Point(i, j * 2).GetHashCode();
+
+                int[] wallTypes = [Main.tile[i, j].WallType, Main.tile[i + 1, j].WallType, Main.tile[i, j + 1].WallType, Main.tile[i + 1, j + 1].WallType,];
+
+                // this is genuinely bullshit ngl
+                for (int k = 0; k < wallTypes.Length; k++)
                 {
-                    if (!WorldGen.InWorld(i, j))
+                    if (!s_textures.ContainsKey(wallTypes[k]))
                         continue;
 
-                    int variantNumber = new Point(i, j * 2).GetHashCode();
+                    //rectangle variable
+                    Rectangle rect = new Rectangle(k % 2, (int)Math.Floor(k / 2.0), 1, 1);
 
-                    int[] wallTypes = [Main.tile[i, j].WallType, Main.tile[i + 1, j].WallType, Main.tile[i, j + 1].WallType, Main.tile[i + 1, j + 1].WallType,];
-
-                    // this is genuinely bullshit ngl
-                    for (int k = 0; k < wallTypes.Length; k++)
+                    // canexpandto will check based on width and height of rectangle
+                    if (k % 2 == 1 && CanExpandRectangleLeft(k, rect, ref wallTypes)) // attempt expand left
                     {
-                        if (!s_textures.ContainsKey(wallTypes[k]))
-                            continue;
-
-                        //rectangle variable
-                        Rectangle rect = new Rectangle(k % 2, (int)Math.Floor(k / 2.0), 1, 1);
-
-                        // canexpandto will check based on width and height of rectangle
-                        if (k % 2 == 1 && CanExpandRectangleLeft(k, rect, ref wallTypes)) // attempt expand left
-                        {
-                            // expand rectangle left
-                            rect = new Rectangle(rect.X - 1, rect.Y, rect.Width + 1, rect.Height);
-                        }
-
-                        if (k % 2 == 0 && CanExpandRectangleRight(k, rect, ref wallTypes)) // attempt expand right
-                        {
-                            // expand rectangle right
-                            rect = new Rectangle(rect.X, rect.Y, rect.Width + 1, rect.Height);
-                        }
-
-                        if (k - 2 >= 0 && CanExpandRectangleUp(k, rect, ref wallTypes)) // attempt expand up
-                        {
-                            // expand rectangle up
-                            rect = new Rectangle(rect.X, rect.Y - 1, rect.Width, rect.Height + 1);
-                        }
-
-                        if (k + 2 <= 4 && CanExpandRectangleDown(k, rect, ref wallTypes)) // attempt expand down
-                        {
-                            // expand rectangle down
-                            rect = new Rectangle(rect.X, rect.Y, rect.Width, rect.Height + 1);
-                        }
-
-                        var topRight = Main.tile[i + 1, j];
-                        var topLeft = Main.tile[i, j];
-                        var botRight = Main.tile[i + 1, j + 1];
-                        var botLeft = Main.tile[i, j + 1];
-
-                        var sourceRect = s_frames[(
-                            topLeft.WallType == wallTypes[k],
-                            topRight.WallType == wallTypes[k],
-                            botRight.WallType == wallTypes[k],
-                            botLeft.WallType == wallTypes[k])];
-
-                        var target = new Rectangle((int)(i * 16 - Main.screenPosition.X + offset.X + 8 + rect.X * 8), (int)(j * 16 - Main.screenPosition.Y + offset.Y + 8 + rect.Y * 8), rect.Width * 8, rect.Height * 8);
-
-                        sourceRect = new Rectangle(sourceRect.X + rect.X * 8, sourceRect.Y + rect.Y * 8, rect.Width * 8, rect.Height * 8);
-
-                        sourceRect.X += variantNumber % s_variants[wallTypes[k]] * 72;
-
-                        framesRectanglesThingsToDraw.Add((wallTypes[k], sourceRect, target, 0.01f * k));
+                        // expand rectangle left
+                        rect = new Rectangle(rect.X - 1, rect.Y, rect.Width + 1, rect.Height);
                     }
 
-                    if (framesRectanglesThingsToDraw.Count == 0)
-                        continue;
-
-                    foreach (var rect in framesRectanglesThingsToDraw)
+                    if (k % 2 == 0 && CanExpandRectangleRight(k, rect, ref wallTypes)) // attempt expand right
                     {
-                        Main.spriteBatch.Draw(s_textures[rect.Type].Value, rect.Destination, rect.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[rect.Type] + rect.depthAddition);
+                        // expand rectangle right
+                        rect = new Rectangle(rect.X, rect.Y, rect.Width + 1, rect.Height);
                     }
-                    framesRectanglesThingsToDraw.Clear();
 
+                    if (k - 2 >= 0 && CanExpandRectangleUp(k, rect, ref wallTypes)) // attempt expand up
+                    {
+                        // expand rectangle up
+                        rect = new Rectangle(rect.X, rect.Y - 1, rect.Width, rect.Height + 1);
+                    }
+
+                    if (k + 2 <= 4 && CanExpandRectangleDown(k, rect, ref wallTypes)) // attempt expand down
+                    {
+                        // expand rectangle down
+                        rect = new Rectangle(rect.X, rect.Y, rect.Width, rect.Height + 1);
+                    }
+
+                    var topRight = Main.tile[i + 1, j];
+                    var topLeft = Main.tile[i, j];
+                    var botRight = Main.tile[i + 1, j + 1];
+                    var botLeft = Main.tile[i, j + 1];
+
+                    var sourceRect = s_frames[(
+                        topLeft.WallType == wallTypes[k],
+                        topRight.WallType == wallTypes[k],
+                        botRight.WallType == wallTypes[k],
+                        botLeft.WallType == wallTypes[k])];
+
+                    var target = new Rectangle((int)(i * 16 - Main.screenPosition.X + offset.X + 8 + rect.X * 8), (int)(j * 16 - Main.screenPosition.Y + offset.Y + 8 + rect.Y * 8), rect.Width * 8, rect.Height * 8);
+
+                    sourceRect = new Rectangle(sourceRect.X + rect.X * 8, sourceRect.Y + rect.Y * 8, rect.Width * 8, rect.Height * 8);
+
+                    sourceRect.X += variantNumber % s_variants[wallTypes[k]] * 72;
+
+                    framesRectanglesThingsToDraw.Add((wallTypes[k], sourceRect, target, 0.01f * k));
                 }
+
+                if (framesRectanglesThingsToDraw.Count == 0)
+                    continue;
+
+                foreach (var rect in framesRectanglesThingsToDraw)
+                {
+                    e.SpriteBatch.Draw(s_textures[rect.Type].Value, rect.Destination, rect.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[rect.Type] + rect.depthAddition);
+                }
+                framesRectanglesThingsToDraw.Clear();
+
             }
-
-            Main.spriteBatch.End();
         }
-
-
-        orig(self, force);
 
         // this is genuinely bullshit ngl
         bool CanExpandRectangleLeft(int startIndex, Rectangle rectangle, ref int[] wallTypes)

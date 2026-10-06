@@ -23,12 +23,13 @@ internal class ForegroundOcclusion : ModSystem
     [OnLoad]
     public static void Load() 
     { 
-        On_Main.DrawInfernoRings += On_Main_DrawInfernoRings;
-        On_TileLightScanner.ExportTo += On_TileLightScanner_ExportTo;
+        //On_Main.DrawInfernoRings += On_Main_DrawInfernoRings;
+        //On_TileLightScanner.ExportTo += On_TileLightScanner_ExportTo;
     }
 
     public override void PostUpdatePlayers()
     {
+        return;
         var player = Main.LocalPlayer;
         var point = player.Center.ToTileCoordinates();
         var tile = Main.tile[point];

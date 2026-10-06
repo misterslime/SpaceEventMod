@@ -38,7 +38,8 @@ internal class ConnectiveCellSystem : ModSystem
 
     public override void Load()
     {
-        On_Main.DoDraw_WallsAndBlacks += On_Main_DoDraw_WallsAndBlacks;
+        LightingEngine.PreTilesPostWalls += RenderConnectiveCells;
+
         On_Collision.SlopeCollision += On_Collision_SlopeCollision;
     }
 
@@ -226,10 +227,8 @@ internal class ConnectiveCellSystem : ModSystem
     #endregion
 
     #region Rendering
-    private void On_Main_DoDraw_WallsAndBlacks(On_Main.orig_DoDraw_WallsAndBlacks orig, Main self)
+    private void RenderConnectiveCells(object? sender, DrawEventArgs e)
     {
-        orig(self);
-
         if (s_cells.Count == 0 && s_connectionMap.Count == 0 && s_despawningRopes.Count == 0)
             return;
 
@@ -273,11 +272,6 @@ internal class ConnectiveCellSystem : ModSystem
 
         pipeline.Flush();
 
-
-        using var _ = Main.spriteBatch.Scope();
-
-        Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
-
         // draw unconnected cells
         foreach (var cell in s_cells) 
         {
@@ -286,7 +280,7 @@ internal class ConnectiveCellSystem : ModSystem
 
             var frame = texture.Frame(3, 1, (cell.X + cell.Y) % 3, 0);
 
-            Main.spriteBatch.Draw(texture, cell.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+            e.SpriteBatch.Draw(texture, cell.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
         }
 
         // draw connected cells
@@ -299,14 +293,12 @@ internal class ConnectiveCellSystem : ModSystem
 
             var frame = texture.Frame(3, 1, (pointA.X + pointA.Y) % 3, 0);
 
-            Main.spriteBatch.Draw(texture, pointA.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+            e.SpriteBatch.Draw(texture, pointA.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
 
             frame = texture.Frame(3, 1, (pointB.X + pointB.Y) % 3, 0);
 
-            Main.spriteBatch.Draw(texture, pointB.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+            e.SpriteBatch.Draw(texture, pointB.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
         }
-
-        Main.spriteBatch.End();
     }
 
     private void DrawRope(in Pipeline pipeline, VerletString tentacle, Color drawColor, in Rectangle[] cellTissueFrames)
