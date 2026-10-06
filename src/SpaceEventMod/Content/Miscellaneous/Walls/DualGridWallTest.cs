@@ -4,6 +4,26 @@ using TileHelper.Common;
 
 namespace SpaceEventMod.Content.Miscellaneous.Walls;
 
+internal class HydratedJellyCell : WangWall, ILoadItem
+{
+    public override void SetWallDefaults()
+    {
+        AddMapEntry(Color.Green);
+    }
+}
+
+internal class HydratedJellyCell2 : WangWall, ILoadItem
+{
+    protected override float Depth => 0.05f;
+
+    public override string Texture => "SpaceEventMod/Assets/Textures/Miscellaneous/Walls/HydratedJellyCell";
+
+    public override void SetWallDefaults()
+    {
+        AddMapEntry(Color.Green);
+    }
+}
+
 internal class HerbCellPrototype : WangWall, ILoadItem
 {
     public override void SetWallDefaults()

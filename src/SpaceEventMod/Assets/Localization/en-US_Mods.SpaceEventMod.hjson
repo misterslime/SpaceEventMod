@@ -185,6 +185,16 @@ Items: {
 		DisplayName: Herb Cell Prototype2 Item
 		Tooltip: ""
 	}
+
+	HydratedJellyCellItem: {
+		DisplayName: Hydrated Jelly Cell Item
+		Tooltip: ""
+	}
+
+	HydratedJellyCell2Item: {
+		DisplayName: Hydrated Jelly Cell2 Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
