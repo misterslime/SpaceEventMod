@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Tweening;
 using System;
 using Terraria;
@@ -10,14 +11,12 @@ namespace SpaceEventMod.Content.Space.LevelElements;
 [Autoload(Side = ModSide.Client)]
 public class StarDrawing : ILoadable
 {
-    public void Load(Mod mod) => On_Main.DrawDust += DrawStars;
+    public void Load(Mod mod) => LightingEngine.AfterDusts += DrawStars;
 
-    public void Unload() => On_Main.DrawDust -= DrawStars;
+    public void Unload() => LightingEngine.AfterDusts -= DrawStars;
 
-    private void DrawStars(On_Main.orig_DrawDust orig, Main self)
+    private void DrawStars(object? sender, DrawEventArgs e)
     {
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
-
         for (var i = 0; i < Stars.List.Count; i++)
         {
             var star = Stars.List[i];
@@ -32,11 +31,7 @@ public class StarDrawing : ILoadable
 
             var shakeVector = MathF.Sin(Main.GameUpdateCount) * 2f * (star.ShakeTime / 20f) * star.ShakeDirection;
 
-            Main.EntitySpriteDraw(texture, drawPosition + star.SpriteDisplacement + shakeVector, star.Frame, drawColor, star.Rotation, origin, 1f, star.Effects);
+            e.SpriteBatch.Draw(texture, drawPosition + star.SpriteDisplacement + shakeVector, star.Frame, drawColor, star.Rotation, origin, 1f, star.Effects, 0.5f);
         }
-
-        Main.spriteBatch.End();
-
-        orig(self);
     }
 }

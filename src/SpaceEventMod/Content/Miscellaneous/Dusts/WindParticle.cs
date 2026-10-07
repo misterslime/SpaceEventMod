@@ -99,42 +99,64 @@ internal class WindParticle : ModDust
         return newData;
     }
 
-    public override bool PreDraw(Dust dust)
+    #region Rendering
+    public override bool PreDraw(Dust dust) => false;
+
+
+    public override void Load()
     {
-        if (dust.customData == null || dust.customData is not WindParticleData data)
-        {
-            return false;
-        }
-
-        var projectile = Main.projectile[data.Projectile];
-
-        var lerpAmount = 0.03f + MathF.Sin(Main.GlobalTimeWrappedHourly * 8) * 0.03f;
-
-        var positions = from position in data.OldPositions
-                        where !Equals(position, default(Vector2))
-                        select MapPosition(position, dust, projectile, lerpAmount);
-
-        if (positions.Count() < 2)
-            return false;
-
-        var trailPoints = new List<Vector2>();
-
-        ReadOnlySpan<Vector2> controlPoints = positions.ToArray();
-        using (var curve = new BezierCurve(controlPoints))
-            trailPoints = curve.GetPoints(30);
-
-        Graphics.BeginPipeline()
-            .DrawBasicTrail(
-                trailPoints.ToArray(),
-                progress => /*MathF.Sin(progress * MathHelper.Pi)*/ (0.5f + 0.5f * (1 - progress)) * data.Width,
-                Assets.Textures.WhitePixel.Asset.Value,
-                progress => Color.Lerp(dust.color, data.SecondColor, progress) * (1 - progress) * MathF.Sin(progress * MathHelper.Pi))
-            .Schedule(RenderLayer.AfterPlayers);
-
-        return false;
+        LightingEngine.AfterDusts += DrawWindParticles;
     }
 
-    private Vector2 MapPosition(Vector2 position, Dust dust, Projectile projectile, float lerpAmount)
+    public override void Unload()
+    {
+        LightingEngine.AfterDusts -= DrawWindParticles;
+    }
+
+    private static void DrawWindParticles(object? sender, DrawEventArgs e)
+    {
+        if (!Main.dust.Where(d => d.type == ModContent.DustType<WindParticle>()).Any())
+            return;
+
+        var pipeline = Graphics.BeginPipeline();
+
+        foreach (var dust in Main.dust)
+        {
+            if (!dust.active)
+                continue;
+
+            if (dust.customData == null || dust.customData is not WindParticleData data)
+                continue;
+
+            var projectile = Main.projectile[data.Projectile];
+
+            var lerpAmount = 0.03f + MathF.Sin(Main.GlobalTimeWrappedHourly * 8) * 0.03f;
+
+            var positions = from position in data.OldPositions
+                            where !Equals(position, default(Vector2))
+                            select MapPosition(position, dust, projectile, lerpAmount);
+
+            if (positions.Count() < 2)
+                continue;
+
+            var trailPoints = new List<Vector2>();
+
+            ReadOnlySpan<Vector2> controlPoints = positions.ToArray();
+            using (var curve = new BezierCurve(controlPoints))
+                trailPoints = curve.GetPoints(30);
+
+            pipeline
+                .DrawBasicTrail(
+                    trailPoints.ToArray(),
+                    progress => /*MathF.Sin(progress * MathHelper.Pi)*/ (0.5f + 0.5f * (1 - progress)) * data.Width,
+                    Assets.Textures.WhitePixel.Asset.Value,
+                    progress => Color.Lerp(dust.color, data.SecondColor, progress) * (1 - progress) * MathF.Sin(progress * MathHelper.Pi));
+        }
+
+        pipeline.Flush();
+    }
+
+    private static Vector2 MapPosition(Vector2 position, Dust dust, Projectile projectile, float lerpAmount)
     {
         var rotation = projectile.rotation;
 
@@ -151,4 +173,5 @@ internal class WindParticle : ModDust
 
         return position;
     }
+    #endregion
 }

@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Tweening;
 using System;
 using Terraria;
@@ -10,16 +11,12 @@ namespace SpaceEventMod.Content.Space.LevelElements;
 [Autoload(Side = ModSide.Client)]
 public class AsteroidDrawing : ILoadable
 {
-    public void Load(Mod mod) => On_Main.DrawDust += DrawAsteroids;
+    public void Load(Mod mod) => LightingEngine.AfterDusts += DrawAsteroids;
 
-    public void Unload() => On_Main.DrawDust -= DrawAsteroids;
+    public void Unload() => LightingEngine.AfterDusts -= DrawAsteroids;
 
-    private void DrawAsteroids(On_Main.orig_DrawDust orig, Main self)
+    private void DrawAsteroids(object? sender, DrawEventArgs e)
     {
-        orig(self);
-
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
-
         for (var i = 0; i < Asteroids.List.Count; i++)
         {
             var asteroid = Asteroids.List[i];
@@ -35,10 +32,8 @@ public class AsteroidDrawing : ILoadable
 
             var shakeVector = MathF.Sin(Main.GameUpdateCount) * 2f * (asteroid.ShakeTime / 20f) * asteroid.ShakeDirection;
 
-            Main.EntitySpriteDraw(texture, drawPosition + asteroid.SpriteDisplacement + shakeVector, texture.Frame(), drawColor, 0f, origin, 1f, asteroid.Effects);
+            e.SpriteBatch.Draw(texture, drawPosition + asteroid.SpriteDisplacement + shakeVector, texture.Frame(), drawColor, 0f, origin, 1f, asteroid.Effects, 1f);
         }
-
-        Main.spriteBatch.End();
     }
 
     private Texture2D GetVariantTexture(int variant)

@@ -39,9 +39,14 @@ internal class ConnectiveCellSystem : ModSystem
 
     public override void Load()
     {
-        LightingEngine.PreTilesPostWalls += RenderConnectiveCells;
+        LightingEngine.AfterWalls += RenderConnectiveCells;
 
         On_Collision.SlopeCollision += On_Collision_SlopeCollision;
+    }
+
+    public override void Unload()
+    {
+        LightingEngine.AfterWalls -= RenderConnectiveCells;
     }
 
     /// <summary>

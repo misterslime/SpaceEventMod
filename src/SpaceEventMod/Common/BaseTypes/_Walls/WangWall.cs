@@ -71,7 +71,13 @@ internal abstract class WangWall : ModWall
     [OnLoad]
     internal static void LoadHook()
     {
-        LightingEngine.PreDrawWalls += DrawWangDualGridWalls;
+        LightingEngine.BeforeWalls += DrawWangDualGridWalls;
+    }
+
+    [OnUnload]
+    internal static void UnloadHook()
+    {
+        LightingEngine.BeforeWalls -= DrawWangDualGridWalls;
     }
 
     private static void DrawWangDualGridWalls(object? sender, DrawEventArgs e)

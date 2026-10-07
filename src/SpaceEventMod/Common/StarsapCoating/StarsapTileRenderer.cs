@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Common.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,17 +14,12 @@ namespace SpaceEventMod.Common.StarsapCoating;
 [Autoload(Side = ModSide.Client)]
 public class StarsapTileRenderer : ILoadable
 {
-    public void Load(Mod mod) => On_Main.DrawInfernoRings += DrawStarsap;
+    public void Load(Mod mod) => LightingEngine.AfterTiles += DrawStarsap;
 
-    public void Unload() => On_Main.DrawInfernoRings -= DrawStarsap;
+    public void Unload() => LightingEngine.AfterTiles -= DrawStarsap;
 
-    private void DrawStarsap(On_Main.orig_DrawInfernoRings orig, Main self)
+    private void DrawStarsap(object? sender, DrawEventArgs e)
     {
-        orig(self);
-
-        Main.spriteBatch.End();
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
-
         for (var i = -2 + (int)Main.screenPosition.X / 16; i <= 2 + (int)(Main.screenPosition.X + Main.screenWidth) / 16; i++)
         {
             for (var j = -2 + (int)Main.screenPosition.Y / 16; j <= 2 + (int)(Main.screenPosition.Y + Main.screenHeight) / 16; j++)
@@ -38,13 +34,10 @@ public class StarsapTileRenderer : ILoadable
                         var target = new Rectangle((int)(i * 16 - Main.screenPosition.X), (int)(j * 16 - Main.screenPosition.Y), 16, 16);
                         var tex = Assets.Textures.WhitePixel.Asset.Value;
 
-                        Main.spriteBatch.Draw(tex, target, null, Color.Magenta);
+                        e.SpriteBatch.Draw(tex, target, null, Color.Magenta);
                     }
                 }
             }
         }
-
-        Main.spriteBatch.End();
-        Main.spriteBatch.Begin();
     }
 }
