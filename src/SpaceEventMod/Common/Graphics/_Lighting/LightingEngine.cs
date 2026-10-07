@@ -55,16 +55,17 @@ internal class LightingEngine
     private static void On_Main_DoDraw_WallsAndBlacks(On_Main.orig_DoDraw_WallsAndBlacks orig, Main self)
     {
         orig(self);
-        CallDraw(PreTilesPostWalls);
+        CallDraw(PreTilesPostWalls, Vector2.Zero);
     }
 
     private static void On_Main_DrawBlack(On_Main.orig_DrawBlack orig, Main self, bool force)
     {
-        CallDraw(PreDrawWalls);
         orig(self, force);
+        CallDraw(PreDrawWalls, !Main.drawToScreen ? - new Vector2(Main.offScreenRange) : Vector2.Zero);
+
     }
 
-    private static void CallDraw(EventHandler<DrawEventArgs> drawEvent)
+    private static void CallDraw(EventHandler<DrawEventArgs> drawEvent, Vector2 lightDisplacement)
     {
         using var _ = Main.spriteBatch.Scope();
 
@@ -86,6 +87,7 @@ internal class LightingEngine
 
         var effect = Assets.Shaders.Fragment.LightingBuffer.CreateLightedTargetPass();
         effect.Parameters.LightingBuffer = LightingBuffer.ScreenLightmap.Target;
+        effect.Parameters.ScreenDisplacement = new Vector2(lightDisplacement.X / Buffers.Instance.ExtraDrawStuffBuffer.Target.Width, lightDisplacement.Y / Buffers.Instance.ExtraDrawStuffBuffer.Target.Height * Main.LocalPlayer.gravDir);
         effect.Apply();
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, null, Main.Rasterizer, effect.Shader, Main.GameViewMatrix.TransformationMatrix);

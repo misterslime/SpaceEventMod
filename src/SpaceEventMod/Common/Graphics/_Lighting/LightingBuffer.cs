@@ -10,7 +10,8 @@ using Terraria.ModLoader;
 namespace SpaceEventMod.Common.Graphics;
 
 /// <summary>
-/// Creates a render target that holds information about terraria's lighting colors for rendering purposes.
+/// Creates a render target that holds information about terraria's lighting colors for rendering purposes. 
+/// Borrowed with permission from https://github.com/energykid/Everware/blob/0.2.6/Common/Systems/LightmapSystem.cs.
 /// </summary>
 internal class LightingBuffer : ModSystem
 {

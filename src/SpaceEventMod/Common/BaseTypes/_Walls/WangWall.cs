@@ -83,6 +83,8 @@ internal abstract class WangWall : ModWall
 
         List<(Tile Wall, Point WallPosition, Rectangle Source, Rectangle Destination, float DepthAddition)> framesRectanglesThingsToDraw = new();
 
+        int draws = 0;
+
         for (var i = -2 + (int)Main.screenPosition.X / 16; i <= 2 + (int)(Main.screenPosition.X + Main.screenWidth) / 16; i++)
         {
             for (var j = -2 + (int)Main.screenPosition.Y / 16; j <= 2 + (int)(Main.screenPosition.Y + Main.screenHeight) / 16; j++)
@@ -98,7 +100,7 @@ internal abstract class WangWall : ModWall
                 // this is genuinely bullshit ngl
                 for (int k = 0; k < wallTypes.Length; k++)
                 {
-                    if (!s_textures.ContainsKey(wallTypes[k].WallType))
+                    if (!s_depth.ContainsKey(wallTypes[k].WallType))
                         continue;
 
                     //rectangle variable
@@ -135,6 +137,7 @@ internal abstract class WangWall : ModWall
                     sourceRect.X += variantNumber % s_variants[wallTypes[k].WallType] * 72;
 
                     framesRectanglesThingsToDraw.Add((wallTypes[k], wallPositions[k], sourceRect, target, 0.01f * k));
+                    draws++;
                 }
 
                 if (framesRectanglesThingsToDraw.Count == 0)
@@ -145,11 +148,14 @@ internal abstract class WangWall : ModWall
                     var texture = Main.instance.WallsRenderer.GetTileDrawTexture(frames.Wall, frames.WallPosition.X, frames.WallPosition.Y);
 
                     e.SpriteBatch.Draw(texture, frames.Destination, frames.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[frames.Wall.WallType] + frames.DepthAddition);
+
                 }
                 framesRectanglesThingsToDraw.Clear();
 
             }
         }
+
+        Main.NewText(draws);
 
         // this is genuinely bullshit ngl
         bool CanExpandRectangleLeft(int startIndex, Rectangle rectangle, ref Tile[] wallTypes)

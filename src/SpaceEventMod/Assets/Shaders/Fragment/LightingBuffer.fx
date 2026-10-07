@@ -1,5 +1,7 @@
 sampler uImage0 : register(s0);
 
+float2 ScreenDisplacement;
+
 texture LightingBuffer;
 sampler2D LightingBufferSampler = sampler_state
 {
@@ -17,7 +19,7 @@ struct PixelShaderInput
 
 float4 PixelShaderFunction(PixelShaderInput input) : COLOR0
 {
-    float4 light = tex2D(LightingBufferSampler, input.TextureCoordinates);
+    float4 light = tex2D(LightingBufferSampler, input.TextureCoordinates + ScreenDisplacement);
     float4 color = tex2D(uImage0, input.TextureCoordinates);
     
     return color * light * input.Color;
