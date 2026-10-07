@@ -23,26 +23,7 @@ internal class DrawEventArgs(SpriteBatch spriteBatch, RenderTarget2D lightBuffer
 /// </summary>
 internal class LightingEngine
 {
-    private class Buffers : IStatic<Buffers>
-    {
-        public required RenderTargetLease ExtraDrawStuffBuffer { get; init; }
-
-        public static Buffers LoadData(Mod mod)
-        {
-            return Main.RunOnMainThread(() => new Buffers
-            {
-                ExtraDrawStuffBuffer = ScreenspaceTargetPool.Shared.Rent(Main.graphics.GraphicsDevice, (w, h, offW, offH) => (offW, offH))
-            }).GetAwaiter().GetResult();
-        }
-
-        public static void UnloadData(Buffers data)
-        {
-            Main.RunOnMainThread(() =>
-            {
-                data.ExtraDrawStuffBuffer.Dispose();
-            });
-        }
-    }
+    private static RenderTargetLease ExtraDrawStuffBuffer;
 
     public static event EventHandler<DrawEventArgs> BeforeWalls;
     public static event EventHandler<DrawEventArgs> AfterWalls;
@@ -63,6 +44,20 @@ internal class LightingEngine
         On_Main.DrawBlack += On_Main_DrawBlack;
         On_Main.DrawDust += On_Main_DrawDust;
         On_Main.DrawNPCs += On_Main_DrawNPCs;
+
+        Main.RunOnMainThread(() =>
+        {
+            ExtraDrawStuffBuffer = ScreenspaceTargetPool.Shared.Rent(Main.graphics.GraphicsDevice, (w, h, offW, offH) => (offW, offH));
+        });
+    }
+
+    [OnUnload]
+    internal static void UnloadSystem()
+    {
+        Main.RunOnMainThread(() =>
+        {
+            ExtraDrawStuffBuffer?.Dispose();
+        });
     }
 
     private static void On_Main_DoDraw_WallsAndBlacks(On_Main.orig_DoDraw_WallsAndBlacks orig, Main self)
@@ -106,7 +101,7 @@ internal class LightingEngine
 
         using var _ = Main.spriteBatch.Scope();
 
-        using (Buffers.Instance.ExtraDrawStuffBuffer.Scope(clearColor: Color.Transparent))
+        using (ExtraDrawStuffBuffer.Scope(clearColor: Color.Transparent))
         {
             Main.spriteBatch.Begin(
                         SpriteSortMode.BackToFront,
@@ -124,11 +119,11 @@ internal class LightingEngine
 
         var effect = Assets.Shaders.Fragment.LightingBuffer.CreateLightedTargetPass();
         effect.Parameters.LightingBuffer = LightingBuffer.ScreenLightmap.Target;
-        effect.Parameters.ScreenDisplacement = new Vector2(lightDisplacement.X / Buffers.Instance.ExtraDrawStuffBuffer.Target.Width, lightDisplacement.Y / Buffers.Instance.ExtraDrawStuffBuffer.Target.Height * Main.LocalPlayer.gravDir);
+        effect.Parameters.ScreenDisplacement = new Vector2(lightDisplacement.X / ExtraDrawStuffBuffer.Target.Width, lightDisplacement.Y / ExtraDrawStuffBuffer.Target.Height * Main.LocalPlayer.gravDir);
         effect.Apply();
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, null, Main.Rasterizer, effect.Shader, Main.GameViewMatrix.TransformationMatrix);
-        Main.spriteBatch.Draw(Buffers.Instance.ExtraDrawStuffBuffer.Target, Vector2.Zero, Buffers.Instance.ExtraDrawStuffBuffer.Target.Bounds, Color.White, 0f, Vector2.Zero, 1f, Main.GameViewMatrix.Effects, 0f);
+        Main.spriteBatch.Draw(ExtraDrawStuffBuffer.Target, Vector2.Zero, ExtraDrawStuffBuffer.Target.Bounds, Color.White, 0f, Vector2.Zero, 1f, Main.GameViewMatrix.Effects, 0f);
         Main.spriteBatch.End();
     }
 }
