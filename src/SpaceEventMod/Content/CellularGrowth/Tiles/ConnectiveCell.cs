@@ -1,6 +1,7 @@
 using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
 using SpaceEventMod.Common.DataStructures;
 using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Physics;
@@ -8,7 +9,6 @@ using SpaceEventMod.Content.Space;
 using SpaceEventMod.Content.Space.LevelElements;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.Graphics.Renderers;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -227,10 +228,14 @@ internal class ConnectiveCellSystem : ModSystem
     #endregion
 
     #region Rendering
+    private readonly MiscPaintSystem _ropePaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset);
+    private readonly MiscPaintSystem _cellPaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.Tiles.ConnectiveCellTissue.Asset);
+
     private void RenderConnectiveCells(object? sender, DrawEventArgs e)
     {
         if (s_cells.Count == 0 && s_connectionMap.Count == 0 && s_despawningRopes.Count == 0)
             return;
+
 
         var player = Main.LocalPlayer;
         var texture = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellTissue.Asset.Value;
@@ -250,7 +255,8 @@ internal class ConnectiveCellSystem : ModSystem
 
         foreach (var (TimeLeft, Rope) in s_despawningRopes)
         {
-            DrawRope(in pipeline, Rope, Color.White * (TimeLeft / 120f), in cellTissueFrames);
+            var smallTissue = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+            DrawSingleConnectedRope(in pipeline, smallTissue, Rope, Color.White * (TimeLeft / 120f));
         }
 
         // draw ropes
@@ -259,15 +265,56 @@ internal class ConnectiveCellSystem : ModSystem
             if (alreadyDrawn.Contains(rope.Key))
                 continue;
 
-            DrawRope(in pipeline, rope.Value.Rope, Color.White, in cellTissueFrames);
 
             if (s_connectionMap.ContainsKey(rope.Key))
             {
                 var pointB = s_connectionMap[rope.Key];
+
                 alreadyDrawn.Add(pointB);
+                alreadyDrawn.Add(rope.Key);
+
+                Texture2D? paint1Texture = null;
+                Texture2D? paint2Texture = null;
+
+                if (!Main.tile[rope.Key].IsTileInvisible)
+                {
+                    int paint1Color = rope.Value.IsStart ? Main.tile[rope.Key].TileColor : Main.tile[pointB].TileColor;
+                    _ropePaintCache.TryGetPaintTexture(paint1Color, out paint1Texture);
+                }
+                else
+                {
+                    paint1Texture = Assets.Textures.EmptyPixel.Asset.Value;
+                }
+
+                if (!Main.tile[pointB].IsTileInvisible)
+                {
+
+                    int paint2Color = rope.Value.IsStart ? Main.tile[pointB].TileColor : Main.tile[rope.Key].TileColor;
+                    _ropePaintCache.TryGetPaintTexture(paint2Color, out paint2Texture);
+                }
+                else
+                {
+                    paint2Texture = Assets.Textures.EmptyPixel.Asset.Value;
+                }
+
+
+                paint1Texture ??= Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+                paint2Texture ??= Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+
+                DrawDoubleConnectedRope(in pipeline, paint1Texture, paint2Texture, rope.Value.Rope, Color.White);
+
+                continue;
             }
 
+            if (Main.tile[rope.Key].IsTileInvisible)
+                continue;
+
             alreadyDrawn.Add(rope.Key);
+
+            Texture2D? paintTexture = null;
+            _ropePaintCache.TryGetPaintTexture(Main.tile[rope.Key].TileColor, out paintTexture);
+            paintTexture ??= Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+            DrawSingleConnectedRope(in pipeline, paintTexture, rope.Value.Rope, Color.White);
         }
 
         pipeline.Flush();
@@ -275,12 +322,21 @@ internal class ConnectiveCellSystem : ModSystem
         // draw unconnected cells
         foreach (var cell in s_cells) 
         {
+            if (Main.tile[cell].IsTileInvisible)
+                continue;
+
             if ((cell.ToWorldCoordinates() - player.Center).Length() >= 1000f)
                 continue;
 
             var frame = texture.Frame(3, 1, (cell.X + cell.Y) % 3, 0);
 
-            e.SpriteBatch.Draw(texture, cell.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+            Texture2D? paintTexture = null;
+
+            _cellPaintCache.TryGetPaintTexture(Main.tile[cell].TileColor, out paintTexture);
+
+            paintTexture ??= texture;
+
+            e.SpriteBatch.Draw(paintTexture, cell.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
         }
 
         // draw connected cells
@@ -291,26 +347,58 @@ internal class ConnectiveCellSystem : ModSystem
 
             //Main.spriteBatch.DrawLine(pointA.ToWorldCoordinates() - Main.screenPosition, pointB.ToWorldCoordinates() - Main.screenPosition, Color.Yellow, 4);
 
-            var frame = texture.Frame(3, 1, (pointA.X + pointA.Y) % 3, 0);
+            if (!Main.tile[pointA].IsTileInvisible)
+            {
+                Texture2D? paintTexture = null;
+                _cellPaintCache.TryGetPaintTexture(Main.tile[pointA].TileColor, out paintTexture);
+                paintTexture ??= texture;
 
-            e.SpriteBatch.Draw(texture, pointA.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+                var frame = texture.Frame(3, 1, (pointA.X + pointA.Y) % 3, 0);
 
-            frame = texture.Frame(3, 1, (pointB.X + pointB.Y) % 3, 0);
+                e.SpriteBatch.Draw(paintTexture, pointA.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
 
-            e.SpriteBatch.Draw(texture, pointB.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+            }
+
+            if (!Main.tile[pointB].IsTileInvisible)
+            {
+                Texture2D? paintTexture = null;
+                _cellPaintCache.TryGetPaintTexture(Main.tile[pointB].TileColor, out paintTexture);
+                paintTexture ??= texture;
+
+                var frame = texture.Frame(3, 1, (pointB.X + pointB.Y) % 3, 0);
+
+                e.SpriteBatch.Draw(paintTexture, pointB.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+            }
         }
     }
 
-    private void DrawRope(in Pipeline pipeline, VerletString tentacle, Color drawColor, in Rectangle[] cellTissueFrames)
+    private void DrawDoubleConnectedRope(in Pipeline pipeline, Texture2D texture1, Texture2D texture2, VerletString tentacle, Color drawColor)
     {
-        var texture = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
-
-        var repeats = tentacle.Positions.Length * 24f / texture.Height;
+        var tex = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+        var repeats = tentacle.Positions.Length * 24f / tex.Height;
 
         pipeline
             .DrawTrail(
                 tentacle.Positions,
-                _ => texture.Width,
+                _ => tex.Width,
+                a => Color.Lerp(Color.Black, Color.Red, a),
+                Assets.Shaders.Trail.ConnectiveCellPainted.Asset.Value,
+                ("transformMatrix", Graphics.WorldTransformMatrix),
+                ("paint1Texture", texture1),
+                ("paint2Texture", texture2),
+                ("repeats", repeats),
+                ("spriteRotation", 1));
+    }
+
+    private void DrawSingleConnectedRope(in Pipeline pipeline, Texture2D texture, VerletString tentacle, Color drawColor)
+    {
+        var tex = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+        var repeats = tentacle.Positions.Length * 24f / tex.Height;
+
+        pipeline
+            .DrawTrail(
+                tentacle.Positions,
+                _ => tex.Width,
                 _ => drawColor,
                 Assets.Shaders.Trail.RepeatingTexture.Asset.Value,
                 ("transformMatrix", Graphics.WorldTransformMatrix),

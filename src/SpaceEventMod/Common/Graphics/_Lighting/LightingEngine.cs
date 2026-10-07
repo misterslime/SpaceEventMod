@@ -79,13 +79,13 @@ internal class LightingEngine
                         null,
                         Main.GameViewMatrix.TransformationMatrix);
 
-            drawEvent?.Invoke(null, new DrawEventArgs(Main.spriteBatch, LightingBuffer.ScreenLightBuffer));
+            drawEvent?.Invoke(null, new DrawEventArgs(Main.spriteBatch, LightingBuffer.ScreenLightmap.Target));
 
             Main.spriteBatch.End();
         }
 
         var effect = Assets.Shaders.Fragment.LightingBuffer.CreateLightedTargetPass();
-        effect.Parameters.LightingBuffer = LightingBuffer.ScreenLightBuffer;
+        effect.Parameters.LightingBuffer = LightingBuffer.ScreenLightmap.Target;
         effect.Apply();
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, null, Main.Rasterizer, effect.Shader, Main.GameViewMatrix.TransformationMatrix);
