@@ -40,8 +40,6 @@ internal class ConnectiveCellSystem : ModSystem
     public override void Load()
     {
         LightingEngine.AfterWalls += RenderConnectiveCells;
-
-        On_Collision.SlopeCollision += On_Collision_SlopeCollision;
     }
 
     public override void Unload()
@@ -412,54 +410,6 @@ internal class ConnectiveCellSystem : ModSystem
                 ("spriteRotation", 1));
     }
 
-    #endregion
-
-    #region Collision
-
-    private Vector4 On_Collision_SlopeCollision(On_Collision.orig_SlopeCollision orig, Vector2 position, Vector2 velocity, int width, int height, float gravity, bool fall)
-    {
-        var result = orig(position, velocity, width, height, gravity, fall);
-
-        if (!fall && !SpaceEvent.Sea.Despawning)
-            result = CheckCollision(result.XY(), result.ZW(), width, height, gravity);
-
-        return result;
-    }
-
-    private Vector4 CheckCollision(Vector2 position, Vector2 velocity, int width, int height, float gravity)
-    {
-        var originalVector = new Vector4(position.X, position.Y, velocity.X, velocity.Y);
-
-        // make the entity's hitbox only be its bottom half
-        var entityHitbox = new Rectangle((int)position.X, (int)position.Y, width, height + 2);
-
-        foreach (var rope in s_ropes)
-        {
-            var verletString = rope.Value.Rope;
-
-            for (int i = 0; i < verletString.Count; i++)
-            {
-                var point = verletString[i];
-
-                var colliderBox = new Rectangle((int)point.Position.X - 8, (int)point.Position.Y - 8, 16, 16);
-
-                var propCenter = point.Position;
-                var canHit = Collision.CanHit(position, 1, 1, propCenter, 1, 1);
-
-                if (!entityHitbox.Intersects(colliderBox) || velocity.Y < 0 || !(position.X + width > colliderBox.Left && position.X < colliderBox.Right) || !canHit)
-                    continue;
-
-                if (position.Y + height * 0.5f > colliderBox.Y)
-                    continue;
-
-                position.Y = MathHelper.Lerp(position.Y, colliderBox.Y - height + 2, 0.66f);
-                velocity.Y = 0;
-                Collision.sloping = true;
-            }
-        }
-
-        return new Vector4(position.X, position.Y, velocity.X, velocity.Y);
-    }
     #endregion
 
     #region Saving/Loading

@@ -1,23 +1,17 @@
 using Daybreak.Common.Features.Hooks;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Utilities;
 using SpaceEventMod.Common.Geometry;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static Terraria.ModLoader.BackupIO;
 
 namespace SpaceEventMod.Content.Miscellaneous.Projectiles;
 
@@ -143,8 +137,6 @@ internal class WindGustBlow : ModProjectile
 
         color.Item1 *= 0.8f;
         color.Item2 *= 0.8f;
-
-        
 
         if (PaintColor != 0)
         {
