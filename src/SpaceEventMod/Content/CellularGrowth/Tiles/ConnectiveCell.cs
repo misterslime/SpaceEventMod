@@ -276,7 +276,7 @@ internal class ConnectiveCellSystem : ModSystem
                 Texture2D? paint1Texture = null;
                 Texture2D? paint2Texture = null;
 
-                if (!Main.tile[rope.Key].IsTileInvisible)
+                if ((!Main.tile[rope.Key].IsTileInvisible && rope.Value.IsStart) || (!Main.tile[pointB].IsTileInvisible && !rope.Value.IsStart))
                 {
                     int paint1Color = rope.Value.IsStart ? Main.tile[rope.Key].TileColor : Main.tile[pointB].TileColor;
                     _ropePaintCache.TryGetPaintTexture(paint1Color, out paint1Texture);
@@ -286,7 +286,7 @@ internal class ConnectiveCellSystem : ModSystem
                     paint1Texture = Assets.Textures.EmptyPixel.Asset.Value;
                 }
 
-                if (!Main.tile[pointB].IsTileInvisible)
+                if ((!Main.tile[pointB].IsTileInvisible && rope.Value.IsStart) || (!Main.tile[rope.Key].IsTileInvisible && !rope.Value.IsStart))
                 {
 
                     int paint2Color = rope.Value.IsStart ? Main.tile[pointB].TileColor : Main.tile[rope.Key].TileColor;
