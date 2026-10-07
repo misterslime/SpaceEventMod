@@ -155,8 +155,6 @@ internal abstract class WangWall : ModWall
             }
         }
 
-        Main.NewText(draws);
-
         // this is genuinely bullshit ngl
         bool CanExpandRectangleLeft(int startIndex, Rectangle rectangle, ref Tile[] wallTypes)
         {
