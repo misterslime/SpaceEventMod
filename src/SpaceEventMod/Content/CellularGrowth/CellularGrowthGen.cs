@@ -535,7 +535,10 @@ internal class CellularGrowthPass : GenPass
 
         for (int i = 0; i < connectiveCells; i++)
         {
-            var point = Main.rand.Next(surfacePosSet);
+            var point = Main.rand.NextFromCollection(surfacePosSet);
+
+            if (!WorldGen.InWorld(point.X, point.Y))
+                continue;
 
             ConnectiveCellSystem.TryAddConnectiveCell(point.X, point.Y);
         }
