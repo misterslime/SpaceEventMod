@@ -73,6 +73,11 @@ public class BellowTileEntity : ModTileEntity
             _windProjectile = -1;
         }
 
+        if (_windProjectile != -1 && Main.projectile[_windProjectile].ModProjectile is WindGustBlow windProjectile)
+        {
+            windProjectile.PaintColor = Main.tile[Position].TileColor;
+        }
+
         //debug indicators
         /*Dust.QuickDust(Position.X, Position.Y, Color.Red);
 
@@ -96,6 +101,9 @@ public class BellowTileEntity : ModTileEntity
             _windProjectile = Projectile.NewProjectile(new EntitySource_Wiring(i, j), position, Vector2.Zero, ModContent.ProjectileType<WindGustBlow>(), 0, 0, -1, -1, 0, 160);
 
             Main.projectile[_windProjectile].rotation = Rotation;
+
+            if (Main.projectile[_windProjectile].ModProjectile is WindGustBlow windProjectile)
+                windProjectile.PaintColor = Main.tile[Position].TileColor;
 
             AnimationCounter = 0;
             SyncTileEntity();

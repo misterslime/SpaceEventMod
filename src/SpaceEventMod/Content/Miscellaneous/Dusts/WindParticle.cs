@@ -16,7 +16,8 @@ internal struct WindParticleData(
     int maxOldPositions,
     Point direction,
     float curveAmount, 
-    float width)
+    float width,
+    int paint = -1)
 {
     public int Projectile { get; } = projectile;
     public Color SecondColor { get; } = secondColor;
@@ -24,6 +25,7 @@ internal struct WindParticleData(
     public Point Direction { get; } = direction;
     public float CurveAmount { get; } = curveAmount;
     public float Width { get; set; } = width;
+    public int PaintColor { get; set; } = paint;
 }
 
 internal class WindParticle : ModDust

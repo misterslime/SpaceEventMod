@@ -7,6 +7,7 @@ using SpaceEventMod.Content.Miscellaneous.Dusts;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +32,8 @@ internal class WindGustBlow : ModProjectile
     private ref float Timer => ref Projectile.ai[1];
     private int Displacement => (int)Projectile.ai[2];
 
+    public int PaintColor { get; set; } = 0;
+
     public override string Texture => "SpaceEventMod/Assets/Textures/EmptyPixel";
 
     public RotatedRectangle WindGustTrigger { get; private set; }
@@ -46,6 +49,19 @@ internal class WindGustBlow : ModProjectile
         Projectile.penetrate = -1;
 
         Projectile.alpha = 255;
+
+        PaintColor = 0;
+    }
+
+
+    public override void SendExtraAI(BinaryWriter writer)
+    {
+        writer.Write(PaintColor);
+    }
+
+    public override void ReceiveExtraAI(BinaryReader reader)
+    {
+        PaintColor = reader.ReadInt32();
     }
 
     public override void OnSpawn(IEntitySource source)
@@ -128,6 +144,14 @@ internal class WindGustBlow : ModProjectile
         color.Item1 *= 0.8f;
         color.Item2 *= 0.8f;
 
+        
+
+        if (PaintColor != 0)
+        {
+            color.Item1 = color.Item1.MultiplyRGBA(WorldGen.paintColor(PaintColor));
+            color.Item2 = color.Item2.MultiplyRGBA(WorldGen.paintColor(PaintColor));
+        }
+
         var direction = (Point)_windDirections.Dequeue();
 
         _windDirections.Enqueue(direction);
@@ -149,7 +173,8 @@ internal class WindGustBlow : ModProjectile
             30,
             direction,
             curveAmount,
-            5f);
+            5f,
+            PaintColor != 0 ? PaintColor : -1);
         dust.fadeIn = 80;
     }
 
