@@ -1,8 +1,5 @@
-using Daybreak.Common.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
-using SpaceEventMod.Common.DataStructures;
 using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Physics;
 using SpaceEventMod.Content.Space;
@@ -11,18 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.GameContent;
-using Terraria.Graphics.Renderers;
 using Terraria.ID;
+using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using Terraria.ObjectData;
-using static ReLogic.Peripherals.RGB.Corsair.CorsairDeviceGroup;
+using Terraria.UI;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
@@ -58,21 +51,15 @@ internal class ConnectiveCellSystem : ModSystem
 
         if ((tile.TileType != ModContent.TileType<Cosmoss>() && tile.TileType != ModContent.TileType<Cosmostone>()) || !tile.HasTile)
         {
-            Main.NewText($"Insertion failed at X={i} Y={j} because thats not Cosmostone or Cosmoss you dummy.");
             return false;
         }
 
         if (!s_cells.Contains(point))
         {
             s_cells.Add(point);
-
-            var a = s_connectionMap.Count / 2f;
-            var b = s_ropes.Count / 2f;
-            Main.NewText($"{s_cells.Count} unconnected cells, {a} connections, {b} ropes, and {s_despawningRopes.Count} despawning ropes");
             return true;
         }
 
-        Main.NewText($"Insertion failed at X={i} Y={j}");
         return false;
     }
 
@@ -88,10 +75,6 @@ internal class ConnectiveCellSystem : ModSystem
         {
             s_cells.Remove(point);
             TryDisconnectRope(in point, true);
-
-            var a = s_connectionMap.Count / 2f;
-            var b = s_ropes.Count / 2f;
-            Main.NewText($"{s_cells.Count} unconnected cells, {a} connections, {b} ropes, and {s_despawningRopes.Count} despawning ropes");
             return true;
         }
 
@@ -101,10 +84,6 @@ internal class ConnectiveCellSystem : ModSystem
             s_connectionMap.Remove(s_connectionMap[point]);
             s_connectionMap.Remove(point);
             TryDisconnectRope(in point);
-
-            var a = s_connectionMap.Count / 2f;
-            var b = s_ropes.Count / 2f;
-            Main.NewText($"{s_cells.Count} unconnected cells, {a} connections, {b} ropes, and {s_despawningRopes.Count} despawning ropes");
             return true;
         }
 
@@ -131,6 +110,9 @@ internal class ConnectiveCellSystem : ModSystem
     #region Updating
     public override void PreUpdateNPCs()
     {
+        int maxLength = (int)Math.Pow(35, 2);
+        int minLength = (int)Math.Pow(5, 2);
+
         var cells = s_cells.ToArray();
 
         // they attempt to connect to each other
@@ -139,12 +121,19 @@ internal class ConnectiveCellSystem : ModSystem
             if (!s_cells.Contains(point) || s_ropes.ContainsKey(point))
                 continue;
 
-            if (!Main.rand.NextBool(30))
+            if (!Main.rand.NextBool(50))
                 continue;
 
             var pointB = Main.rand.Next(cells);
 
-            if (pointB == point || !s_cells.Contains(point))
+            var vectorTo = (pointB - point).ToVector2();
+
+            if (pointB == point || !s_cells.Contains(point) || vectorTo.LengthSquared() >= maxLength || vectorTo.LengthSquared() <= minLength)
+                continue;
+
+            vectorTo = vectorTo.SafeNormalize(Vector2.Zero) * 24;
+
+            if (!Collision.CanHitLine(point.ToWorldCoordinates() + vectorTo, 6, 6, pointB.ToWorldCoordinates() - vectorTo, 6, 6))
                 continue;
 
             s_connectionMap.Add(point, pointB);
@@ -154,19 +143,8 @@ internal class ConnectiveCellSystem : ModSystem
             s_cells.Remove(pointB);
 
             // add rope string
-            var direction = pointB.ToWorldCoordinates() - point.ToWorldCoordinates();
-            int segmentLength = 24;
-            int segments = (int)Math.Ceiling(direction.Length() / segmentLength);
+            ConnectCells(point, pointB);
 
-            var rope = new VerletString(point.ToWorldCoordinates(), segments, segmentLength, direction.ToRotation(), 4f);
-            rope.Lock(0);
-            rope.Lock(rope.Count - 1);
-            rope.Gravity = Vector2.UnitY * 0.4f;
-
-            s_ropes.Add(point, (true, rope));
-            s_ropes.Add(pointB, (false, rope));
-
-            Main.NewText($"Spawned new rope with {segments} segments of length {segmentLength}.");
             var a = s_connectionMap.Count / 2f;
             var b = s_ropes.Count / 2f;
             Main.NewText($"{s_cells.Count} unconnected cells, {a} connections, {b} ropes, and {s_despawningRopes.Count} despawning ropes");
@@ -183,7 +161,7 @@ internal class ConnectiveCellSystem : ModSystem
                 continue;
 
             // update 
-            cell.Value.Rope.Update(8, 0f, true, true);
+            cell.Value.Rope.Update(5, 0f, true, true);
             if (cell.Value.IsStart)
                 cell.Value.Rope.AnchorStart = cell.Key.ToWorldCoordinates();
             else
@@ -211,22 +189,37 @@ internal class ConnectiveCellSystem : ModSystem
             {
                 s_despawningRopes.RemoveAt(i);
                 i--;
-
-                var a = s_connectionMap.Count / 2f;
-                var b = s_ropes.Count / 2f;
-                Main.NewText("Rope despawned successfully!");
-                Main.NewText($"{s_cells.Count} unconnected cells, {a} connections, {b} ropes, and {s_despawningRopes.Count} despawning ropes");
                 continue;
             }
 
             // update 
             var entry = s_despawningRopes[i];
 
-            entry.Rope.Update(8, 0f, true, true);
+            entry.Rope.Update(5, 0f, true, true);
             entry.TimeLeft -= 1;
 
             s_despawningRopes[i] = entry;
         }
+    }
+
+    private bool ConnectCells(Point16 a, Point16 b)
+    {
+        var direction = b.ToWorldCoordinates() - a.ToWorldCoordinates();
+        int segmentLength = 24;
+        int segments = (int)Math.Ceiling(direction.Length() / segmentLength);
+
+        var rope = new VerletString(a.ToWorldCoordinates(), segments, segmentLength, direction.ToRotation(), 4f);
+        rope.Lock(0);
+        rope.Lock(rope.Count - 1);
+        rope.Gravity = Vector2.UnitY * 0.4f;
+
+        if (s_ropes.TryAdd(a, (true, rope)))
+        {
+            s_ropes.Add(b, (false, rope));
+            return true;
+        }
+
+        return false;
     }
     #endregion
 
@@ -456,7 +449,7 @@ internal class ConnectiveCellSystem : ModSystem
             s_cells.Add(new Point16(x, y));
         }
 
-        int connectionCount = tag.GetInt(nameof(connectionCount));
+        int connectionCount = tag.GetInt($"ConnectionCount");
         for (int i = 0; i < connectionCount; i++)
         {
             int x1 = tag.GetShort($"ConnectionKeyX{i}");
@@ -465,7 +458,91 @@ internal class ConnectiveCellSystem : ModSystem
             int x2 = tag.GetShort($"ConnectionValueX{i}");
             int y2 = tag.GetShort($"ConnectionValueY{i}");
 
-            s_connectionMap.Add(new Point16(x1, y1), new Point16(x2, y2));
+            var a = new Point16(x1, y1);
+            var b = new Point16(x2, y2);
+
+            if (ConnectCells(a, b))
+                s_connectionMap.Add(a, b);
+        }
+    }
+    #endregion
+
+    #region Map Layer
+    public class ConnectiveCellMapLayer : ModMapLayer
+    {
+        public override Position GetDefaultPosition() => BeforeFirstVanillaLayer;
+
+        public override void Draw(ref MapOverlayDrawContext context, ref string text)
+        {
+            // We can check Main.mapStyle or Main.mapFullscreen to limit drawing to specific map modes.
+            // This example doesn't draw on the overlay map, but draws on the minimap and fullscreen map.
+            if (Main.mapStyle == 2)
+                return;
+
+            var whitePixel = Assets.Textures.WhitePixel.Asset.Value;
+
+            foreach (var asteroid in s_cells)
+            {
+                var scale = new Vector2(3, 3) * context.MapScale;
+
+                var position = asteroid.ToVector2();
+                Draw(context, whitePixel, position, Color.Red, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
+            }
+
+            foreach (var asteroid in s_connectionMap)
+            {
+                var scale = new Vector2(3, 3) * context.MapScale;
+
+                var position = asteroid.Key.ToVector2();
+                Draw(context, whitePixel, position, Color.Red, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
+
+                position = asteroid.Value.ToVector2();
+                Draw(context, whitePixel, position, Color.Red, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
+            }
+
+
+            HashSet<Point16> alreadyDrawn = new HashSet<Point16>(s_ropes.Count);
+
+            // draw ropes
+            foreach (var rope in s_ropes)
+            {
+                if (alreadyDrawn.Contains(rope.Key))
+                    continue;
+
+                if (s_connectionMap.ContainsKey(rope.Key))
+                {
+                    var pointB = s_connectionMap[rope.Key];
+
+                    alreadyDrawn.Add(pointB);
+                }
+
+                alreadyDrawn.Add(rope.Key);
+
+                var scale = new Vector2(2, 2) * context.MapScale;
+
+                foreach (var position in rope.Value.Rope.Positions)
+                {
+                    var mapPosition = position / 16;
+                    Draw(context, whitePixel, mapPosition, Color.Red, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
+                }
+            }
+        }
+
+        public bool Draw(MapOverlayDrawContext context, Texture2D texture, Vector2 position, Color color, SpriteFrame frame, Vector2 scale, Alignment alignment, SpriteEffects spriteEffects = SpriteEffects.None)
+        {
+            position = (position - context.MapPosition) * context.MapScale + context.MapOffset;
+            if (context.ClippingRectangle.HasValue && !context.ClippingRectangle.Value.Contains(position.ToPoint()))
+                return false;
+
+            var sourceRectangle = frame.GetSourceRectangle(texture);
+            var vector = sourceRectangle.Size() * alignment.OffsetMultiplier;
+            var position2 = position;
+
+            scale *= context.DrawScale;
+            var vector2 = position - vector * scale;
+
+            Main.spriteBatch.Draw(texture, position2, sourceRectangle, color, 0f, vector, scale, spriteEffects, 0f);
+            return false;
         }
     }
     #endregion

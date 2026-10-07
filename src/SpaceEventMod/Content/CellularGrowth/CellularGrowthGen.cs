@@ -115,6 +115,7 @@ internal class CellularGrowthPass : GenPass
         int lowestAsteroidYValue = (int)spaceBottom;
 
         List<Point> asteroidPoints = new List<Point>();
+        List<Point> asteroidSurfacePoints = new List<Point>();
 
         float part2 = 0.8f;
         progress.Set(0.2f);
@@ -127,12 +128,13 @@ internal class CellularGrowthPass : GenPass
             if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
                 large = true;
 
-            GenNoisyPlanetoid(asteroidPoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
+            GenNoisyPlanetoid(asteroidPoints, asteroidSurfacePoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
             GenPlanetoidCaves(asteroidPoints, noise, bound, large);
             PlugCaveEntrances(asteroidPoints);
-            GrowMossAndCells(ref asteroidPoints);
+            GrowMossAndCells(asteroidPoints, asteroidSurfacePoints);
 
             asteroidPoints.Clear();
+            asteroidSurfacePoints.Clear();
 
             progress.Set(0.2f + part2 *(float)((float)i / (float)asteroidBounds.Count));
         }
@@ -298,7 +300,7 @@ internal class CellularGrowthPass : GenPass
         return bounds;
     }
 
-    private static void GenNoisyPlanetoid(List<Point> tilePosSet, ref int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
+    private static void GenNoisyPlanetoid(List<Point> tilePosSet, List<Point> surfacePosSet, ref int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
     {
         Vector2 center = asteroid.Center.ToVector2() - Vector2.One * 0.5f;
         Vector2 ab = asteroid.Size() * 0.5f;
@@ -357,6 +359,8 @@ internal class CellularGrowthPass : GenPass
 
             if (air == 0)
                 WorldGen.PlaceWall(position.X, position.Y, ModContent.WallType<CosmostoneWalls1>());
+            else
+                surfacePosSet.Add(position);
         }
     }
 
@@ -450,7 +454,7 @@ internal class CellularGrowthPass : GenPass
         }
     }
 
-    private void GrowMossAndCells(ref List<Point> tilePosSet)
+    private void GrowMossAndCells(List<Point> tilePosSet, List<Point> surfacePosSet)
     {
         int herbCell = ModContent.TileType<HerbCell>();
         int cosmoss = ModContent.TileType<Cosmoss>();
@@ -525,6 +529,15 @@ internal class CellularGrowthPass : GenPass
             if ((!Main.tile[position + new Point(-1, 0)].HasTile || !Main.tile[position + new Point(1, 0)].HasTile) &&
                 tileBelow.HasTile && !tileAbove.HasTile && tile.BlockType == BlockType.Solid)
                 WorldGen.PoundTile(position.X, position.Y);
+        }
+
+        int connectiveCells = Main.rand.Next(5);
+
+        for (int i = 0; i < connectiveCells; i++)
+        {
+            var point = Main.rand.Next(surfacePosSet);
+
+            ConnectiveCellSystem.TryAddConnectiveCell(point.X, point.Y);
         }
     }
 
