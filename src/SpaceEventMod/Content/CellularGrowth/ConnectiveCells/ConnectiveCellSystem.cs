@@ -81,7 +81,6 @@ internal class ConnectiveCellSystem : ModSystem
         if (s_deadCells.Contains(point))
         {
             s_deadCells.Remove(point);
-            Main.NewText("remove dead cell");
             return true;
         }
 
@@ -89,7 +88,6 @@ internal class ConnectiveCellSystem : ModSystem
         {
             s_cells.Remove(point);
             TryDisconnectRope(in point, true);
-            Main.NewText("remove cell");
             return true;
         }
 
@@ -99,11 +97,9 @@ internal class ConnectiveCellSystem : ModSystem
             s_connectionMap.Remove(s_connectionMap[point]);
             s_connectionMap.Remove(point);
             TryDisconnectRope(in point);
-            Main.NewText("remove connected cell");
             return true;
         }
 
-        Main.NewText("failed to remove cell");
         return false;
     }
 
