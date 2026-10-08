@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using SpaceEventMod.Common.WorldGeneration;
+using SpaceEventMod.Content.CellularGrowth.ConnectiveCells;
 using SpaceEventMod.Content.Space;
 using Terraria;
 using Terraria.ID;
@@ -70,6 +71,6 @@ internal class Cosmostone : ModTile, ILoadItem
     public override void KillTile(int i, int j, ref bool fail, ref bool effectOnly, ref bool noItem)
     {
         if (!fail)
-            ConnectiveCellSystem.TryKillConnectiveCell(i, j);
+            ConnectiveCellSystem.TryRemoveCell(i, j);
     }
 }

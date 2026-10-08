@@ -4,6 +4,7 @@ using SpaceEventMod.Common.BaseTypes;
 using SpaceEventMod.Common.Geometry;
 using SpaceEventMod.Common.SDFs;
 using SpaceEventMod.Common.WorldGeneration;
+using SpaceEventMod.Content.CellularGrowth.ConnectiveCells;
 using SpaceEventMod.Content.CellularGrowth.Tiles;
 using SpaceEventMod.Content.CellularGrowth.Walls;
 using SpaceEventMod.Content.Miscellaneous.Walls;
@@ -540,7 +541,7 @@ internal class CellularGrowthPass : GenPass
             if (!WorldGen.InWorld(point.X, point.Y))
                 continue;
 
-            ConnectiveCellSystem.TryAddConnectiveCell(point.X, point.Y);
+            ConnectiveCellSystem.TryAddCell(point.X, point.Y);
         }
     }
 

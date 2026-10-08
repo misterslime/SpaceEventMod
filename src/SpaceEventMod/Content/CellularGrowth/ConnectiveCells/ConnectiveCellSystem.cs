@@ -2,22 +2,20 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Physics;
+using SpaceEventMod.Content.CellularGrowth.Tiles;
 using SpaceEventMod.Content.Space;
-using SpaceEventMod.Content.Space.LevelElements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.GameContent;
-using Terraria.ID;
 using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
 
-namespace SpaceEventMod.Content.CellularGrowth.Tiles;
+namespace SpaceEventMod.Content.CellularGrowth.ConnectiveCells;
 
 // thinking:
 // 3 states: unconnected, start, end
@@ -25,6 +23,7 @@ namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 // if connected cell found then it'll request connection, as in check if the connective cell is already connected or not
 internal class ConnectiveCellSystem : ModSystem
 {
+    private static HashSet<Point16> s_deadCells = new HashSet<Point16>();
     private static HashSet<Point16> s_cells = new HashSet<Point16>();
     private static Dictionary<Point16, Point16> s_connectionMap = new Dictionary<Point16, Point16>();
     private static Dictionary<Point16, (bool IsStart, VerletString Rope)> s_ropes = new Dictionary<Point16, (bool IsStart, VerletString Rope)>();
@@ -42,19 +41,23 @@ internal class ConnectiveCellSystem : ModSystem
 
     /// <summary>
     /// Attempts to place a connective cell at the specified tile coordinate.
+    /// If the tile is cosmostone the cell will be dead. If cosmoss the cell will be alive.
     /// </summary>
     /// <returns>Whether the placement was successful or not.</returns>
-    public static bool TryAddConnectiveCell(int i, int j)
+    public static bool TryAddCell(Point16 point)
     {
-        Tile tile = Framing.GetTileSafely(i, j);
-        Point16 point = new Point16(i, j);
+        Tile tile = Framing.GetTileSafely(point);
 
-        if ((tile.TileType != ModContent.TileType<Cosmoss>() && tile.TileType != ModContent.TileType<Cosmostone>()) || !tile.HasTile)
-        {
+        if (!tile.HasTile)
             return false;
+
+        if (!s_deadCells.Contains(point) && tile.TileType == ModContent.TileType<Cosmostone>())
+        {
+            s_deadCells.Add(point);
+            return true;
         }
 
-        if (!s_cells.Contains(point))
+        if (!s_cells.Contains(point) && tile.TileType == ModContent.TileType<Cosmoss>())
         {
             s_cells.Add(point);
             return true;
@@ -63,13 +66,20 @@ internal class ConnectiveCellSystem : ModSystem
         return false;
     }
 
+    /// <inheritdoc cref="TryAddCell(Point16)" />
+    public static bool TryAddCell(int i, int j) => TryAddCell(new Point16(i, j));
+
     /// <summary>
-    /// Attempts to kill any connective cell placed at the specified tile coordinate.
+    /// Attempts to remove any connective cell placed at the specified tile coordinate.
     /// </summary>
     /// <returns>Whether the removal was successful or not.</returns>
-    public static bool TryKillConnectiveCell(int i, int j)
+    public static bool TryRemoveCell(Point16 point)
     {
-        Point16 point = new Point16(i, j);
+        if (s_deadCells.Contains(point))
+        {
+            s_deadCells.Remove(point);
+            return true;
+        }
 
         if (s_cells.Contains(point))
         {
@@ -89,6 +99,48 @@ internal class ConnectiveCellSystem : ModSystem
 
         return false;
     }
+
+    /// <inheritdoc cref="TryRemoveCell(Point16)" />
+    public static bool TryRemoveCell(int i, int j) => TryRemoveCell(new Point16(i, j));
+
+
+    /// <summary>
+    /// Attempts to make a dead cell at this position alive.
+    /// </summary>
+    public static bool TryReviveCell(Point16 point)
+    {
+        if (!s_deadCells.Contains(point) || s_cells.Contains(point))
+            return false;
+
+        s_cells.Add(point);
+        s_deadCells.Remove(point);
+
+        return false;
+    }
+
+    /// <inheritdoc cref="TryReviveCell(Point16)" />
+    public static bool TryReviveCell(int i, int j) => TryReviveCell(new Point16(i, j));
+
+    /// <summary>
+    /// Attempts to make the cell at this position a dead cell.
+    /// </summary>
+    public static bool TryDeadifyCell(Point16 point)
+    {
+        if (s_deadCells.Contains(point))
+            return false;
+
+        if (TryRemoveCell(point))
+        {
+            s_deadCells.Add(point);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc cref="TryDeadifyCell(Point16)" />
+    public static bool TryDeadifyCell(int i, int j) => TryDeadifyCell(new Point16(i, j));
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryDisconnectRope(in Point16 point, bool despawnRope = false)
@@ -113,6 +165,19 @@ internal class ConnectiveCellSystem : ModSystem
         int maxLength = (int)Math.Pow(35, 2);
         int minLength = (int)Math.Pow(5, 2);
 
+        var deadCells = s_deadCells.ToArray();
+
+        foreach (var deadCell in deadCells)
+        {
+            if (!s_deadCells.Contains(deadCell))
+                continue;
+
+            if (!Main.rand.NextBool(100) || Main.tile[deadCell].TileType != ModContent.TileType<Cosmoss>())
+                continue;
+
+            TryReviveCell(deadCell);
+        }
+
         var cells = s_cells.ToArray();
 
         // they attempt to connect to each other
@@ -121,7 +186,16 @@ internal class ConnectiveCellSystem : ModSystem
             if (!s_cells.Contains(point) || s_ropes.ContainsKey(point))
                 continue;
 
-            if (!Main.rand.NextBool(50))
+            if (Main.rand.NextBool(100) && Main.tile[point].TileType != ModContent.TileType<Cosmoss>())
+            {
+                TryDeadifyCell(point);
+                continue;
+            }
+
+            if (!Main.rand.NextBool(75))
+                continue;
+
+            if ((int)(SpaceEvent.Sea.SeaPos.Height.Position / 16f) <= point.Y)
                 continue;
 
             var pointB = Main.rand.Next(cells);
@@ -144,10 +218,6 @@ internal class ConnectiveCellSystem : ModSystem
 
             // add rope string
             ConnectCells(point, pointB);
-
-            var a = s_connectionMap.Count / 2f;
-            var b = s_ropes.Count / 2f;
-            Main.NewText($"{s_cells.Count} unconnected cells, {a} connections, {b} ropes, and {s_despawningRopes.Count} despawning ropes");
         }
 
         if (Main.dedServ)
@@ -224,17 +294,18 @@ internal class ConnectiveCellSystem : ModSystem
     #endregion
 
     #region Rendering
-    private readonly MiscPaintSystem _ropePaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset);
-    private readonly MiscPaintSystem _cellPaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.Tiles.ConnectiveCellTissue.Asset);
+    private readonly MiscPaintSystem _ropePaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset);
+    private readonly MiscPaintSystem _cellPaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissue.Asset);
+    private readonly MiscPaintSystem _deadCellPaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissueDead.Asset);
 
     private void RenderConnectiveCells(object? sender, DrawEventArgs e)
     {
-        if (s_cells.Count == 0 && s_connectionMap.Count == 0 && s_despawningRopes.Count == 0)
+        if (s_cells.Count == 0 && s_connectionMap.Count == 0 && s_despawningRopes.Count == 0 && s_deadCells.Count == 0)
             return;
 
-
         var player = Main.LocalPlayer;
-        var texture = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellTissue.Asset.Value;
+        var texture = Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissue.Asset.Value;
+        var deadTexture = Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissueDead.Asset.Value;
 
         HashSet<Point16> alreadyDrawn = new HashSet<Point16>(s_ropes.Count);
 
@@ -251,7 +322,7 @@ internal class ConnectiveCellSystem : ModSystem
 
         foreach (var (TimeLeft, Rope) in s_despawningRopes)
         {
-            var smallTissue = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+            var smallTissue = Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset.Value;
             DrawSingleConnectedRope(in pipeline, smallTissue, Rope, Color.White * (TimeLeft / 120f));
         }
 
@@ -278,9 +349,7 @@ internal class ConnectiveCellSystem : ModSystem
                     _ropePaintCache.TryGetPaintTexture(paint1Color, out paint1Texture);
                 }
                 else
-                {
                     paint1Texture = Assets.Textures.EmptyPixel.Asset.Value;
-                }
 
                 if ((!Main.tile[pointB].IsTileInvisible && rope.Value.IsStart) || (!Main.tile[rope.Key].IsTileInvisible && !rope.Value.IsStart))
                 {
@@ -289,13 +358,11 @@ internal class ConnectiveCellSystem : ModSystem
                     _ropePaintCache.TryGetPaintTexture(paint2Color, out paint2Texture);
                 }
                 else
-                {
                     paint2Texture = Assets.Textures.EmptyPixel.Asset.Value;
-                }
 
 
-                paint1Texture ??= Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
-                paint2Texture ??= Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+                paint1Texture ??= Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset.Value;
+                paint2Texture ??= Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset.Value;
 
                 DrawDoubleConnectedRope(in pipeline, paint1Texture, paint2Texture, rope.Value.Rope, Color.White);
 
@@ -309,11 +376,31 @@ internal class ConnectiveCellSystem : ModSystem
 
             Texture2D? paintTexture = null;
             _ropePaintCache.TryGetPaintTexture(Main.tile[rope.Key].TileColor, out paintTexture);
-            paintTexture ??= Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+            paintTexture ??= Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset.Value;
             DrawSingleConnectedRope(in pipeline, paintTexture, rope.Value.Rope, Color.White);
         }
 
         pipeline.Flush();
+
+        // draw dead cells
+        foreach (var cell in s_deadCells)
+        {
+            if (Main.tile[cell].IsTileInvisible)
+                continue;
+
+            if ((cell.ToWorldCoordinates() - player.Center).Length() >= 1000f)
+                continue;
+
+            var frame = deadTexture.Frame(3, 1, (cell.X + cell.Y) % 3, 0);
+
+            Texture2D? paintTexture = null;
+
+            _deadCellPaintCache.TryGetPaintTexture(Main.tile[cell].TileColor, out paintTexture);
+
+            paintTexture ??= texture;
+
+            e.SpriteBatch.Draw(paintTexture, cell.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
+        }
 
         // draw unconnected cells
         foreach (var cell in s_cells) 
@@ -370,7 +457,7 @@ internal class ConnectiveCellSystem : ModSystem
 
     private void DrawDoubleConnectedRope(in Pipeline pipeline, Texture2D texture1, Texture2D texture2, VerletString tentacle, Color drawColor)
     {
-        var tex = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+        var tex = Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset.Value;
         var repeats = tentacle.Positions.Length * 24f / tex.Height;
 
         pipeline
@@ -388,7 +475,7 @@ internal class ConnectiveCellSystem : ModSystem
 
     private void DrawSingleConnectedRope(in Pipeline pipeline, Texture2D texture, VerletString tentacle, Color drawColor)
     {
-        var tex = Assets.Textures.CellularGrowth.Tiles.ConnectiveCellSmallTissue.Asset.Value;
+        var tex = Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset.Value;
         var repeats = tentacle.Positions.Length * 24f / tex.Height;
 
         pipeline
@@ -416,6 +503,15 @@ internal class ConnectiveCellSystem : ModSystem
 
     public override void SaveWorldData(TagCompound tag)
     {
+        var deadCells = s_deadCells.ToArray();
+
+        tag[$"DeadCellCount"] = s_deadCells.Count;
+        for (int i = 0; i < s_deadCells.Count; i++)
+        {
+            tag[$"DeadCellPositionX{i}"] = deadCells[i].X;
+            tag[$"DeadCellPositionY{i}"] = deadCells[i].Y;
+        }
+
         var cells = s_cells.ToArray();
 
         tag[$"CellCount"] = s_cells.Count;
@@ -440,6 +536,15 @@ internal class ConnectiveCellSystem : ModSystem
 
     public override void LoadWorldData(TagCompound tag)
     {
+        int deadCellCount = tag.GetInt("DeadCellCount");
+        for (int i = 0; i < deadCellCount; i++)
+        {
+            int x = tag.GetShort($"DeadCellPositionX{i}");
+            int y = tag.GetShort($"DeadCellPositionY{i}");
+
+            s_deadCells.Add(new Point16(x, y));
+        }
+
         int cellCount = tag.GetInt("CellCount");
         for (int i = 0; i < cellCount; i++)
         {
@@ -481,22 +586,30 @@ internal class ConnectiveCellSystem : ModSystem
 
             var whitePixel = Assets.Textures.WhitePixel.Asset.Value;
 
-            foreach (var asteroid in s_cells)
+            foreach (var cell in s_deadCells)
             {
                 var scale = new Vector2(3, 3) * context.MapScale;
 
-                var position = asteroid.ToVector2();
+                var position = cell.ToVector2();
+                Draw(context, whitePixel, position, Color.Gray, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
+            }
+
+            foreach (var cell in s_cells)
+            {
+                var scale = new Vector2(3, 3) * context.MapScale;
+
+                var position = cell.ToVector2();
                 Draw(context, whitePixel, position, Color.Red, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
             }
 
-            foreach (var asteroid in s_connectionMap)
+            foreach (var cell in s_connectionMap)
             {
                 var scale = new Vector2(3, 3) * context.MapScale;
 
-                var position = asteroid.Key.ToVector2();
+                var position = cell.Key.ToVector2();
                 Draw(context, whitePixel, position, Color.Red, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
 
-                position = asteroid.Value.ToVector2();
+                position = cell.Value.ToVector2();
                 Draw(context, whitePixel, position, Color.Red, new SpriteFrame(1, 1, 0, 0), scale, Alignment.TopLeft);
             }
 
