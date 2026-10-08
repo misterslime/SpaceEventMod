@@ -46,6 +46,9 @@ internal class ConnectiveCellSystem : ModSystem
     /// <returns>Whether the placement was successful or not.</returns>
     public static bool TryAddCell(Point16 point)
     {
+        if (!WorldGen.InWorld(point.X, point.Y))
+            return false;
+
         Tile tile = Framing.GetTileSafely(point);
 
         if (!tile.HasTile)
@@ -78,6 +81,7 @@ internal class ConnectiveCellSystem : ModSystem
         if (s_deadCells.Contains(point))
         {
             s_deadCells.Remove(point);
+            Main.NewText("remove dead cell");
             return true;
         }
 
@@ -85,6 +89,7 @@ internal class ConnectiveCellSystem : ModSystem
         {
             s_cells.Remove(point);
             TryDisconnectRope(in point, true);
+            Main.NewText("remove cell");
             return true;
         }
 
@@ -94,9 +99,11 @@ internal class ConnectiveCellSystem : ModSystem
             s_connectionMap.Remove(s_connectionMap[point]);
             s_connectionMap.Remove(point);
             TryDisconnectRope(in point);
+            Main.NewText("remove connected cell");
             return true;
         }
 
+        Main.NewText("failed to remove cell");
         return false;
     }
 
@@ -183,7 +190,7 @@ internal class ConnectiveCellSystem : ModSystem
         // they attempt to connect to each other
         foreach (var point in cells)
         {
-            if (!s_cells.Contains(point) || s_ropes.ContainsKey(point))
+            if (!s_cells.Contains(point))
                 continue;
 
             if (Main.rand.NextBool(100) && Main.tile[point].TileType != ModContent.TileType<Cosmoss>())
@@ -192,7 +199,7 @@ internal class ConnectiveCellSystem : ModSystem
                 continue;
             }
 
-            if (!Main.rand.NextBool(75))
+            if (!Main.rand.NextBool(75) || s_ropes.ContainsKey(point))
                 continue;
 
             if ((int)(SpaceEvent.Sea.SeaPos.Height.Position / 16f) <= point.Y)
@@ -218,6 +225,18 @@ internal class ConnectiveCellSystem : ModSystem
 
             // add rope string
             ConnectCells(point, pointB);
+        }
+
+        foreach (var point in s_connectionMap.Keys.ToArray())
+        {
+            if (!s_connectionMap.ContainsKey(point))
+                continue;
+
+            if (Main.rand.NextBool(100) && Main.tile[point].TileType != ModContent.TileType<Cosmoss>())
+            {
+                TryDeadifyCell(point);
+                continue;
+            }
         }
 
         if (Main.dedServ)
