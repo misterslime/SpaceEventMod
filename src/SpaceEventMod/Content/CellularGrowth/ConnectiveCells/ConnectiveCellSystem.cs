@@ -296,7 +296,6 @@ internal class ConnectiveCellSystem : ModSystem
     #region Rendering
     private readonly MiscPaintSystem _ropePaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellSmallTissue.Asset);
     private readonly MiscPaintSystem _cellPaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissue.Asset);
-    private readonly MiscPaintSystem _deadCellPaintCache = new MiscPaintSystem(Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissueDead.Asset);
 
     private void RenderConnectiveCells(object? sender, DrawEventArgs e)
     {
@@ -305,7 +304,6 @@ internal class ConnectiveCellSystem : ModSystem
 
         var player = Main.LocalPlayer;
         var texture = Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissue.Asset.Value;
-        var deadTexture = Assets.Textures.CellularGrowth.ConnectiveCells.ConnectiveCellTissueDead.Asset.Value;
 
         HashSet<Point16> alreadyDrawn = new HashSet<Point16>(s_ropes.Count);
 
@@ -391,11 +389,11 @@ internal class ConnectiveCellSystem : ModSystem
             if ((cell.ToWorldCoordinates() - player.Center).Length() >= 1000f)
                 continue;
 
-            var frame = deadTexture.Frame(3, 1, (cell.X + cell.Y) % 3, 0);
+            var frame = texture.Frame(3, 2, (cell.X + cell.Y) % 3, 1);
 
             Texture2D? paintTexture = null;
 
-            _deadCellPaintCache.TryGetPaintTexture(Main.tile[cell].TileColor, out paintTexture);
+            _cellPaintCache.TryGetPaintTexture(Main.tile[cell].TileColor, out paintTexture);
 
             paintTexture ??= texture;
 
@@ -411,7 +409,7 @@ internal class ConnectiveCellSystem : ModSystem
             if ((cell.ToWorldCoordinates() - player.Center).Length() >= 1000f)
                 continue;
 
-            var frame = texture.Frame(3, 1, (cell.X + cell.Y) % 3, 0);
+            var frame = texture.Frame(3, 2, (cell.X + cell.Y) % 3, 0);
 
             Texture2D? paintTexture = null;
 
@@ -436,7 +434,7 @@ internal class ConnectiveCellSystem : ModSystem
                 _cellPaintCache.TryGetPaintTexture(Main.tile[pointA].TileColor, out paintTexture);
                 paintTexture ??= texture;
 
-                var frame = texture.Frame(3, 1, (pointA.X + pointA.Y) % 3, 0);
+                var frame = texture.Frame(3, 2, (pointA.X + pointA.Y) % 3, 0);
 
                 e.SpriteBatch.Draw(paintTexture, pointA.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
 
@@ -448,7 +446,7 @@ internal class ConnectiveCellSystem : ModSystem
                 _cellPaintCache.TryGetPaintTexture(Main.tile[pointB].TileColor, out paintTexture);
                 paintTexture ??= texture;
 
-                var frame = texture.Frame(3, 1, (pointB.X + pointB.Y) % 3, 0);
+                var frame = texture.Frame(3, 2, (pointB.X + pointB.Y) % 3, 0);
 
                 e.SpriteBatch.Draw(paintTexture, pointB.ToWorldCoordinates() - Main.screenPosition, frame, Color.White, 0f, frame.Size() * 0.5f, 1f, 0, 0);
             }
