@@ -26,6 +26,7 @@ internal class Cosmoss : FancyTile
         Main.tileBlockLight[Type] = true;
         Main.tileMergeDirt[Type] = true;
         Main.tileMerge[ModContent.TileType<Cosmostone>()][Type] = true;
+        Main.tileMerge[ModContent.TileType<DeadCosmoss>()][Type] = true;
         Main.tileBlendAll[Type] = true;
 
         TileID.Sets.Grass[Type] = true;
@@ -87,7 +88,7 @@ internal class Cosmoss : FancyTile
             if (air == 0)
                 return;
 
-            Framing.GetTileSafely(i, j).TileType = (ushort)ModContent.TileType<Cosmostone>();
+            Framing.GetTileSafely(i, j).TileType = (ushort)ModContent.TileType<DeadCosmoss>();
             WorldGen.SquareTileFrame(i, j);
             NetMessage.SendTileSquare(-1, i, j, 3);
 
@@ -98,9 +99,12 @@ internal class Cosmoss : FancyTile
         AttemptGrowPlant(i, j);
     }
 
-    private void AttemptMossSpread(Tile tile, int i, int j)
+    public static void AttemptMossSpread(Tile tile, int i, int j)
     {
-        int grassType = tile.TileType;
+        int grassType = ModContent.TileType<Cosmoss>();
+        int deadGrassType = ModContent.TileType<DeadCosmoss>();
+        int cosmostoneType = ModContent.TileType<Cosmostone>();
+
         TileColorCache tileColor = tile.BlockColorAndCoating();
         bool grassHasSpread = false;
         for (int i2 = i - 1; i2 <= i + 1; i2++)
@@ -128,9 +132,9 @@ internal class Cosmoss : FancyTile
                 if (air == 0)
                     continue;
 
-                if (neighbor.TileType == ModContent.TileType<Cosmostone>())
+                if (neighbor.TileType == cosmostoneType)
                 {
-                    WorldGen.SpreadGrass(i2, j2, ModContent.TileType<Cosmostone>(), grassType, repeat: false, tileColor);
+                    WorldGen.SpreadGrass(i2, j2, cosmostoneType, grassType, repeat: false, tileColor);
 
                     if (neighbor.TileType != grassType)
                         continue;
@@ -138,8 +142,18 @@ internal class Cosmoss : FancyTile
                     WorldGen.SquareTileFrame(i2, j2);
                     grassHasSpread = true;
                 }
-                else if (neighbor.TileType == ModContent.TileType<Cosmoss>())
-                    WorldGen.SpreadGrass(i2, j2, ModContent.TileType<Cosmoss>(), grassType, repeat: false, tileColor);
+                if (neighbor.TileType == deadGrassType)
+                {
+                    WorldGen.SpreadGrass(i2, j2, deadGrassType, grassType, repeat: false, tileColor);
+
+                    if (neighbor.TileType != grassType)
+                        continue;
+
+                    WorldGen.SquareTileFrame(i2, j2);
+                    grassHasSpread = true;
+                }
+                else if (neighbor.TileType == grassType)
+                    WorldGen.SpreadGrass(i2, j2, grassType, grassType, repeat: false, tileColor);
                 else if (RockObeliskLoader.RockObeliskTiles.Contains(neighbor.TileType))
                     RockObelisk.GrowPlants(i2, j2);
             }

@@ -40,7 +40,7 @@ internal class Cosmostone : ModTile, ILoadItem
     {
         Tile tile = Main.tile[i, j];
 
-        if ((int)(SpaceEvent.Sea.SeaPos.Height.Position / 16f) > j)
+        if ((int)(SpaceEvent.Sea.SeaPos.Height.Position / 16f) > j && Main.rand.NextBool(10))
         {
             int air = 0;
 
@@ -62,6 +62,7 @@ internal class Cosmostone : ModTile, ILoadItem
             TileColorCache tileColor = tile.BlockColorAndCoating();
 
             WorldGen.SpreadGrass(i, j, ModContent.TileType<Cosmostone>(), ModContent.TileType<Cosmoss>(), repeat: false, tileColor);
+            WorldGen.SpreadGrass(i, j, ModContent.TileType<DeadCosmoss>(), ModContent.TileType<Cosmoss>(), repeat: false, tileColor);
 
             if (Main.netMode == NetmodeID.Server)
                 NetMessage.SendTileSquare(-1, i, j, 3);
