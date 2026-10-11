@@ -131,7 +131,7 @@ internal class CellularGrowthPass : GenPass
 
             GenNoisyPlanetoid(asteroidPoints, asteroidSurfacePoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
             GenPlanetoidCaves(asteroidPoints, noise, bound, large);
-            PlugCaveEntrances(asteroidPoints);
+            PlugCaveEntrancesAndPlaceAsterdust(asteroidPoints);
             GrowMossAndCells(asteroidPoints, asteroidSurfacePoints);
 
             asteroidPoints.Clear();
@@ -406,6 +406,9 @@ internal class CellularGrowthPass : GenPass
         int noiseLayers = 5;
         Vector2 noiseCenter = WorldGen.genRand.NextVector2Square(-1, 1) * 500;
 
+
+        int asterdust = ModContent.TileType<Asterdust>();
+
         // carve out caves
         // really slow so i parallelize it
         FastParallel.For(0, tilePosSet.Count, delegate (int start, int end, object context) 
@@ -419,22 +422,31 @@ internal class CellularGrowthPass : GenPass
                 // displace radius based on position
                 // displace radius based on sdf gradient
 
+                // fill cave surface with asterdust
+                if (sample.X <= 4f && Main.tile[position].WallType != 0 && Main.tile[position].HasTile)
+                {
+                    Main.tile[position].TileType = (ushort)asterdust;
+                    WorldGen.SquareTileFrame(position.X, position.Y);
+                }
+
                 // carve out cave
                 if (sample.X <= 0)
                     WorldGen.KillTile(position.X, position.Y);
 
-                if (sample.X <= -1f)
+                if (sample.X <= -1f && Main.tile[position].WallType != 0)
                     Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls2>();
 
-                if (sample.X <= -2.5f)
+                if (sample.X <= -2.5f && Main.tile[position].WallType != 0)
                     Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls3>();
             }
         });
     }
 
-    private void PlugCaveEntrances(List<Point> tilePosSet)
+    private void PlugCaveEntrancesAndPlaceAsterdust(List<Point> tilePosSet)
     {
         int funnyTile = ModContent.TileType<ActiveFunnyTile>();
+        int asterdust = ModContent.TileType<Asterdust>();
+        int cosmostone = ModContent.TileType<Cosmostone>();
 
         foreach (var position in tilePosSet)
         {
@@ -452,6 +464,9 @@ internal class CellularGrowthPass : GenPass
 
             if (air >= 5 && !Main.tile[position].HasTile)
                 WorldGen.PlaceTile(position.X, position.Y, funnyTile, forced: true);
+
+            if (air >= 5 && Main.tile[position].HasTile && Main.tile[position].TileType == asterdust)
+                WorldGen.PlaceTile(position.X, position.Y, cosmostone, forced: true);
         }
     }
 
@@ -462,7 +477,7 @@ internal class CellularGrowthPass : GenPass
         int funnyTile = ModContent.TileType<ActiveFunnyTile>();
         int cosmostone = ModContent.TileType<Cosmostone>();
 
-        // Place Herb Cells
+        /* Place Herb Cells
         foreach (var position in tilePosSet)
         {
             int air = 0;
@@ -491,7 +506,7 @@ internal class CellularGrowthPass : GenPass
                 && WorldGen.genRand.NextBool(3) &&
                 (!Main.tile[position + new Point(-1, 0)].HasTile || !Main.tile[position + new Point(1, 0)].HasTile))
                 WorldGen.PoundTile(position.X, position.Y);
-        }
+        }*/
 
         // create decorations
         foreach (var position in tilePosSet)
@@ -531,6 +546,9 @@ internal class CellularGrowthPass : GenPass
                 tileBelow.HasTile && !tileAbove.HasTile && tile.BlockType == BlockType.Solid)
                 WorldGen.PoundTile(position.X, position.Y);
         }
+
+        if (surfacePosSet.Count == 0)
+            return;
 
         int connectiveCells = Main.rand.Next(5);
 
