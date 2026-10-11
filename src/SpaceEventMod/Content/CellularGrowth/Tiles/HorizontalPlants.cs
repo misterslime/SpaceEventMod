@@ -123,6 +123,7 @@ internal class HorizontalPlants : ModTile
                 multX = 0;
                 multY = 1;
                 origin = new Vector2(0f, 16 / 2);
+                position.X -= 4;
                 position.Y += 8f;
                 position.Y += pushY;
                 position.X += pushX;
