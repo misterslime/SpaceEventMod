@@ -18,6 +18,7 @@ internal class Cosmostone : ModTile, ILoadItem
     {
         Main.tileSolid[Type] = true;
         Main.tileBlockLight[Type] = true;
+        Main.tileMerge[ModContent.TileType<Asterdust>()][Type] = true;
         Main.tileMerge[ModContent.TileType<Cosmoss>()][Type] = true;
         Main.tileMerge[ModContent.TileType<HerbCell>()][Type] = true;
 
