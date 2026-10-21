@@ -21,7 +21,6 @@ internal class ClickEventArgs(Vector2 mouseWorld) : EventArgs
 partial class Game1 : Game
 {
     private readonly GraphicsDeviceManager _graphics;
-
     private DrawManager _drawManager;
     private CameraManager _cameraManager;
 
@@ -32,6 +31,7 @@ partial class Game1 : Game
     private Vector2 _mouseWorld;
     private MouseState _previousState;
     private Angelatin _angelatin;
+    private Point _startPosition = Point.Zero;
 
     public Vector2 MouseWorld { get => _mouseWorld * 16f; }
 
@@ -75,9 +75,6 @@ partial class Game1 : Game
         _creatureList = new List<BaseCreature>();
         _previousState = Mouse.GetState();
 
-        _angelatin = new Angelatin(12, 10);
-
-
         SubscribeDrawEvents(Globals.World);
     }
 
@@ -117,9 +114,18 @@ partial class Game1 : Game
             OnClick?.Invoke(this, new ClickEventArgs(_mouseWorld));
         }
 
+        if (mouseState.RightButton == ButtonState.Pressed
+            && _previousState.RightButton == ButtonState.Released
+            && this.IsActive
+            && mouseState.X >= 0 && mouseState.X < _graphics.PreferredBackBufferWidth
+            && mouseState.Y >= 0 && mouseState.Y < _graphics.PreferredBackBufferHeight)
+        {
+            Console.WriteLine(_startPosition.ToString());
+        }
+
         _previousState = mouseState;
 
-        _angelatin.Anchor = _mouseWorld;
+        //_angelatin.Anchor = _mouseWorld;
         base.Update(gameTime);
     }
 

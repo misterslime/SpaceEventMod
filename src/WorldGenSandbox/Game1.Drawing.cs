@@ -19,11 +19,6 @@ partial class Game1
 
         OnClick += (object? sender, ClickEventArgs e) =>
         {
-            _angelatin.DoFuckingThing(-0.25f);
-        };
-        return;
-        OnClick += (object? sender, ClickEventArgs e) =>
-        {
             int num = 5;
 
             for (int i = 0; i < num; i++)
@@ -47,6 +42,7 @@ partial class Game1
             creature.Draw(e.SpriteBatch, e.Pixel);
         }
 
-        _angelatin.Draw(e.SpriteBatch, e.Pixel, e.Transform);
+        _angelatin?.Draw(e.SpriteBatch, e.Pixel, e.Transform);
     }
+
 }

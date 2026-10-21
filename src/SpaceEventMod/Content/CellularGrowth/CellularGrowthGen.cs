@@ -50,6 +50,8 @@ public class CellularGrowthGen : ModSystem
 
 internal class CellularGrowthPass : GenPass
 {
+    private static readonly object s_locker = new object();
+
     private enum InteriorType : byte
     {
         Hollow,
@@ -79,6 +81,9 @@ internal class CellularGrowthPass : GenPass
 
     protected override void ApplyPass(GenerationProgress progress, GameConfiguration configuration)
     {
+        var watch = new System.Diagnostics.Stopwatch();
+        watch.Start();
+
         progress.Message = "Dividing cells";
         progress.Set(0.0f);
 
@@ -115,13 +120,14 @@ internal class CellularGrowthPass : GenPass
         int sizeThreshhold = (int)((100 * 0.35f) / MathF.Sqrt(2));
         int lowestAsteroidYValue = (int)spaceBottom;
 
-        List<Point> asteroidPoints = new List<Point>();
-        List<Point> asteroidSurfacePoints = new List<Point>();
-
         float part2 = 0.8f;
         progress.Set(0.2f);
 
-        for (int i = 0; i < asteroidBounds.Count; i++)
+        watch.Stop();
+
+        Console.WriteLine($"Asteroid Bound Creation: {watch.ElapsedMilliseconds} ms");
+
+        /*for (int i = 0; i < asteroidBounds.Count; i++)
         {
             bool large = false;
             var bound = asteroidBounds[i];
@@ -138,31 +144,144 @@ internal class CellularGrowthPass : GenPass
             asteroidSurfacePoints.Clear();
 
             progress.Set(0.2f + part2 *(float)((float)i / (float)asteroidBounds.Count));
-        }
+        }*/
 
         // the freak of nature
         // this makes worldgen take like no time whatsoever at the cost of 10 million unexplained worldgen artifacts
         // MAKE SURE TO DISABLE THE FASTPARALLEL IN THE CAVES GEN
+
+        int asteroidsGenned = 0;
+
+        Console.WriteLine(asteroidBounds.Count);
+
         /*FastParallel.For(0, asteroidBounds.Count, delegate (int start, int end, object context)
         {
             for (int i = start; i < end; i++)
             {
-                List<Point> asteroidPoints = new List<Point>();
+                lock (s_locker)
+                {
+                    List<Point> asteroidPoints = new List<Point>();
+                    List<Point> asteroidSurfacePoints = new List<Point>();
 
-                bool large = false;
-                var bound = asteroidBounds[i];
+                    bool large = false;
+                    var bound = asteroidBounds[i];
 
-                if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
-                    large = true;
+                    if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
+                        large = true;
 
-                GenNoisyPlanetoid(asteroidPoints, CellularGrowthGen.LowestAsteroidTile, noise, bound);
-                GenPlanetoidCaves(asteroidPoints, noise, bound, large);
-                PlugCaveEntrances(asteroidPoints);
-                GrowMossAndCells(ref asteroidPoints);
+                    GenNoisyPlanetoid(asteroidPoints, asteroidSurfacePoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
+                    GenPlanetoidCaves(asteroidPoints, noise, bound, large);
+                    PlugCaveEntrancesAndPlaceAsterdust(asteroidPoints);
+                    GrowMossAndCells(asteroidPoints, asteroidSurfacePoints);
 
-                asteroidPoints.Clear();
+                    asteroidPoints.Clear();
+                    asteroidSurfacePoints.Clear();
+
+                    asteroidsGenned++;
+
+                    progress.Set(0.2f + part2 * (float)((float)asteroidsGenned / (float)asteroidBounds.Count));
+                }
             }
         });*/
+
+        long sampleNoisesMax = 0;
+        long sampleNoisesMin = 99999999;
+
+        long fillWallsMax = 0;
+        long fillWallsMin = 99999999;
+
+        int asteroidWidthMax = 0;
+        int asteroidWidthMin = 99999999;
+
+        int asteroidHeightMax = 0;
+        int asteroidHeightMin = 99999999;
+
+        long genCavesMax = 0;
+        long genCavesMin = 99999999;
+
+        long plugAsterdustMax = 0;
+        long plugAsterdustMin = 99999999;
+
+        long growPlantsMax = 0;
+        long growPlantsMin = 99999999;
+
+        for (int i = 0; i < asteroidBounds.Count; i++)
+        {
+            List<Point> asteroidPoints = new List<Point>();
+            List<Point> asteroidSurfacePoints = new List<Point>();
+
+            bool large = false;
+            var bound = asteroidBounds[i];
+
+            if (bound.Width > sizeThreshhold || bound.Height > sizeThreshhold)
+                large = true;
+
+
+
+            var noiseValues = GenNoisyPlanetoid(watch, asteroidPoints, asteroidSurfacePoints, ref CellularGrowthGen.LowestAsteroidTile, noise, bound);
+
+            watch.Restart();
+            GenPlanetoidCaves(asteroidPoints, noise, bound, large);
+            watch.Stop();
+            long genCaves = watch.ElapsedMilliseconds;
+
+            watch.Restart();
+            PlugCaveEntrancesAndPlaceAsterdust(asteroidPoints);
+            watch.Stop();
+            long plugAsterdust = watch.ElapsedMilliseconds;
+
+            watch.Restart();
+            GrowMossAndCells(asteroidPoints, asteroidSurfacePoints);
+            watch.Stop();
+            long growPlants = watch.ElapsedMilliseconds;
+
+            asteroidPoints.Clear();
+            asteroidSurfacePoints.Clear();
+
+            asteroidsGenned++;
+
+            progress.Set(0.2f + part2 * (float)((float)asteroidsGenned / (float)asteroidBounds.Count));
+
+
+            Console.WriteLine($"{i} ({noiseValues.width}x{noiseValues.height}): {noiseValues.sampleNoises} ms, {noiseValues.fillWalls} ms, {genCaves} ms, {plugAsterdust} ms, {growPlants} ms");
+
+            sampleNoisesMax = Math.Max(noiseValues.sampleNoises, sampleNoisesMax);
+            sampleNoisesMin = Math.Min(noiseValues.sampleNoises, sampleNoisesMin);
+
+            fillWallsMax = Math.Max(noiseValues.fillWalls, fillWallsMax);
+            fillWallsMin = Math.Min(noiseValues.fillWalls, fillWallsMin);
+
+            asteroidWidthMax = Math.Max(noiseValues.width, asteroidWidthMax);
+            asteroidWidthMin = Math.Min(noiseValues.width, asteroidWidthMin);
+
+            asteroidHeightMax = Math.Max(noiseValues.height, asteroidHeightMax);
+            asteroidHeightMin = Math.Min(noiseValues.height, asteroidHeightMin);
+
+            genCavesMax = Math.Max(genCaves, genCavesMax);
+            genCavesMin = Math.Min(genCaves, genCavesMin);
+
+            plugAsterdustMax = Math.Max(plugAsterdust, plugAsterdustMax);
+            plugAsterdustMin = Math.Min(plugAsterdust, plugAsterdustMin);
+
+            growPlantsMax = Math.Max(growPlants, growPlantsMax);
+            growPlantsMin = Math.Min(growPlants, growPlantsMin);
+        }
+
+        Console.WriteLine($"{asteroidsGenned} Asteroids Genned");
+
+        Console.WriteLine($"Asteroid Widths - Max: {asteroidWidthMax} ms, Min: {asteroidWidthMin}");
+
+        Console.WriteLine($"Asteroid Heights - Max: {asteroidHeightMax} ms, Min: {asteroidHeightMin}");
+
+        Console.WriteLine($"Sample Noise Step Times - Max: {sampleNoisesMax} ms, Min: {sampleNoisesMin}");
+
+        Console.WriteLine($"Fill Walls Step Times - Max: {fillWallsMax} ms, Min: {fillWallsMin}");
+
+        Console.WriteLine($"Caves Step Times - Max: {genCavesMax} ms, Min: {genCavesMin}");
+
+        Console.WriteLine($"Plug/Asterdust Step Times - Max: {plugAsterdustMax} ms, Min: {plugAsterdustMin}");
+
+        Console.WriteLine($"Plants Step Times - Max: {growPlantsMax} ms, Min: {growPlantsMin}");
 
         // connect asteroids (for connective cells)
         //ConnectAsteroids(poissonSampler, noise, radius);
@@ -301,7 +420,8 @@ internal class CellularGrowthPass : GenPass
         return bounds;
     }
 
-    private static void GenNoisyPlanetoid(List<Point> tilePosSet, List<Point> surfacePosSet, ref int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
+    private static (long sampleNoises, long fillWalls, int width, int height) GenNoisyPlanetoid(System.Diagnostics.Stopwatch watch, 
+        List<Point> tilePosSet, List<Point> surfacePosSet, ref int lowestAsteroidTile, FastNoiseLite noise, Rectangle asteroid)
     {
         Vector2 center = asteroid.Center.ToVector2() - Vector2.One * 0.5f;
         Vector2 ab = asteroid.Size() * 0.5f;
@@ -317,9 +437,10 @@ internal class CellularGrowthPass : GenPass
         Vector2 noiseCenter = WorldGen.genRand.NextVector2Square(-1, 1) * 500;
         Vector2 margin = new Vector2(asteroid.Width * (strength + 1), asteroid.Height * (strength + 1));
 
+        watch.Restart();
         for (int i = (int)-margin.X; i < (int)(asteroid.Width + margin.X); i++)
         {
-            for (int j = (int)-margin.Y; j < asteroid.Height + margin.Y; j++)
+            for (int j = (int)-margin.Y; j < (int)(asteroid.Height + margin.Y); j++)
             {
                 Vector2 position = new Vector2(i + asteroid.X, j + asteroid.Y);
 
@@ -341,8 +462,12 @@ internal class CellularGrowthPass : GenPass
                 }
             }
         }
+        watch.Stop();
+        long sampleNoise = watch.ElapsedMilliseconds;
 
         // fill not exposed tiles with walls
+
+        watch.Restart();
         foreach (var position in tilePosSet)
         {
             int air = 0;
@@ -350,9 +475,10 @@ internal class CellularGrowthPass : GenPass
             foreach (var direction in TileDirections.WithCorners)
             {
                 var point = position + direction;
-                point = new Point(
-                    Math.Clamp(point.X, 0, Main.maxTilesX),
-                    Math.Clamp(point.Y, 0, Main.maxTilesY));
+                
+                if (point.X < 0 || point.X >= Main.maxTilesX ||
+                    point.Y < 0 || point.Y >= Main.maxTilesY)
+                    continue;
 
                 if (!Main.tile[point].HasTile)
                     air++;
@@ -363,6 +489,10 @@ internal class CellularGrowthPass : GenPass
             else
                 surfacePosSet.Add(position);
         }
+        watch.Stop();
+        long fillWalls = watch.ElapsedMilliseconds;
+
+        return (sampleNoise, fillWalls, (int)(asteroid.Width + margin.X) - (int)-margin.X, (int)(asteroid.Height + margin.Y) - (int)-margin.Y);
     }
 
     private static void GenPlanetoidCaves(List<Point> tilePosSet, FastNoiseLite noise, Rectangle asteroid, bool large)
@@ -411,35 +541,32 @@ internal class CellularGrowthPass : GenPass
 
         // carve out caves
         // really slow so i parallelize it
-        FastParallel.For(0, tilePosSet.Count, delegate (int start, int end, object context) 
+        for (int i = 0; i < tilePosSet.Count; i++)
         {
-            for (int i = start; i < end; i++)
+            var position = tilePosSet[i];
+
+            var sample = sdfScene.Sample(position.ToVector2(), 1.5f, SmoothMinimum.CircularGeometrical);
+
+            // displace radius based on position
+            // displace radius based on sdf gradient
+
+            // fill cave surface with asterdust
+            if (sample.X <= 4f && Main.tile[position].WallType != 0 && Main.tile[position].HasTile)
             {
-                var position = tilePosSet[i];
-
-                var sample = sdfScene.Sample(position.ToVector2(), 1.5f, SmoothMinimum.CircularGeometrical);
-
-                // displace radius based on position
-                // displace radius based on sdf gradient
-
-                // fill cave surface with asterdust
-                if (sample.X <= 4f && Main.tile[position].WallType != 0 && Main.tile[position].HasTile)
-                {
-                    Main.tile[position].TileType = (ushort)asterdust;
-                    WorldGen.SquareTileFrame(position.X, position.Y);
-                }
-
-                // carve out cave
-                if (sample.X <= 0)
-                    WorldGen.KillTile(position.X, position.Y);
-
-                if (sample.X <= -1f && Main.tile[position].WallType != 0)
-                    Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls2>();
-
-                if (sample.X <= -2.5f && Main.tile[position].WallType != 0)
-                    Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls3>();
+                Main.tile[position].TileType = (ushort)asterdust;
+                WorldGen.SquareTileFrame(position.X, position.Y);
             }
-        });
+
+            // carve out cave
+            if (sample.X <= 0)
+                WorldGen.KillTile(position.X, position.Y);
+
+            if (sample.X <= -1f && Main.tile[position].WallType != 0)
+                Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls2>();
+
+            if (sample.X <= -2.5f && Main.tile[position].WallType != 0)
+                Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls3>();
+        }
     }
 
     private void PlugCaveEntrancesAndPlaceAsterdust(List<Point> tilePosSet)

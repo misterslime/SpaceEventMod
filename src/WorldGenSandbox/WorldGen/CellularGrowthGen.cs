@@ -255,8 +255,6 @@ internal class CellularGrowthGen
                 }
             }
         }
-
-        Console.WriteLine("meow + " + tilePosSet.Count);
     }
 
     private static void GenPlanetoidCaves(ref List<Point> tilePosSet, FastNoiseLite noise, Rectangle asteroid, bool large)
