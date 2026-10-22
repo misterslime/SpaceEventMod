@@ -298,7 +298,7 @@ internal class VirunadeProjectile : ModProjectile, IBall
         //velocity += Vector2.UnitY * 0.2f;
 
 
-        velocity = VerletString.TileCollision(Projectile.Center, velocity, true, -1f);
+        velocity = VerletString.TileCollision(Projectile.Center, velocity, true, Radius, -1f);
         
 
         _oldCenter = Projectile.Center;

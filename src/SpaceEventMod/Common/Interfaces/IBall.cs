@@ -12,32 +12,35 @@ internal interface IBall
 {
     float Radius { get; }
 
-    [ModSystemHooks.PreUpdateProjectiles]
+    [ModSystemHooks.PostUpdateProjectiles]
     public static void CollideProjectiles()
     {
-        foreach (var projectile in Main.ActiveProjectiles)
+        for (int i = 0; i < 3; i++)
         {
-            if (projectile.ModProjectile is not IBall ball)
-                continue;
-
-            foreach (var otherProjectile in Main.ActiveProjectiles)
+            foreach (var projectile in Main.ActiveProjectiles)
             {
-                if (otherProjectile.ModProjectile is not IBall otherBall ||
-                    otherProjectile.whoAmI == projectile.whoAmI)
+                if (projectile.ModProjectile is not IBall ball)
                     continue;
 
-                Vector2 collisionAxis = projectile.Center - otherProjectile.Center;
-                float distance = collisionAxis.Length();
-                float minDistance = ball.Radius + otherBall.Radius * 2;
-
-                if (distance < minDistance)
+                foreach (var otherProjectile in Main.ActiveProjectiles)
                 {
-                    Vector2 normal = collisionAxis / distance;
-                    float delta = minDistance - distance;
-                    Vector2 displacement = delta * normal / 2f;
+                    if (otherProjectile.ModProjectile is not IBall otherBall ||
+                        otherProjectile.whoAmI == projectile.whoAmI)
+                        continue;
 
-                    projectile.Center += VerletString.TileCollision(projectile.Center, displacement, true);
-                    otherProjectile.Center += VerletString.TileCollision(otherProjectile.Center, -displacement, true);
+                    Vector2 collisionAxis = projectile.Center - otherProjectile.Center;
+                    float distance = collisionAxis.Length();
+                    float minDistance = ball.Radius + otherBall.Radius * 2;
+
+                    if (distance < minDistance)
+                    {
+                        Vector2 normal = collisionAxis / distance;
+                        float delta = minDistance - distance;
+                        Vector2 displacement = delta * normal / 2f;
+
+                        projectile.Center += VerletString.TileCollision(projectile.Center, displacement, false, ball.Radius);
+                        otherProjectile.Center += VerletString.TileCollision(otherProjectile.Center, -displacement, false, otherBall.Radius);
+                    }
                 }
             }
         }

@@ -200,6 +200,11 @@ Items: {
 		DisplayName: Virunade
 		Tooltip: ""
 	}
+
+	Ball: {
+		DisplayName: Ball
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -252,6 +257,7 @@ Projectiles: {
 	AmoebicPicklawProjectile.DisplayName: Amoebic Picklaw Projectile
 	StarsapArrowProjectile.DisplayName: Starsap Arrow Projectile
 	VirunadeProjectile.DisplayName: Virunade Projectile
+	BallProjectile.DisplayName: Ball Projectile
 }
 
 Buffs: {
