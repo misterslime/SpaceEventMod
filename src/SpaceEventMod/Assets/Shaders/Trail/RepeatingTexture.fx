@@ -2,6 +2,7 @@ matrix transformMatrix;
 
 int spriteRotation;
 float repeats;
+float displacementForwards;
 
 texture sampleTexture;
 sampler sampleTextureSampler = sampler_state
@@ -57,7 +58,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
     float2 uv = input.TextureCoordinates;
 
-    uv.x = uv.x * repeats;
+    uv.x = uv.x * repeats + displacementForwards;
 
     float2 rotX = rotationTable[index * 2];
     float2 rotY = rotationTable[index * 2 + 1];

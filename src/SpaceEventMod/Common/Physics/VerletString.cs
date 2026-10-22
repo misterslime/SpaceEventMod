@@ -217,15 +217,15 @@ internal class VerletString
         }
     }
 
-    private static Vector2 TileCollision(Vector2 position, Vector2 velocity, bool fallThrough)
+    public static Vector2 TileCollision(Vector2 position, Vector2 velocity, bool fallThrough, float collisionReaction = 0)
     {
         Vector2 newVel = Terraria.Collision.noSlopeCollision(position - new Vector2(3, 3), velocity, 6, 6, fallThrough, fallThrough);
 
         if (Math.Abs(newVel.X) < Math.Abs(velocity.X))
-            velocity.X *= 0;
+            velocity.X *= collisionReaction;
 
         if (Math.Abs(newVel.Y) < Math.Abs(velocity.Y))
-            velocity.Y *= 0;
+            velocity.Y *= collisionReaction;
 
         return velocity;
     }

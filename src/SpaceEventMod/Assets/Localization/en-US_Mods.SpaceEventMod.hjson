@@ -195,6 +195,11 @@ Items: {
 		DisplayName: Hydrated Jelly Cell2 Item
 		Tooltip: ""
 	}
+
+	Virunade: {
+		DisplayName: Virunade
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -246,6 +251,7 @@ Projectiles: {
 	WindGustBlow.DisplayName: Wind Gust Blow
 	AmoebicPicklawProjectile.DisplayName: Amoebic Picklaw Projectile
 	StarsapArrowProjectile.DisplayName: Starsap Arrow Projectile
+	VirunadeProjectile.DisplayName: Virunade Projectile
 }
 
 Buffs: {
