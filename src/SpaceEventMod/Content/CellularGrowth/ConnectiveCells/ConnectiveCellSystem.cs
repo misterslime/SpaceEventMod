@@ -479,7 +479,7 @@ internal class ConnectiveCellSystem : ModSystem
                 _ => tex.Width,
                 a => Color.Lerp(Color.Black, Color.Red, a),
                 Assets.Shaders.Trail.ConnectiveCellPainted.Asset.Value,
-                ("transformMatrix", Graphics.WorldTransformMatrix),
+                ("transformMatrix", Graphics.EffectTransformMatrix),
                 ("paint1Texture", texture1),
                 ("paint2Texture", texture2),
                 ("repeats", repeats),
@@ -497,7 +497,7 @@ internal class ConnectiveCellSystem : ModSystem
                 _ => tex.Width,
                 _ => drawColor,
                 Assets.Shaders.Trail.RepeatingTexture.Asset.Value,
-                ("transformMatrix", Graphics.WorldTransformMatrix),
+                ("transformMatrix", Graphics.EffectTransformMatrix),
                 ("sampleTexture", texture),
                 ("repeats", repeats),
                 ("spriteRotation", 1));

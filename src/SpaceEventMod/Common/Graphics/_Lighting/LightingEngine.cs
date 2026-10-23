@@ -69,7 +69,7 @@ internal class LightingEngine
     private static void On_Main_DrawBlack(On_Main.orig_DrawBlack orig, Main self, bool force)
     {
         orig(self, force);
-        CallDraw(BeforeWalls, !Main.drawToScreen ? - new Vector2(Main.offScreenRange) : Vector2.Zero, Matrix.Identity);
+        CallDraw(BeforeWalls, !Main.drawToScreen ? - new Vector2(Main.offScreenRange) : Vector2.Zero, Main.GameViewMatrix.EffectMatrix, false);
     }
 
     private static void On_Main_DrawNPCs(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)
@@ -94,7 +94,7 @@ internal class LightingEngine
         CallDraw(AfterDusts, Vector2.Zero, Main.GameViewMatrix.TransformationMatrix);
     }
 
-    private static void CallDraw(EventHandler<DrawEventArgs> drawEvent, Vector2 lightDisplacement, Matrix sbMatrix)
+    private static void CallDraw(EventHandler<DrawEventArgs> drawEvent, Vector2 lightDisplacement, Matrix sbMatrix, bool flipTarget = true)
     {
         if (drawEvent is null)
             return;
@@ -110,7 +110,7 @@ internal class LightingEngine
                         DepthStencilState.Default,
                         Main.Rasterizer,
                         null,
-                        Matrix.Identity);
+                        Main.GameViewMatrix.EffectMatrix);
 
             drawEvent?.Invoke(null, new DrawEventArgs(Main.spriteBatch, LightingBuffer.ScreenLightmap.Target));
 
@@ -123,7 +123,7 @@ internal class LightingEngine
         effect.Apply();
 
         Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, null, Main.Rasterizer, effect.Shader, sbMatrix);
-        Main.spriteBatch.Draw(ExtraDrawStuffBuffer.Target, Vector2.Zero, ExtraDrawStuffBuffer.Target.Bounds, Color.White, 0f, Vector2.Zero, 1f, Main.GameViewMatrix.Effects, 0f);
+        Main.spriteBatch.Draw(ExtraDrawStuffBuffer.Target, Vector2.Zero, ExtraDrawStuffBuffer.Target.Bounds, Color.White, 0f, Vector2.Zero, 1f, flipTarget ? Main.GameViewMatrix.Effects : 0, 0f);
         Main.spriteBatch.End();
     }
 }

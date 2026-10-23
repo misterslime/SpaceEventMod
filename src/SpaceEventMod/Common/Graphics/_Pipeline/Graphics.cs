@@ -31,10 +31,12 @@ public class Graphics : ModSystem
 
     private Matrix _screenTransformMatrix;
     public static Matrix ScreenTransformMatrix => _instance._screenTransformMatrix;
-
-
+    
     private Matrix _effectTransformMatrix;
     public static Matrix EffectTransformMatrix => _instance._effectTransformMatrix;
+
+    private Matrix _identityTransformMatrix;
+    public static Matrix IdentityTransformMatrix => _instance._identityTransformMatrix;
 
     public readonly List<EffectParameterData> EffectParameterDatas = [];
     public readonly List<TextureData> TextureDatas = [];
@@ -208,9 +210,12 @@ public class Graphics : ModSystem
             * Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, Main.screenHeight, 0, -1, 1);
         _worldTransformMatrix = Matrix.CreateTranslation(-Main.screenPosition.X, -Main.screenPosition.Y, 0f)
             * ScreenTransformMatrix;
-
-
         _effectTransformMatrix = Matrix.CreateTranslation(-Main.screenPosition.X, -Main.screenPosition.Y, 0f) *
+            Main.GameViewMatrix.EffectMatrix
+            * Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, Main.screenHeight, 0, -1, 1);
+
+
+        _identityTransformMatrix = Matrix.CreateTranslation(-Main.screenPosition.X, -Main.screenPosition.Y, 0f) *
             Main.GameViewMatrix.EffectMatrix
             * Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, Main.screenHeight, 0, -1, 1);
     }
@@ -586,13 +591,14 @@ public class Graphics : ModSystem
 
             Main.spriteBatch.Begin(new()
             {
-                TransformMatrix = Matrix.CreateScale(
+                RasterizerState = Main.Rasterizer,
+                TransformMatrix = Main.GameViewMatrix.EffectMatrix * Matrix.CreateScale(
                     Main.GameViewMatrix.Zoom.X / _targetScale,
                     Main.GameViewMatrix.Zoom.Y / _targetScale,
                     0f
                 ),
             });
-            Main.spriteBatch.Draw(graphics.ActiveTarget, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), null, Color.White);
+            Main.spriteBatch.Draw(graphics.ActiveTarget, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), null, Color.White, 0F, Vector2.Zero, Main.GameViewMatrix.Effects, 0);
             Main.spriteBatch.End();
 
             // DrawFullscreenQuad(_activeTarget, 1f / _targetScale, null);
