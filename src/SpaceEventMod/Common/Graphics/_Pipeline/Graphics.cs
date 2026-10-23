@@ -200,7 +200,7 @@ public class Graphics : ModSystem
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void PreDraw()
     {
-        _screenTransformMatrix = Main.GameViewMatrix.TransformationMatrix
+        _screenTransformMatrix = Matrix.Identity
             * Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, Main.screenHeight, 0, -1, 1);
         _worldTransformMatrix = Matrix.CreateTranslation(-Main.screenPosition.X, -Main.screenPosition.Y, 0f)
             * ScreenTransformMatrix;

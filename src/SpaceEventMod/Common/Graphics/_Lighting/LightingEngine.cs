@@ -63,38 +63,38 @@ internal class LightingEngine
     private static void On_Main_DoDraw_WallsAndBlacks(On_Main.orig_DoDraw_WallsAndBlacks orig, Main self)
     {
         orig(self);
-        CallDraw(AfterWalls, Vector2.Zero);
+        CallDraw(AfterWalls, Vector2.Zero, Main.GameViewMatrix.TransformationMatrix);
     }
 
     private static void On_Main_DrawBlack(On_Main.orig_DrawBlack orig, Main self, bool force)
     {
         orig(self, force);
-        CallDraw(BeforeWalls, !Main.drawToScreen ? - new Vector2(Main.offScreenRange) : Vector2.Zero);
+        CallDraw(BeforeWalls, !Main.drawToScreen ? - new Vector2(Main.offScreenRange) : Vector2.Zero, Matrix.Identity);
     }
 
     private static void On_Main_DrawNPCs(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)
     {
         if (behindTiles)
         {
-            CallDraw(BeforeTiles, Vector2.Zero);
+            CallDraw(BeforeTiles, Vector2.Zero, Main.GameViewMatrix.TransformationMatrix);
             orig(self, behindTiles);
         }
         else
         {
-            CallDraw(AfterTiles, Vector2.Zero);
-            CallDraw(BeforeNPCs, Vector2.Zero);
+            CallDraw(AfterTiles, Vector2.Zero, Main.GameViewMatrix.TransformationMatrix);
+            CallDraw(BeforeNPCs, Vector2.Zero, Main.GameViewMatrix.TransformationMatrix);
             orig(self, behindTiles);
-            CallDraw(AfterNPCs, Vector2.Zero);
+            CallDraw(AfterNPCs, Vector2.Zero, Main.GameViewMatrix.TransformationMatrix);
         }
     }
 
     private static void On_Main_DrawDust(On_Main.orig_DrawDust orig, Main self)
     {
         orig(self);
-        CallDraw(AfterDusts, Vector2.Zero);
+        CallDraw(AfterDusts, Vector2.Zero, Main.GameViewMatrix.TransformationMatrix);
     }
 
-    private static void CallDraw(EventHandler<DrawEventArgs> drawEvent, Vector2 lightDisplacement)
+    private static void CallDraw(EventHandler<DrawEventArgs> drawEvent, Vector2 lightDisplacement, Matrix sbMatrix)
     {
         if (drawEvent is null)
             return;
@@ -110,7 +110,7 @@ internal class LightingEngine
                         DepthStencilState.Default,
                         Main.Rasterizer,
                         null,
-                        Main.GameViewMatrix.TransformationMatrix);
+                        Matrix.Identity);
 
             drawEvent?.Invoke(null, new DrawEventArgs(Main.spriteBatch, LightingBuffer.ScreenLightmap.Target));
 
@@ -122,7 +122,7 @@ internal class LightingEngine
         effect.Parameters.ScreenDisplacement = new Vector2(lightDisplacement.X / ExtraDrawStuffBuffer.Target.Width, lightDisplacement.Y / ExtraDrawStuffBuffer.Target.Height * Main.LocalPlayer.gravDir);
         effect.Apply();
 
-        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, null, Main.Rasterizer, effect.Shader, Main.GameViewMatrix.TransformationMatrix);
+        Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, null, Main.Rasterizer, effect.Shader, sbMatrix);
         Main.spriteBatch.Draw(ExtraDrawStuffBuffer.Target, Vector2.Zero, ExtraDrawStuffBuffer.Target.Bounds, Color.White, 0f, Vector2.Zero, 1f, Main.GameViewMatrix.Effects, 0f);
         Main.spriteBatch.End();
     }
