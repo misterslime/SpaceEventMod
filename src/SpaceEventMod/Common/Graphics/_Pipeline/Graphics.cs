@@ -32,6 +32,10 @@ public class Graphics : ModSystem
     private Matrix _screenTransformMatrix;
     public static Matrix ScreenTransformMatrix => _instance._screenTransformMatrix;
 
+
+    private Matrix _effectTransformMatrix;
+    public static Matrix EffectTransformMatrix => _instance._effectTransformMatrix;
+
     public readonly List<EffectParameterData> EffectParameterDatas = [];
     public readonly List<TextureData> TextureDatas = [];
     public readonly List<DrawSpriteData> SpriteDatas = [];
@@ -200,10 +204,15 @@ public class Graphics : ModSystem
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void PreDraw()
     {
-        _screenTransformMatrix = Matrix.Identity
+        _screenTransformMatrix = Main.GameViewMatrix.ZoomMatrix
             * Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, Main.screenHeight, 0, -1, 1);
         _worldTransformMatrix = Matrix.CreateTranslation(-Main.screenPosition.X, -Main.screenPosition.Y, 0f)
             * ScreenTransformMatrix;
+
+
+        _effectTransformMatrix = Matrix.CreateTranslation(-Main.screenPosition.X, -Main.screenPosition.Y, 0f) *
+            Main.GameViewMatrix.EffectMatrix
+            * Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, Main.screenHeight, 0, -1, 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -80,7 +80,7 @@ public struct Pipeline(Graphics graphics)
         ReadOnlySpan<(string, ParameterValue)> parameters = [
             ("sampleTexture", texture),
                 ("color", Color.White.ToVector4()),
-                ("transformationMatrix", Graphics.WorldTransformMatrix),
+                ("transformationMatrix", Graphics.EffectTransformMatrix),
                 ("spriteRotation", spriteRotation)
         ];
 
