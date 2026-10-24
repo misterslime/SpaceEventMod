@@ -14,6 +14,7 @@ internal class HydratedJellyCell : WangWall, ILoadItem
 
 internal class HydratedJellyCell2 : WangWall, ILoadItem
 {
+    protected override int Variants => 3;
     protected override float Depth => 0.05f;
 
     public override string Texture => "SpaceEventMod/Assets/Textures/Miscellaneous/Walls/HydratedJellyCell";

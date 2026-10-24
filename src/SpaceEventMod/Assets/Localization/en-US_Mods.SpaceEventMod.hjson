@@ -210,6 +210,11 @@ Items: {
 		DisplayName: Flasher Item
 		Tooltip: ""
 	}
+
+	AsterdustItem: {
+		DisplayName: Asterdust Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {

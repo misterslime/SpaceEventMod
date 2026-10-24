@@ -2,10 +2,11 @@ using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles;
 
-internal class Asterdust : ModTile
+internal class Asterdust : ModTile, ILoadItem
 {
     public override void SetStaticDefaults()
     {
