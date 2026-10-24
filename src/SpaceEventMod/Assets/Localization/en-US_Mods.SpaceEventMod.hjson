@@ -205,6 +205,11 @@ Items: {
 		DisplayName: Ball
 		Tooltip: ""
 	}
+
+	FlasherItem: {
+		DisplayName: Flasher Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -237,6 +242,7 @@ NPCs: {
 	Angelatin.DisplayName: Angelatin
 	RainWorld.DisplayName: Rain World
 	FlittingGlaqus.DisplayName: Flitting Glaqus
+	Flasher.DisplayName: Flasher
 }
 
 Projectiles: {
@@ -258,6 +264,7 @@ Projectiles: {
 	StarsapArrowProjectile.DisplayName: Starsap Arrow Projectile
 	VirunadeProjectile.DisplayName: Virunade Projectile
 	BallProjectile.DisplayName: Ball Projectile
+	FlasherProjectile.DisplayName: Flasher Projectile
 }
 
 Buffs: {
@@ -274,5 +281,10 @@ Buffs: {
 	DigestiveEnzymes: {
 		DisplayName: Digestive Enzymes
 		Description: Increased defense and movement speed.
+	}
+
+	Flashbang: {
+		DisplayName: Flashbang
+		Description: Mods.SpaceEventMod.Buffs.Flashbang.Description
 	}
 }
