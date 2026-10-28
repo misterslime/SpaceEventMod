@@ -6,6 +6,8 @@ namespace SpaceEventMod.Content.Miscellaneous.Walls;
 
 internal class HydratedJellyCell : WangWall, ILoadItem
 {
+    protected override int Variants => 3;
+
     public override void SetWallDefaults()
     {
         AddMapEntry(Color.Green);
