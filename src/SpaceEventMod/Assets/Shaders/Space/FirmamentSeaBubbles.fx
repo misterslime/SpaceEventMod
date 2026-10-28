@@ -54,9 +54,13 @@ float4 PixelShaderFunction(float2 coords : TEXCOORD0, float2 screenPosition : SV
 
     float4 bubbleSample = (tex2D(bubbleSampler, bubbleCoords1) + tex2D(bubbleSampler, bubbleCoords2) + tex2D(bubbleSampler, bubbleCoords3)) / 3;
 
+    
+    // Interleaved gradient noise for dithering
+    float ign = frac(52.9829189 * frac(dot(screenWorldCoords * screenSize, float2(0.06711056, 0.00583715)))) * 2. - 1.;
+
     // render target shows a progress bar of sorts on how high in the sea the colors are
     float gradientSample = GradientSample(seaTargetSample.r);
-    float sample = bubbleSample.r * gradientSample;
+    float sample = bubbleSample.r * gradientSample + ign * 0.05;
     
     float4 paletteColor = tex2D(paletteSampler, float2(gradientSample, 0.)) * step(cutoff, sample);
 

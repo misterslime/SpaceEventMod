@@ -47,6 +47,7 @@ public class SeaForeground : ILoadable
 
             firmamentSeaForegroundShader.Parameters["edgeColor1"].SetValue(color1.ToVector4());
             firmamentSeaForegroundShader.Parameters["edgeColor2"].SetValue(color2.ToVector4());
+            firmamentSeaForegroundShader.Parameters["ditherStrength"].SetValue(0.12f);
 
             firmamentSeaForegroundShader.CurrentTechnique.Passes[0].Apply();
 

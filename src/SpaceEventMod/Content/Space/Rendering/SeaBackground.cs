@@ -4,6 +4,7 @@ using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Content.Space.LevelElements;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.Space.Rendering;
@@ -21,7 +22,7 @@ public class SeaBackground : ILoadable
     {
         if (SeaTargets.BackgroundRenderTarget is not null && Sea.Springs is not null && Sea.Active)
         {
-            Graphics.BeginPipeline(0.5f)
+            Graphics.BeginPipeline()
                 .DrawSprite(
                     SeaTargets.BackgroundRenderTarget,
                     Vector2.Zero,

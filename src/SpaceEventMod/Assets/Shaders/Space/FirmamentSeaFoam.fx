@@ -25,19 +25,26 @@ float globalTime;
 
 float4 edgeColor1;
 float4 edgeColor2;
+float ditherStrength;
 
 float4 PixelShaderFunction(float2 coords : TEXCOORD0, float2 screenPosition : SV_POSITION, float4 sampleColor : COLOR0) : COLOR0
 {
     float2 pixelSize = 2. / screenSize;
-
+    
     //pixelate
     float2 screenWorldCoords = pixelate((screenPosition + screenWorldPosition) / screenSize, pixelSize);
     float2 noiseCoords = screenWorldCoords + float2(globalTime * 0.01, globalTime * 0.005);
 
     coords = pixelate(coords, pixelSize);
 
+    
+    // Interleaved gradient noise for dithering
+    float ign = frac(52.9829189 * frac(dot(floor(screenPosition * 0.5) * 2., float2(0.06711056, 0.00583715)))) * 2. - 1.;
+    
     // noise sampling
-    float sample = (tex2D(noiseSampler, noiseCoords).g + tex2D(seaTarget, coords).g) * 0.5;
+    float noise = saturate(tex2D(noiseSampler, noiseCoords).g + ign * ditherStrength);
+    float4 targetSample = tex2D(seaTarget, coords);
+    float sample = (noise + targetSample.g) * 0.5 * targetSample.a;
     float4 paletteColor = step(0.5, sample) * tex2D(paletteSampler, float2(sample, 0.));
 
     // edge detection
