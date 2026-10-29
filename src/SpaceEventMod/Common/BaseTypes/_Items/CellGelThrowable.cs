@@ -272,7 +272,10 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
         Vector2 direction = Vector2.CatmullRom(p0, p1, p2, p3, lookAhead) - Projectile.Center;
 
         if (velocity != VerletString.TileCollision(Projectile.Center, velocity, true))
+        {
+            OnHitTile();
             return true;
+        }
 
         _oldCenter = Projectile.Center;
         Projectile.Center = newCenter;
@@ -297,20 +300,19 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
         //velocity += Vector2.UnitY * 0.2f;
 
 
-        velocity = VerletString.TileCollision(Projectile.Center, velocity, true, Radius, -1f);
+        var newVelocity = VerletString.TileCollision(Projectile.Center, velocity, true, Radius, -1f);
         
+
+        if (newVelocity != velocity)
+        {
+            OnHitTile();
+            velocity = newVelocity;
+        }
 
         _oldCenter = Projectile.Center;
         Projectile.Center = Projectile.Center + velocity;
 
         return CellGellThrowableState.Physics;
-    }
-
-    public override bool OnTileCollide(Vector2 oldVelocity)
-    {
-        Projectile.timeLeft = 0;
-        Projectile.PrepareBombToBlow();
-        return true;
     }
 
     public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
@@ -330,6 +332,11 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
         Projectile.alpha = 255;
 
         Projectile.Resize(60, 60);
+    }
+
+    protected virtual void OnHitTile()
+    {
+
     }
 
     public override bool PreDraw(ref Color lightColor)
