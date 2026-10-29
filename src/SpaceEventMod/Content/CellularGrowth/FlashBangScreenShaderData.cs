@@ -169,27 +169,21 @@ internal class FlashBangScreenShaderData : ScreenShaderData
 
             flashPosition.X = position.X;
             flashPosition.Y = position.Y;
-            flashStrength = EasingFunctions.InOutCirc(ratio) * 0.0f;
+            flashStrength = 1f - (dust.fadeIn / (13 * 3)) + dust.dustIndex;
             flashRadius = EasingFunctions.InOutSine(ratio) * 0.47f;
 
             _activeFlashCount++;
         }
 
         if (_activeFlashCount == 0 && Filters.Scene["SpaceEventMod:Flashbang"].IsActive())
-        {
-
             Filters.Scene.Deactivate("SpaceEventMod:Flashbang");
-        }
-
-
-        Main.NewText(_activeFlashCount);
 
     }
 
     public override void Apply()
     {
         base.Shader.Parameters["flashColor"]?.SetValue(new Color(51, 159, 255, 255).ToVector4());
-        base.Shader.Parameters["shadowColor"]?.SetValue(new Color(118, 164, 0, 255).ToVector4());
+        base.Shader.Parameters["shadowColor"]?.SetValue(new Color(164, 118, 25, 255).ToVector4());
         base.Shader.Parameters["flashPosition"]?.SetValue((FlashPosition - Main.screenPosition) / s_wallTarget.Target.Size());
         base.Shader.Parameters["flashStrength"]?.SetValue(FlashStrength);
         base.Shader.Parameters["flashRadius"]?.SetValue(FlashRadius);
