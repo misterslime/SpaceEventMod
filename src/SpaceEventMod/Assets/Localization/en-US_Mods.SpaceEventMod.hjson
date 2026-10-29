@@ -215,6 +215,21 @@ Items: {
 		DisplayName: Asterdust Item
 		Tooltip: ""
 	}
+
+	BacteriaBomb: {
+		DisplayName: Bacteria Bomb
+		Tooltip: ""
+	}
+
+	Bioglowstick: {
+		DisplayName: Bioglowstick
+		Tooltip: ""
+	}
+
+	Diatomite: {
+		DisplayName: Diatomite
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -270,6 +285,9 @@ Projectiles: {
 	VirunadeProjectile.DisplayName: Virunade Projectile
 	BallProjectile.DisplayName: Ball Projectile
 	FlasherProjectile.DisplayName: Flasher Projectile
+	BacteriaBombProjectile.DisplayName: Bacteria Bomb Projectile
+	BioglowstickProjectile.DisplayName: Bioglowstick Projectile
+	DiatomiteProjectile.DisplayName: Diatomite Projectile
 }
 
 Buffs: {
