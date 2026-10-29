@@ -33,7 +33,18 @@ internal class DiatomiteProjectile : CellGelThrowable
 
     protected override void OnHitTile()
     {
+        Projectile.timeLeft = 0;
+        Projectile.PrepareBombToBlow();
+    }
+
+    public override void OnKill(int timeLeft)
+    {
         SoundEngine.PlaySound(SoundID.Item14, Projectile.position);
+
+        Dust dust = Dust.NewDustDirect(Projectile.Center, 0, 0, ModContent.DustType<FlashbangDust>(), 0f, 0f, 100, default, 1f);
+        dust.velocity = Projectile.velocity.SafeNormalize(Vector2.Zero) * 1.2f;
+        dust.rotation = Main.rand.NextFloat(0, MathHelper.TwoPi);
+        dust.fadeIn = 0;
 
         if (Projectile.owner == Main.myPlayer)
         {
@@ -50,13 +61,5 @@ internal class DiatomiteProjectile : CellGelThrowable
             bool explodeWalls = Projectile.ShouldWallExplode(Projectile.Center, explosionRadius, minTileX, maxTileX, minTileY, maxTileY);
             Projectile.ExplodeTiles(Projectile.Center, explosionRadius, minTileX, maxTileX, minTileY, maxTileY, explodeWalls);
         }
-
-        Projectile.timeLeft = 0;
-        Projectile.PrepareBombToBlow();
-
-        Dust dust = Dust.NewDustDirect(Projectile.Center, 0, 0, ModContent.DustType<FlashbangDust>(), 0f, 0f, 100, default, 1f);
-        dust.velocity = Projectile.velocity.SafeNormalize(Vector2.Zero) * 1.2f;
-        dust.rotation = Main.rand.NextFloat(0, MathHelper.TwoPi);
-        dust.fadeIn = 0;
     }
 }
