@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.Tweening;
 using SpaceEventMod.Content.Space;
 using System;
@@ -49,7 +50,10 @@ internal class FlashbangDust : ModDust
         var drawColor = Color.White;
         drawColor.A = 0;
 
-        Main.EntitySpriteDraw(texture.Value, dust.position - Main.screenPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, 1f, 0f);
+        SpriteEffects effects = dust.dustIndex % 2 == 0 ? SpriteEffects.FlipHorizontally : 0;
+        effects = effects | (dust.dustIndex % 3 == 0 ? SpriteEffects.FlipVertically : 0);
+
+        Main.EntitySpriteDraw(texture.Value, dust.position - Main.screenPosition, frame, drawColor, dust.rotation, frame.Size() * 0.5f, 1f, effects);
 
         return false;
     }
