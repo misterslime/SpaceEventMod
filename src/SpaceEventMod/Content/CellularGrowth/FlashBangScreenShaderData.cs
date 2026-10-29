@@ -183,7 +183,7 @@ internal class FlashBangScreenShaderData : ScreenShaderData
     public override void Apply()
     {
         base.Shader.Parameters["flashColor"]?.SetValue(new Color(51, 159, 255, 255).ToVector4());
-        base.Shader.Parameters["shadowColor"]?.SetValue(new Color(164, 118, 25, 255).ToVector4());
+        base.Shader.Parameters["shadowColor"]?.SetValue(new Color(114, 164, 25, 255).ToVector4());
         base.Shader.Parameters["flashPosition"]?.SetValue((FlashPosition - Main.screenPosition) / s_wallTarget.Target.Size());
         base.Shader.Parameters["flashStrength"]?.SetValue(FlashStrength);
         base.Shader.Parameters["flashRadius"]?.SetValue(FlashRadius);
