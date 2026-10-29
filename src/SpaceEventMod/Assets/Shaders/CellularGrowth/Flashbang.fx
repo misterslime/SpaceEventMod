@@ -1,4 +1,5 @@
 #include "../SignedDistanceFunctions.fxh"
+#include "../Oklab.fxh"
 
 // ignore these theyre for convenience
 #define position xy
@@ -78,7 +79,7 @@ PSOutput PixelShaderFunction(PSInput input)
     float3 outerTotal = float3(99999.0, 0., 0.);
     float3 shadowTotal = float3(99999.0, 0., 0.);
     float shadowSample = 0.0;
-    float flashStrength = 0.67;
+    float flashStrength = 0.34;
     float4 godrayColor = 0.0;
 
     for (int i = 0; i < flashCount; i++)
@@ -127,8 +128,8 @@ PSOutput PixelShaderFunction(PSInput input)
     wallColor.rgb -= shadowColor2 * shadowFlash;
     
     // Mix inner white flash with outer colored flash values.
-    wallColor += lerp(flashColor * 0.7, float4(0.0, 0.0, 0.0, 0.0), outerFlash) * (1. - shadowSample);
     wallColor += lerp(wallColor, float4(1.0, 1.0, 1.0, 1.0), innerFlash * (1. - shadowSample));
+    wallColor += lerp(flashColor * 0.7, float4(0.0, 0.0, 0.0, 0.0), outerFlash) * (1. - shadowSample);
     wallColor.rgb -= shadowColor2 * shadowFlash * 0.12;
     wallColor.a = 1.0;
     
