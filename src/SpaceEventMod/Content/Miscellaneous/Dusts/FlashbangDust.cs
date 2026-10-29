@@ -23,10 +23,8 @@ internal class FlashbangDust : ModDust
         if (dust.fadeIn > FRAMES * FPS)
             dust.active = false;
 
-
         if (!Filters.Scene["SpaceEventMod:Flashbang"].IsActive())
             Filters.Scene.Activate("SpaceEventMod:Flashbang");
-
 
         float ratio = 1f - (dust.fadeIn / (FRAMES * FPS));
         ratio = MathHelper.Clamp(MathF.Sin(ratio * MathF.PI), 0f, 1f);
@@ -34,6 +32,9 @@ internal class FlashbangDust : ModDust
         FlashBangScreenShaderData.FlashRadius = EasingFunctions.InSine(ratio * 0.67f);
         FlashBangScreenShaderData.FlashStrength = EasingFunctions.InCirc(ratio);
         FlashBangScreenShaderData.FlashPosition = dust.position;
+
+        Lighting.AddLight(dust.position, new Color(51, 159, 255, 255).ToVector3() * 5f * ratio);
+
         return false;
     }
 
