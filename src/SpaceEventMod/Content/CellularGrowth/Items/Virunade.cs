@@ -9,6 +9,7 @@ using SpaceEventMod.Common.Physics.Components;
 using SpaceEventMod.Common.SDFs;
 using SpaceEventMod.Common.Splines;
 using SpaceEventMod.Common.Tweening;
+using SpaceEventMod.Content.Space;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -436,30 +437,33 @@ internal class VirunadeProjectile : ModProjectile, IBall
             var drawColor = Color.White * colorMult;
             var bloomScale = MathHelper.Lerp(3f, 1, colorMult);
 
-            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, default, RasterizerState.CullNone, default, Main.GameViewMatrix.TransformationMatrix);
-
-            //Main.spriteBatch.Draw(bloomTexture, drawPosition, null, bloomColor, Projectile.rotation * 2f, bloomTexture.Size() * 0.5f, 0.67f, 0, 0);
-            Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor, MathHelper.WrapAngle(Projectile.rotation * -2.6f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0015f, 0, 0);
-            Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor, MathHelper.WrapAngle(Projectile.rotation * 1.9f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0015f, 0, 0);
-            Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor * 0.5f, MathHelper.WrapAngle(Projectile.rotation * -0.74f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0025f, 0, 0);
-            Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor * 0.5f, MathHelper.WrapAngle(Projectile.rotation * 1.33f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0025f, 0, 0);
-
-            for (int k = Projectile.oldPos.Length - 1; k >= 0; k--)
+            if (!FlashBangScreenShaderData.DrawingFlashbang)
             {
-                if (State != VirunadeState.InMotion)
-                    break;
-                
-                Vector2 drawPos = (Projectile.oldPos[k] - Main.screenPosition) + displace + new Vector2(0f, Projectile.gfxOffY);
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, default, RasterizerState.CullNone, default, Main.GameViewMatrix.TransformationMatrix);
 
-                float ratio = ((Projectile.oldPos.Length - k) / (float)Projectile.oldPos.Length);
+                //Main.spriteBatch.Draw(bloomTexture, drawPosition, null, bloomColor, Projectile.rotation * 2f, bloomTexture.Size() * 0.5f, 0.67f, 0, 0);
+                Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor, MathHelper.WrapAngle(Projectile.rotation * -2.6f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0015f, 0, 0);
+                Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor, MathHelper.WrapAngle(Projectile.rotation * 1.9f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0015f, 0, 0);
+                Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor * 0.5f, MathHelper.WrapAngle(Projectile.rotation * -0.74f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0025f, 0, 0);
+                Main.spriteBatch.Draw(bloomTexture2, drawPosition, null, bloomColor * 0.5f, MathHelper.WrapAngle(Projectile.rotation * 1.33f), bloomTexture2.Size() * 0.5f, bloomScale * glowFrame.Size() * 0.0025f, 0, 0);
 
-                Color color = drawColor * ratio;
-                Main.spriteBatch.Draw(texture, drawPos, frame, color * ratio, Projectile.oldRot[k], frame.Size() * 0.5f, MathHelper.Lerp(1.2f, 1, colorMult) * Projectile.scale * ratio, 0, 0);
+                for (int k = Projectile.oldPos.Length - 1; k >= 0; k--)
+                {
+                    if (State != VirunadeState.InMotion)
+                        break;
+
+                    Vector2 drawPos = (Projectile.oldPos[k] - Main.screenPosition) + displace + new Vector2(0f, Projectile.gfxOffY);
+
+                    float ratio = ((Projectile.oldPos.Length - k) / (float)Projectile.oldPos.Length);
+
+                    Color color = drawColor * ratio;
+                    Main.spriteBatch.Draw(texture, drawPos, frame, color * ratio, Projectile.oldRot[k], frame.Size() * 0.5f, MathHelper.Lerp(1.2f, 1, colorMult) * Projectile.scale * ratio, 0, 0);
+                }
+
+                Main.spriteBatch.Draw(glowTexture, drawPosition, glowFrame, glowColor, Projectile.rotation, glowDrawOrigin, MathHelper.Lerp(1.6f, 1, colorMult) * Projectile.scale * glowScale, 0, 0);
+                Main.spriteBatch.Draw(texture, drawPosition, frame, Color.White, Projectile.rotation, drawOrigin, MathHelper.Lerp(1.2f, 1, colorMult) * Projectile.scale, 0, 0);
+                Main.spriteBatch.End();
             }
-
-            Main.spriteBatch.Draw(glowTexture, drawPosition, glowFrame, glowColor, Projectile.rotation, glowDrawOrigin, MathHelper.Lerp(1.6f, 1, colorMult) * Projectile.scale * glowScale, 0, 0);
-            Main.spriteBatch.Draw(texture, drawPosition, frame, Color.White, Projectile.rotation, drawOrigin, MathHelper.Lerp(1.2f, 1, colorMult) * Projectile.scale, 0, 0);
-            Main.spriteBatch.End();
 
             Main.spriteBatch.Begin(default, default, Main.DefaultSamplerState, default, RasterizerState.CullNone, default, Main.GameViewMatrix.TransformationMatrix);
             Main.spriteBatch.Draw(texture, drawPosition, frame, drawColor, Projectile.rotation, drawOrigin, Projectile.scale * MathHelper.Lerp(0.5f, 1, colorMult), 0, 0);

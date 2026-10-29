@@ -132,8 +132,8 @@ public class Flasher : ModNPC
 
         public override void OnKill(int timeLeft)
         {
-            SoundEngine.PlaySound(SoundID.Item45, Projectile.position);
-            SoundEngine.PlaySound(SoundID.NPCDeath11, Projectile.position);
+            SoundEngine.PlaySound(SoundID.Item14, Projectile.position);
+            SoundEngine.PlaySound(SoundID.Item29, Projectile.position);
 
             var spawnPos = new Vector2(Projectile.position.X + Projectile.width / 2 - 24f, Projectile.position.Y + Projectile.height / 2 - 24f);
 
@@ -141,10 +141,10 @@ public class Flasher : ModNPC
 
         //replace with a custom explosion
            
-            Dust dust = Dust.NewDustDirect(spawnPos, 0, 0, ModContent.DustType<FlashbangDust>(), 0f, 0f, 100, default, 2f);
+            Dust dust = Dust.NewDustDirect(spawnPos, 0, 0, ModContent.DustType<FlashbangDust>(), 0f, 0f, 100, default, 1f);
             dust.velocity = Projectile.velocity.SafeNormalize(Vector2.Zero) * 1.2f;
-            dust.rotation = 0f;
-            dust.fadeIn = 4 * Main.rand.Next(0, 3);
+            dust.rotation = Main.rand.NextFloat(0, MathHelper.TwoPi);
+            dust.fadeIn = 0;
             
 
         foreach (var npc in Main.ActiveNPCs)

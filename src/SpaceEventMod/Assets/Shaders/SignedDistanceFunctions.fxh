@@ -49,6 +49,12 @@ float3 sdgCircle(in float2 worldPixelCoords, in float2 position, in float radius
     return float3(signedDistance, relativePosition.x / dist, relativePosition.y / dist);
 }
 
+float sdCircle(float2 sample, float2 circlePos, float r)
+{
+    float2 p = sample - circlePos;
+    return (length(p) / r) - 1;
+}
+
 float3 smin(float3 a, float3 b, float k) {
     k *= 4.0;
     float h = max(k-abs(a.x-b.x),0.0)/(2.0*k);
