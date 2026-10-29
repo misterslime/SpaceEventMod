@@ -86,7 +86,6 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
     private List<Vector2> _moveToPositions = [];
     private Vector2 _oldCenter = Vector2.Zero;
     private float _pathColorMultiplier = 1f;
-    private int _variant = 0;
 
     protected abstract Asset<Texture2D> Glow { get; }
     protected abstract Color BloomColor { get; }
@@ -96,6 +95,8 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
     protected abstract int Damage { get; }
     protected abstract float Knockback { get; }
     protected abstract float GlowScale { get; }
+
+    protected virtual bool Glows => false;
 
     public float Radius { get => 9f; }
 
@@ -120,7 +121,6 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
         _mousePositions = new List<Vector2>();
         _moveToPositions = [];
         _pathColorMultiplier = 1f;
-        _variant = Main.rand.Next(4);
     }
 
     public override void SendExtraAI(BinaryWriter writer)
@@ -341,6 +341,7 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
 
     public override bool PreDraw(ref Color lightColor)
     {
+
         Texture2D bloomTexture = Assets.Textures.Particles.Glow.Asset.Value;
         Texture2D bloomTexture2 = Assets.Textures.Particles.BloomFlare.Asset.Value;
 
@@ -354,6 +355,7 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
         float glowScale = GlowScale;
         Rectangle frame = texture.Frame(1, Frames, 0, Projectile.frame);
         Rectangle glowFrame = glowTexture.Frame(1, Frames, 0, Projectile.frame);
+        var displace = Projectile.Center - Projectile.position;
 
         if (Projectile.owner == Main.myPlayer && _moveToPositions.Count > 0 && _pathColorMultiplier > 0.02)
         {
@@ -380,9 +382,27 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
                 .Flush();
         }
 
+        if (!Glows)
+        {
+            for (int k = Projectile.oldPos.Length - 1; k >= 0; k--)
+            {
+                if (State != CellGellThrowableState.InMotion && State != CellGellThrowableState.Physics)
+                    break;
+
+                Vector2 drawPos = (Projectile.oldPos[k] - Main.screenPosition) + displace + new Vector2(0f, Projectile.gfxOffY);
+
+                float ratio = ((Projectile.oldPos.Length - k) / (float)Projectile.oldPos.Length);
+
+                Color color = lightColor * ratio;
+                Main.spriteBatch.Draw(texture, drawPos, frame, color * ratio, Projectile.oldRot[k], frame.Size() * 0.5f, MathHelper.Lerp(1.2f, 1, colorMult) * Projectile.scale * ratio, 0, 0);
+                Main.spriteBatch.Draw(glowTexture, drawPos, frame, Color.White * ratio * ratio, Projectile.oldRot[k], frame.Size() * 0.5f, MathHelper.Lerp(1.2f, 1, colorMult) * Projectile.scale * ratio, 0, 0);
+            }
+            Main.spriteBatch.Draw(texture, drawPosition, frame, lightColor, Projectile.rotation, frame.Size() * 0.5f, Projectile.scale * MathHelper.Lerp(0.5f, 1, colorMult), 0, 0);
+            return false;
+        }
+
         using (Main.spriteBatch.Scope())
         {
-            var displace = Projectile.Center - Projectile.position;
             var glowDrawOrigin = glowFrame.Size() * 0.5f;
             var drawOrigin = frame.Size() * 0.5f;
             var drawColor = Color.White * colorMult;
@@ -400,7 +420,7 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
 
                 for (int k = Projectile.oldPos.Length - 1; k >= 0; k--)
                 {
-                    if (State != CellGellThrowableState.InMotion)
+                    if (State != CellGellThrowableState.InMotion && State != CellGellThrowableState.Physics)
                         break;
 
                     Vector2 drawPos = (Projectile.oldPos[k] - Main.screenPosition) + displace + new Vector2(0f, Projectile.gfxOffY);
@@ -422,5 +442,19 @@ internal abstract class CellGelThrowable : ModProjectile, IBall
         }
 
         return false;
+    }
+
+    public override void PostDraw(Color lightColor)
+    {
+        if (Glows)
+            return;
+
+        Vector2 drawPosition = Projectile.Center - Main.screenPosition;
+        float colorMult = EasingFunctions.InOutSine(MathHelper.Clamp(Projectile.timeLeft / 8f, 0f, 1f));
+
+        Texture2D glowTexture = Glow.Value;
+        Rectangle glowFrame = glowTexture.Frame(1, Frames, 0, Projectile.frame);
+
+        Main.spriteBatch.Draw(glowTexture, drawPosition, glowFrame, Color.White, Projectile.rotation, glowFrame.Size() * 0.5f, Projectile.scale * MathHelper.Lerp(0.5f, 1, colorMult), 0, 0);
     }
 }

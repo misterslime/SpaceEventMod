@@ -23,8 +23,8 @@ internal class BacteriaBombProjectile : CellGelThrowable
 {
     public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/BacteriaBomb";
     protected override Asset<Texture2D> Glow => Assets.Textures.CellularGrowth.Items.BacteriaBomb_Glow.Asset;
-    protected override Color BloomColor => Color.Purple * 0.75f;
-    protected override Color GlowColor => Color.Coral;
+    protected override Color BloomColor => Color.Transparent * 0.75f;
+    protected override Color GlowColor => Color.Purple;
     protected override Vector3 LightColor => Color.Purple.ToVector3() * 0.5f;
     protected override int Frames => 4;
     protected override int Damage => 65;

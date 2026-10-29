@@ -19,8 +19,8 @@ internal class VirunadeProjectile : CellGelThrowable
 {
     public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/Virunade";
     protected override Asset<Texture2D> Glow => Assets.Textures.CellularGrowth.Items.Virunade_Glow.Asset;
-    protected override Color BloomColor => Color.Blue * 0.75f;
-    protected override Color GlowColor => Color.White;
+    protected override Color BloomColor => Color.Transparent * 0.75f;
+    protected override Color GlowColor => Color.Aqua;
     protected override Vector3 LightColor => Color.Blue.ToVector3() * 0.5f;
     protected override int Frames => 1;
     protected override int Damage => 65;

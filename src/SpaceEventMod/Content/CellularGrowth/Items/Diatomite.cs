@@ -23,7 +23,7 @@ internal class DiatomiteProjectile : CellGelThrowable
 {
     public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/Diatomite";
     protected override Asset<Texture2D> Glow => Assets.Textures.CellularGrowth.Items.Diatomite_Glow.Asset;
-    protected override Color BloomColor => Color.GreenYellow * 0.35f;
+    protected override Color BloomColor => Color.Transparent * 0.35f;
     protected override Color GlowColor => Color.YellowGreen;
     protected override Vector3 LightColor => Color.GreenYellow.ToVector3() * 0.15f;
     protected override int Frames => 4;

@@ -26,4 +26,5 @@ internal class BioglowstickProjectile : CellGelThrowable
     protected override int Damage => 0;
     protected override float Knockback => 0;
     protected override float GlowScale => 1.1f;
+    protected override bool Glows => true;
 }
