@@ -230,6 +230,16 @@ Items: {
 		DisplayName: Diatomite
 		Tooltip: ""
 	}
+
+	Watermelon: {
+		DisplayName: Watermelon
+		Tooltip: ""
+	}
+
+	WatermelonSlice: {
+		DisplayName: Watermelon Slice
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -288,6 +298,7 @@ Projectiles: {
 	BacteriaBombProjectile.DisplayName: Bacteria Bomb Projectile
 	BioglowstickProjectile.DisplayName: Bioglowstick Projectile
 	DiatomiteProjectile.DisplayName: Diatomite Projectile
+	WatermelonBoulder.DisplayName: Watermelon Boulder
 }
 
 Buffs: {
