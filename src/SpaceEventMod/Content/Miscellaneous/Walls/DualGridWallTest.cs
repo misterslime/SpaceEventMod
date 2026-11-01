@@ -98,3 +98,36 @@ internal class DualGridWallTest : WangWall, ILoadItem
         AddMapEntry(Color.Black);
     }
 }
+
+internal class CellWoodWall : WangWall, ILoadItem
+{
+    protected override int Variants => 3;
+
+    public override void SetWallDefaults()
+    {
+        AddMapEntry(Color.Green);
+    }
+}
+
+internal class AsterdustWall1 : WangWall, ILoadItem
+{
+    protected override int Variants => 3;
+
+    public override void SetWallDefaults()
+    {
+        AddMapEntry(Color.Red);
+    }
+
+}
+internal class AsterdustWall2 : WangWall, ILoadItem
+{
+    protected override int Variants => 3;
+
+    protected override float Depth => 0.2f;
+
+    public override void SetWallDefaults()
+    {
+        AddMapEntry(Color.Red);
+    }
+
+}

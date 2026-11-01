@@ -4,7 +4,7 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using TileHelper.Common;
 
-namespace SpaceEventMod.Content.CellularGrowth.Tiles;
+namespace SpaceEventMod.Content.CellularGrowth.Tiles.CellWood;
 
 internal class CellWood : ModTile, ILoadItem
 {
@@ -18,7 +18,7 @@ internal class CellWood : ModTile, ILoadItem
     public override void SetStaticDefaults()
     {
         Main.tileSolid[Type] = true;
-        Main.tileBlockLight[Type] = true;
+        Main.tileBlockLight[Type] = false;
         Main.tileBrick[Type] = true;
         //Main.tileMergeDirt[Type] = true;
 

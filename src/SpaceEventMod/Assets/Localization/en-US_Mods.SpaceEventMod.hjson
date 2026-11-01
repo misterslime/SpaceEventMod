@@ -240,6 +240,116 @@ Items: {
 		DisplayName: Watermelon Slice
 		Tooltip: ""
 	}
+
+	CellWoodBathtubItem: {
+		DisplayName: Cell Wood Bathtub Item
+		Tooltip: ""
+	}
+
+	CellWoodBedItem: {
+		DisplayName: Cell Wood Bed Item
+		Tooltip: ""
+	}
+
+	CellWoodBookcaseItem: {
+		DisplayName: Cell Wood Bookcase Item
+		Tooltip: ""
+	}
+
+	CellWoodCandelabraItem: {
+		DisplayName: Cell Wood Candelabra Item
+		Tooltip: ""
+	}
+
+	CellWoodCandleItem: {
+		DisplayName: Cell Wood Candle Item
+		Tooltip: ""
+	}
+
+	CellWoodChairItem: {
+		DisplayName: Cell Wood Chair Item
+		Tooltip: ""
+	}
+
+	CellWoodChandelierItem: {
+		DisplayName: Cell Wood Chandelier Item
+		Tooltip: ""
+	}
+
+	CellWoodChestItem: {
+		DisplayName: Cell Wood Chest Item
+		Tooltip: ""
+	}
+
+	CellWoodClockItem: {
+		DisplayName: Cell Wood Clock Item
+		Tooltip: ""
+	}
+
+	CellWoodDoorItem: {
+		DisplayName: Cell Wood Door Item
+		Tooltip: ""
+	}
+
+	CellWoodDresserItem: {
+		DisplayName: Cell Wood Dresser Item
+		Tooltip: ""
+	}
+
+	CellWoodLampItem: {
+		DisplayName: Cell Wood Lamp Item
+		Tooltip: ""
+	}
+
+	CellWoodLanternItem: {
+		DisplayName: Cell Wood Lantern Item
+		Tooltip: ""
+	}
+
+	CellWoodPianoItem: {
+		DisplayName: Cell Wood Piano Item
+		Tooltip: ""
+	}
+
+	CellWoodSinkItem: {
+		DisplayName: Cell Wood Sink Item
+		Tooltip: ""
+	}
+
+	CellWoodSofaItem: {
+		DisplayName: Cell Wood Sofa Item
+		Tooltip: ""
+	}
+
+	CellWoodTableItem: {
+		DisplayName: Cell Wood Table Item
+		Tooltip: ""
+	}
+
+	CellWoodToiletItem: {
+		DisplayName: Cell Wood Toilet Item
+		Tooltip: ""
+	}
+
+	CellWoodWorkBenchItem: {
+		DisplayName: Cell Wood Work Bench Item
+		Tooltip: ""
+	}
+
+	CellWoodWallItem: {
+		DisplayName: Cell Wood Wall Item
+		Tooltip: ""
+	}
+
+	AsterdustWall1Item: {
+		DisplayName: Asterdust Wall1 Item
+		Tooltip: ""
+	}
+
+	AsterdustWall2Item: {
+		DisplayName: Asterdust Wall2 Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
