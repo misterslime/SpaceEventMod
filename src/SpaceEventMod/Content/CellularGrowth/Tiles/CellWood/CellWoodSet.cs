@@ -23,7 +23,7 @@ public class CellWoodSet : ILoadable
 
         
 
-        int ingredient = ItemID.Wood;
+        int ingredient = ModContent.ItemType<CellWoodItem>();
 
         LoadFurnitureSet(name, arguments, ingredient, true);
     }
