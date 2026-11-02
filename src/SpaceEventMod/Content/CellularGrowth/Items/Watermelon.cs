@@ -127,7 +127,7 @@ public class WatermelonSlice : ModItem
     public override void SetDefaults()
     {
 
-        Item.DefaultToFood(32, 22, BuffID.WellFed, 5760);
+        Item.DefaultToFood(40, 22, BuffID.WellFed, 5760);
         Item.value = Item.buyPrice(0, 3);
         Item.rare = ItemRarityID.Blue;
     }
