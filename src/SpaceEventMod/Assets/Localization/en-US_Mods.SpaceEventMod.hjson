@@ -350,6 +350,11 @@ Items: {
 		DisplayName: Asterdust Wall2 Item
 		Tooltip: ""
 	}
+
+	AsterdustWall3Item: {
+		DisplayName: Asterdust Wall3 Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
