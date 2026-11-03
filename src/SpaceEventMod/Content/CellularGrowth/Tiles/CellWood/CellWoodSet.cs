@@ -1,4 +1,3 @@
-using Daybreak.Common.Features.Hooks;
 using Terraria.ID;
 using Terraria.ModLoader;
 using TileHelper.Common;
@@ -23,7 +22,7 @@ public class CellWoodSet : ILoadable
 
         
 
-        int ingredient = ItemID.Wood;
+        int ingredient = SpaceEventMod.Instance.Find<ModItem>("CellWoodItem").Type;
 
         LoadFurnitureSet(name, arguments, ingredient, true);
     }

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using SpaceEventMod.Common.BaseTypes;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
+using SpaceEventMod.Content.Space.Items;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -17,6 +18,15 @@ internal class Diatomite : CellGelThrowableItem
     protected override int Damage => 65;
     protected override float Knockback => 8;
     protected override int ThrownProjectile => ModContent.ProjectileType<DiatomiteProjectile>();
+
+    public override void AddRecipes()
+    {
+        CreateRecipe()
+            .AddIngredient<Cellgel>()
+            .AddIngredient(ItemID.Dynamite)
+            .AddTile(TileID.WorkBenches)
+            .Register();
+    }
 }
 
 internal class DiatomiteProjectile : CellGelThrowable

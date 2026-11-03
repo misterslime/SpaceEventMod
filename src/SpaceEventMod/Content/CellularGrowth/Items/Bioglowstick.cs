@@ -2,6 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using SpaceEventMod.Common.BaseTypes;
+using SpaceEventMod.Content.Space.Items;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.CellularGrowth.Items;
@@ -13,6 +15,14 @@ internal class Bioglowstick : CellGelThrowableItem
     protected override int Damage => 0;
     protected override float Knockback => 0;
     protected override int ThrownProjectile => ModContent.ProjectileType<BioglowstickProjectile>();
+    public override void AddRecipes()
+    {
+        CreateRecipe(5)
+            .AddIngredient<Cellgel>()
+            .AddIngredient(ItemID.Glowstick, 5)
+            .AddTile(TileID.WorkBenches)
+            .Register();
+    }
 }
 
 internal class BioglowstickProjectile : CellGelThrowable

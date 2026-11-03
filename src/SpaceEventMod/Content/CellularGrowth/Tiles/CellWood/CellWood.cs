@@ -26,3 +26,4 @@ internal class CellWood : ModTile, ILoadItem
         AddMapEntry(new Color(19, 223, 210));
     }
 }
+
