@@ -2,6 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using SpaceEventMod.Common.BaseTypes;
+using SpaceEventMod.Content.Space.Items;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace SpaceEventMod.Content.CellularGrowth.Items;
@@ -13,6 +15,15 @@ internal class Virunade : CellGelThrowableItem
     protected override int Damage => 65;
     protected override float Knockback => 8;
     protected override int ThrownProjectile => ModContent.ProjectileType<VirunadeProjectile>();
+
+    public override void AddRecipes()
+    {
+        CreateRecipe(5)
+            .AddIngredient<Cellgel>()
+            .AddIngredient(ItemID.Grenade, 5)
+            .AddTile(TileID.WorkBenches)
+            .Register();
+    }
 }
 
 internal class VirunadeProjectile : CellGelThrowable
@@ -27,3 +38,5 @@ internal class VirunadeProjectile : CellGelThrowable
     protected override float Knockback => 8;
     protected override float GlowScale => 1;
 }
+
+

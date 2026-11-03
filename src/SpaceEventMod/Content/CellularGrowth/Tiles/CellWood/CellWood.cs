@@ -6,7 +6,7 @@ using TileHelper.Common;
 
 namespace SpaceEventMod.Content.CellularGrowth.Tiles.CellWood;
 
-internal class CellWood : ModTile
+internal class CellWood : ModTile, ILoadItem
 {
     public void SetItemStaticDefaults(ModItem modItem)
     {
@@ -27,20 +27,3 @@ internal class CellWood : ModTile
     }
 }
 
-internal class CellWoodItem : ModItem
-{
-    public override void SetStaticDefaults()
-    {
-        ItemID.Sets.ShimmerTransformToItem[Type] = ItemID.Wood;
-        RecipeGroup.recipeGroups[RecipeGroupID.Wood].ValidItems.Add(Type);
-        Item.ResearchUnlockCount = 100;
-    }
-    public override void SetDefaults()
-    {
-        Item.DefaultToPlaceableTile(ModContent.TileType<CellWood>(), 0);
-        Item.width = 28;
-        Item.height = 22;
-        Item.maxStack = 9999;
-        Item.value = 100;
-    }
-}

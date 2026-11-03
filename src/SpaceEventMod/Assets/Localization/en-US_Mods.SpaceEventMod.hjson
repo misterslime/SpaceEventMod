@@ -350,6 +350,11 @@ Items: {
 		DisplayName: Asterdust Wall2 Item
 		Tooltip: ""
 	}
+
+	Cellgel: {
+		DisplayName: Cellgel
+		Tooltip: ""
+	}
 }
 
 NPCs: {
