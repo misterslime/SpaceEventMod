@@ -71,12 +71,12 @@ internal class TileSplat : ModDust
             shaderPass.Parameters.TileTarget2Size = Main.instance.tile2Target.Size();
             shaderPass.Parameters.TileTarget2Position = Main.sceneTile2Pos;
 
-            shaderPass.Parameters.ScreenPosition = Main.screenPosition + Vector2.Zero.Transform(transform);
-            shaderPass.Parameters.ScreenZoomRatio = scale;
+            shaderPass.Parameters.ScreenPosition = Main.screenPosition;
+            shaderPass.Parameters.ScreenZoomRatio = Vector2.One;
 
             shaderPass.Apply();
 
-            e.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, shaderPass.Shader, Main.GameViewMatrix.TransformationMatrix);
+            e.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, shaderPass.Shader, Matrix.Identity);
 
             foreach (var dust in Main.dust)
             {

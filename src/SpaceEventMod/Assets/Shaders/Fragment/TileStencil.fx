@@ -16,7 +16,7 @@ sampler TileTargetSampler = sampler_state
 texture TileTarget2;
 sampler TileTarget2Sampler = sampler_state
 {
-    Texture = (TileTarget);
+    Texture = (TileTarget2);
 };
 
 uniform float2 TileTargetPosition;
@@ -34,14 +34,14 @@ float4 PixelShaderFunction(in PSInput input) : COLOR0
     
     // Convert to world pixel coordinates.
     // Multiply screen pixel position by zoom ratio so it actually zooms in.
-    float2 screenWorldCoords = ScreenPosition + (input.Position.xy * ScreenZoomRatio);
+    float2 screenWorldCoords = ScreenPosition + input.Position.xy;
     
     // Map world coordinates to uv coordinates on the tile targets.
     float2 tileTargetCoords = (screenWorldCoords - TileTargetPosition) / TileTargetSize;
     float2 tileTarget2Coords = (screenWorldCoords - TileTarget2Position) / TileTarget2Size;
     
     // Multiply samples together
-    float4 tileTargetSample = tex2D(TileTargetSampler, tileTargetCoords) + tex2D(TileTarget2Sampler, tileTarget2Coords);
+    float4 tileTargetSample = tex2D(TileTarget2Sampler, tileTarget2Coords) + tex2D(TileTargetSampler, tileTargetCoords);
     
     return tex2D(uImage0, input.Coords) * saturate(tileTargetSample.a) * input.Color;
 }
