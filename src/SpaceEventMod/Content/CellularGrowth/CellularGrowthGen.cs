@@ -24,7 +24,6 @@ namespace SpaceEventMod.Content.CellularGrowth;
 
 public class CellularGrowthGen : ModSystem
 {
-    public static Line[] _connectiveCells;
     public static int LowestAsteroidTile;
 
     public override void ModifyWorldGenTasks(List<GenPass> tasks, ref double totalWeight)
@@ -50,8 +49,6 @@ public class CellularGrowthGen : ModSystem
 
 internal class CellularGrowthPass : GenPass
 {
-    private static readonly object s_locker = new object();
-
     private enum InteriorType : byte
     {
         Hollow,
@@ -529,11 +526,6 @@ internal class CellularGrowthPass : GenPass
             sdfScene.AddPrimitive(new Ellipse(center, ellipseDimensions));
         }
 
-        float roughness = 3f;
-        float baseRoughness = 1f;
-        float strength = 3f;
-        float persistence = 0.5f;
-        int noiseLayers = 5;
         Vector2 noiseCenter = WorldGen.genRand.NextVector2Square(-1, 1) * 500;
 
 
@@ -551,7 +543,7 @@ internal class CellularGrowthPass : GenPass
             // displace radius based on sdf gradient
 
             // fill cave surface with asterdust
-            if (sample.X <= 4f && Main.tile[position].WallType != 0 && Main.tile[position].HasTile)
+            if (sample.X <= 4f && Main.tile[position].WallType != WallID.None && Main.tile[position].HasTile)
             {
                 Main.tile[position].TileType = (ushort)asterdust;
                 WorldGen.SquareTileFrame(position.X, position.Y);
@@ -561,10 +553,10 @@ internal class CellularGrowthPass : GenPass
             if (sample.X <= 0)
                 WorldGen.KillTile(position.X, position.Y);
 
-            if (sample.X <= -1.5f && Main.tile[position].WallType != 0)
+            if (sample.X <= -1.5f && Main.tile[position].WallType != WallID.None)
                 Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<AsterdustWall2>();
 
-            if (sample.X <= -3.5f && Main.tile[position].WallType != 0)
+            if (sample.X <= -3.5f && Main.tile[position].WallType != WallID.None)
                 Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<AsterdustWall3>();
         }
     }

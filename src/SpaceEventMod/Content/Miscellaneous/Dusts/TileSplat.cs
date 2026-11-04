@@ -11,8 +11,6 @@ namespace SpaceEventMod.Content.Miscellaneous.Dusts;
 
 internal class TileSplat : ModDust
 {
-    private const int LIFESPAN = 600;
-
     public override void Load()
     {
         LightingEngine.AfterTiles += DrawSplatDusts;

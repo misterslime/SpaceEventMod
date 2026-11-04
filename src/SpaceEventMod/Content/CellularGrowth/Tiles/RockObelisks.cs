@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using SpaceEventMod.Content.Space;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
@@ -103,6 +104,8 @@ internal class RockObelisk(string internalName, int width, int height, bool hasG
         if (!_hasGlow)
             return;
 
+        Debug.Assert(_glowTexture is not null);
+
         Tile tile = Framing.GetTileSafely(i, j);
         
         Texture2D glowmask = _glowTexture.Value;
@@ -127,7 +130,7 @@ internal class RockObelisk(string internalName, int width, int height, bool hasG
     public override void RandomUpdate(int i, int j)
     {
         Tile tile = Main.tile[i, j];
-        (int topX, int topY) = TileObjectData.TopLeft(i, j);
+        (short topX, short topY) = TileObjectData.TopLeft(i, j);
         TileObjectData data = TileObjectData.GetTileData(tile.type, 0);
 
         short styleXWidth = (short)data.CoordinateFullWidth;
@@ -183,7 +186,7 @@ internal class RockObelisk(string internalName, int width, int height, bool hasG
         if (data is null)
             return;
 
-        (int topX, int topY) = TileObjectData.TopLeft(i, j);
+        (short topX, short topY) = TileObjectData.TopLeft(i, j);
 
         short styleXWidth = (short)data.CoordinateFullWidth;
         bool grown = tile.TileFrameX >= styleXWidth;

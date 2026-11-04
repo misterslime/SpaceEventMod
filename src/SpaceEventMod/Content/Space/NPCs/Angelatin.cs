@@ -213,7 +213,6 @@ internal class Angelatin : ModNPC
         var segmentDimensions = new Vector2(4, 10);
         var starDimensions = new Vector2(14, 12);
 
-        float baseLineLength = 16f;
         var color = new Color(Lighting.GetSubLight(NPC.Center));
 
         Vector2 baseLineStart = NPC.Hitbox.Bottom() - Vector2.Transform(new Vector2(0f, dressTexture.Size().Y + 4f), angelatinTransform);
