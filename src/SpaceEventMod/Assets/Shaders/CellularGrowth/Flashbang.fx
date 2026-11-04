@@ -37,6 +37,7 @@ uniform int flashCount;
 
 float4 flashColor;
 float4 shadowColor;
+float4 rayColor;
 //float2 flashPosition;
 float2 screenTargetRatio;
 //float flashStrength;
@@ -79,7 +80,7 @@ PSOutput PixelShaderFunction(PSInput input)
     float3 outerTotal = float3(99999.0, 0., 0.);
     float3 shadowTotal = float3(99999.0, 0., 0.);
     float shadowSample = 0.0;
-    float flashStrength = 0.34;
+    float flashStrength = 0.36;
     float4 godrayColor = 0.0;
 
     for (int i = 0; i < flashCount; i++)
@@ -87,6 +88,8 @@ PSOutput PixelShaderFunction(PSInput input)
         float3 inner = sdgCircle(uv, flashData[i].position, 0.8 * flashData[i].radius);
         float3 outer = sdgCircle(uv, flashData[i].position, 0.3 * flashData[i].radius) * 0.4;
         float3 shadow = sdgCircle(uv, flashData[i].position, 2.8 * flashData[i].radius);
+        
+        shadow.x *= flashData[i].strength;
         
         innerTotal = smin(innerTotal, inner, 0.2);
         outerTotal = smin(outerTotal, outer, 0.2);
@@ -102,16 +105,20 @@ PSOutput PixelShaderFunction(PSInput input)
         godrayValue += step(0.97, dot(normalize(outer.yz), normalize(angleVector(flashData[i].strength + uTime * -1.33))));
         godrayValue += step(0.97, dot(normalize(outer.yz), normalize(angleVector(flashData[i].strength + uTime))));
         
-        godrayColor += float4(1.0, 0.8, 0.9, 0.0) * step(0.97, godrayValue) * 0.1 / clamp(length(uv - flashData[i].position) * 4, 0.5, 20.0);
+        godrayColor += rayColor * step(0.97, godrayValue) * 0.1 / clamp(length(uv - flashData[i].position) * 4, 0.2, 20.0);
     }
     
     flashStrength = saturate(flashStrength);
-    shadowSample = saturate(shadowSample / flashCount);
+    shadowSample = saturate(shadowSample);
     
     innerTotal.x = easeOutSine(saturate(-innerTotal.x));
     innerTotal.yz *= -1;
     
-    shadowTotal.x = easeOutSine(saturate(-shadowTotal.x));
+    // Interleaved gradient noise for dithering
+    float ign = frac(52.9829189 * frac(dot(floor(uv * 0.5) * 2., float2(0.06711056, 0.00583715)))) * 2. - 1.;
+    
+    
+    shadowTotal.x = easeOutSine(saturate(-shadowTotal.x + ign * 0.1));
     shadowTotal.yz *= -1;
     
     outerTotal.x = easeOutSine(saturate(outerTotal.x));
