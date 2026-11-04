@@ -47,15 +47,16 @@ internal class TileSplat : ModDust
 
     private static void DrawSplatDusts(object? sender, DrawEventArgs e)
     {
-        if (!Main.dust.Where(d => d.type == ModContent.DustType<TileSplat>()).Any())
-            return;
 
         int splatDust = ModContent.DustType<TileSplat>();
+        int splatDustBig = ModContent.DustType<TileSplatBig>();
+
+        if (!Main.dust.Where(d => d.type == splatDust || d.type == splatDustBig).Any())
+            return;
+
 
         using (var _ = e.SpriteBatch.Scope())
         {
-            var texture = Assets.Textures.Miscellaneous.Dusts.TileSplat.Asset.Value;
-
             var transform = Matrix.Invert(Main.GameViewMatrix.TransformationMatrix);
 
             // there is SO a simpler way to do this
@@ -76,16 +77,17 @@ internal class TileSplat : ModDust
 
             shaderPass.Apply();
 
-            e.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, shaderPass.Shader, Matrix.Identity);
+            e.SpriteBatch.Begin(SpriteSortMode.Texture, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, shaderPass.Shader, Matrix.Identity);
 
             foreach (var dust in Main.dust)
             {
-                if (!dust.active || dust.type != splatDust)
+                if (!dust.active || (dust.type != splatDust && dust.type != splatDustBig))
                     continue;
 
                 if (dust.customData is not int lifespan)
                     continue;
 
+                var texture = DustLoader.GetDust(dust.type).Texture2D.Value;
                 var color = dust.color * (1f - EasingFunctions.InCirc(dust.fadeIn / lifespan));
                 e.SpriteBatch.Draw(texture, dust.position - Main.screenPosition, null, color, dust.rotation, texture.Size() * 0.5f, dust.scale, 0f, 0f);
 
@@ -94,4 +96,8 @@ internal class TileSplat : ModDust
             e.SpriteBatch.End();
         }
     }
+}
+
+internal class TileSplatBig : TileSplat
+{
 }

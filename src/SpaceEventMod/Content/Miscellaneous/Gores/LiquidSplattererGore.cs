@@ -56,12 +56,11 @@ internal class LiquidSplattererGore : ModGore
         {
             SoundEngine.PlaySound(SoundID.Item167 with { Pitch = 1f, Volume = 0.5f }, gore.position);
 
-            Dust dust = Dust.NewDustDirect(gore.position, 0, 0, ModContent.DustType<TileSplat>(), 0f, 0f, 100, default, 1f);
+            Dust dust = Dust.NewDustDirect(gore.position, 0, 0, ModContent.DustType<TileSplatBig>(), 0f, 0f, 100, default, 1f);
             dust.velocity = Vector2.Zero;
             dust.rotation = Main.rand.NextFloat(0, MathHelper.TwoPi);
             dust.fadeIn = 0;
             dust.color = gore.SplatterGoreData!.SplatColor;
-            dust.scale = 2.5f;
             dust.customData = 600;
         }
         else if (oldSpawnSplatValue != gore.SplatterGoreData!.ShouldSpawnDust)
@@ -71,7 +70,6 @@ internal class LiquidSplattererGore : ModGore
             dust.rotation = Main.rand.NextFloat(0, MathHelper.TwoPi);
             dust.fadeIn = 0;
             dust.color = gore.SplatterGoreData!.SplatColor;
-            dust.scale = 1f;
             dust.customData = 300;
         }
 
