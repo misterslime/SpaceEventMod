@@ -107,7 +107,18 @@ internal class FlashBangScreenShaderData : ScreenShaderData
                 using var sbScope = Main.spriteBatch.Scope();
 
                 Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
+
+                var changeColor = Assets.Shaders.Fragment.ChangeColor.CreateAwesomePass();
+
+                changeColor.Parameters.color = new Color(2, 2, 2).ToVector4();
+                changeColor.Apply();
+
+
                 Main.spriteBatch.Draw(Main.instance.blackTarget, (Main.sceneTilePos - Main.screenPosition) * 1f, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
                 Main.spriteBatch.Draw(Main.instance.tileTarget, (Main.sceneTilePos - Main.screenPosition) * 1f, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
                 Main.spriteBatch.Draw(Main.instance.tile2Target, (Main.sceneTile2Pos - Main.screenPosition) * 1f, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
                 //Main.spriteBatch.Draw(Main.instance.backWaterTarget, (Main.sceneWaterPos - Main.screenPosition) * 1f, null, Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f);
@@ -169,7 +180,7 @@ internal class FlashBangScreenShaderData : ScreenShaderData
 
             flashPosition.X = position.X;
             flashPosition.Y = position.Y;
-            flashStrength = 1f - (dust.fadeIn / (13 * 3)) + dust.dustIndex;
+            flashStrength = EasingFunctions.OutCirc(1f - (dust.fadeIn / (13 * 3)));
             flashRadius = EasingFunctions.InOutSine(ratio) * 0.47f;
 
             _activeFlashCount++;
@@ -183,7 +194,8 @@ internal class FlashBangScreenShaderData : ScreenShaderData
     public override void Apply()
     {
         base.Shader.Parameters["flashColor"]?.SetValue(new Color(51, 159, 255, 255).ToVector4());
-        base.Shader.Parameters["shadowColor"]?.SetValue(new Color(114, 164, 25, 255).ToVector4());
+        base.Shader.Parameters["shadowColor"]?.SetValue(new Color(118, 164, 0, 255).ToVector4());
+        base.Shader.Parameters["rayColor"]?.SetValue(new Color(144, 228, 255, 255).ToVector4());
         base.Shader.Parameters["flashPosition"]?.SetValue((FlashPosition - Main.screenPosition) / s_wallTarget.Target.Size());
         base.Shader.Parameters["flashStrength"]?.SetValue(FlashStrength);
         base.Shader.Parameters["flashRadius"]?.SetValue(FlashRadius);

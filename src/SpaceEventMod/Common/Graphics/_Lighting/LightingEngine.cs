@@ -47,7 +47,14 @@ internal class LightingEngine
 
         Main.RunOnMainThread(() =>
         {
-            ExtraDrawStuffBuffer = ScreenspaceTargetPool.Shared.Rent(Main.graphics.GraphicsDevice, (w, h, offW, offH) => (offW, offH));
+            var descriptor = new RenderTargetDescriptor(
+                SurfaceFormat.Color,
+                DepthFormat.Depth24Stencil8,
+                0,
+                RenderTargetUsage.DiscardContents,
+                false);
+
+            ExtraDrawStuffBuffer = ScreenspaceTargetPool.Shared.Rent(Main.graphics.GraphicsDevice, (w, h, offW, offH) => (offW, offH), descriptor);
         });
     }
 
@@ -69,7 +76,7 @@ internal class LightingEngine
     private static void On_Main_DrawBlack(On_Main.orig_DrawBlack orig, Main self, bool force)
     {
         orig(self, force);
-        CallDraw(BeforeWalls, !Main.drawToScreen ? - new Vector2(Main.offScreenRange) : Vector2.Zero, Main.GameViewMatrix.EffectMatrix, false);
+        CallDraw(BeforeWalls, !Main.drawToScreen ? -new Vector2(Main.offScreenRange) : Vector2.Zero, Main.GameViewMatrix.EffectMatrix, false);
     }
 
     private static void On_Main_DrawNPCs(On_Main.orig_DrawNPCs orig, Main self, bool behindTiles)

@@ -485,7 +485,7 @@ internal class CellularGrowthPass : GenPass
             }
 
             if (air == 0)
-                WorldGen.PlaceWall(position.X, position.Y, ModContent.WallType<CosmostoneWalls1>());
+                WorldGen.PlaceWall(position.X, position.Y, ModContent.WallType<AsterdustWall1>());
             else
                 surfacePosSet.Add(position);
         }
@@ -561,11 +561,11 @@ internal class CellularGrowthPass : GenPass
             if (sample.X <= 0)
                 WorldGen.KillTile(position.X, position.Y);
 
-            if (sample.X <= -1f && Main.tile[position].WallType != 0)
-                Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls2>();
+            if (sample.X <= -1.5f && Main.tile[position].WallType != 0)
+                Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<AsterdustWall2>();
 
-            if (sample.X <= -2.5f && Main.tile[position].WallType != 0)
-                Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<CosmostoneWalls3>();
+            if (sample.X <= -3.5f && Main.tile[position].WallType != 0)
+                Main.tile[position.X, position.Y].WallType = (ushort)ModContent.WallType<AsterdustWall3>();
         }
     }
 

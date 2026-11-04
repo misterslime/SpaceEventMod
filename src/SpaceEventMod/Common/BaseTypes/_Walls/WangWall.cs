@@ -6,6 +6,8 @@ using ReLogic.Content;
 using SpaceEventMod.Common.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.GameContent.Drawing;
@@ -16,7 +18,9 @@ namespace SpaceEventMod.Common.BaseTypes;
 
 internal abstract class WangWall : ModWall
 {
-    private static Dictionary<(bool TopLeft, bool TopRight, bool BottomRight, bool BottomLeft), Rectangle> s_frames = new Dictionary<(bool TopLeft, bool TopRight, bool BottomRight, bool BottomLeft), Rectangle>
+    private readonly record struct WallDrawData(Tile Wall, Point WallPosition, Rectangle Source, Rectangle Destination, float DepthAddition);
+
+    private static readonly Dictionary<(bool TopLeft, bool TopRight, bool BottomRight, bool BottomLeft), Rectangle> s_frames = new Dictionary<(bool TopLeft, bool TopRight, bool BottomRight, bool BottomLeft), Rectangle>
     {
         { (true, false, false, false), new Rectangle(0, 0, 16, 16) },
         { (false, true, false, false), new Rectangle(18, 0, 16, 16) },
@@ -40,11 +44,13 @@ internal abstract class WangWall : ModWall
         { (false, false, false, false), new Rectangle(18 * 2, 18 * 3, 16, 16) }
     };
 
-    private static Dictionary<int, Asset<Texture2D>> s_textures = [];
+    private static readonly Dictionary<int, Asset<Texture2D>> s_textures = [];
 
-    private static Dictionary<int, float> s_depth = [];
+    private static readonly Dictionary<int, float> s_depth = [];
 
-    private static Dictionary<int, int> s_variants = [];
+    private static readonly Dictionary<int, int> s_variants = [];
+
+    private static readonly HashSet<int> s_shouldHaveCustomSbParams = [];
 
     /// <summary>
     /// How many variants the wall has.
@@ -56,14 +62,31 @@ internal abstract class WangWall : ModWall
     /// </summary>
     protected virtual float Depth => 0f;
 
-    public override void SetStaticDefaults()
+    /// <summary>
+    /// Define custom <see cref="SpriteBatchParameters"/> to be applied to this wall. If this returns <see langword="true"/> then when drawing 
+    /// wang/dual grid walls this wall type will be skipped and frames of this type will be cached for later rendering
+    /// with the custom <see cref="SpriteBatchParameters"/>.
+    /// </summary>
+    protected virtual bool CustomSpriteBatchParameters([NotNullWhen(true)] out SpriteBatchParameters? parameters)
+    {
+        parameters = null;
+        return false;
+    }
+
+    public sealed override void SetStaticDefaults()
     {
         s_depth.Add(Type, Depth);
         s_variants.Add(Type, Variants);
 
+        if (CustomSpriteBatchParameters(out var _))
+            s_shouldHaveCustomSbParams.Add(Type);
+
         SetWallDefaults();
     }
 
+    /// <summary>
+    /// Set various parameters and defaults for this wall.
+    /// </summary>
     public abstract void SetWallDefaults();
 
     public sealed override bool PreDraw(int i, int j, SpriteBatch spriteBatch) => false;
@@ -87,7 +110,8 @@ internal abstract class WangWall : ModWall
         if (!Main.drawToScreen)
             offset = new Vector2(Main.offScreenRange);
 
-        List<(Tile Wall, Point WallPosition, Rectangle Source, Rectangle Destination, float DepthAddition)> framesRectanglesThingsToDraw = new();
+        Dictionary<int, List<WallDrawData>> specialWallCache = [];
+        List<WallDrawData> framesRectanglesThingsToDraw = [];
 
         int draws = 0;
 
@@ -142,24 +166,69 @@ internal abstract class WangWall : ModWall
 
                     sourceRect.X += variantNumber % s_variants[wallTypes[k].WallType] * 72;
 
-                    framesRectanglesThingsToDraw.Add((wallTypes[k], wallPositions[k], sourceRect, target, 0.01f * k));
+                    var frameData = new WallDrawData(wallTypes[k], wallPositions[k], sourceRect, target, 0.01f * k);
+
+                    if (s_shouldHaveCustomSbParams.Contains(wallTypes[k].WallType))
+                    {
+                        if (!specialWallCache.ContainsKey(wallTypes[k].WallType))
+                            specialWallCache.Add(wallTypes[k].WallType, []);
+
+                        specialWallCache[wallTypes[k].WallType].Add(frameData);
+                    }
+                    else
+                    {
+                        framesRectanglesThingsToDraw.Add(frameData);
+                    }
+
+
                     draws++;
                 }
 
-                if (framesRectanglesThingsToDraw.Count == 0)
-                    continue;
-
-                foreach (var frames in framesRectanglesThingsToDraw)
-                {
-                    var texture = Main.instance.WallsRenderer.GetTileDrawTexture(frames.Wall, frames.WallPosition.X, frames.WallPosition.Y);
-
-                    e.SpriteBatch.Draw(texture, frames.Destination, frames.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[frames.Wall.WallType] + frames.DepthAddition);
-
-                }
-                framesRectanglesThingsToDraw.Clear();
-
             }
         }
+
+        SpriteBatchSnapshot defaults = new(
+                        SpriteSortMode.BackToFront,
+                        BlendState.AlphaBlend,
+                        Main.DefaultSamplerState,
+                        DepthStencilState.Default,
+                        Main.Rasterizer,
+                        null,
+                        Main.GameViewMatrix.EffectMatrix);
+
+        foreach (var keyValuePair in specialWallCache)
+        {
+            if (WallLoader.GetWall(keyValuePair.Key) is not WangWall wangWall)
+                continue;
+
+            if (!wangWall.CustomSpriteBatchParameters(out var parameters))
+                continue;
+
+            using var sbScope = e.SpriteBatch.Scope();
+            {
+                e.SpriteBatch.Begin(parameters.Value.ToSnapshot(defaults));
+
+                foreach (var frame in keyValuePair.Value)
+                {
+                    var texture = Main.instance.WallsRenderer.GetTileDrawTexture(frame.Wall, frame.WallPosition.X, frame.WallPosition.Y);
+
+                    e.SpriteBatch.Draw(texture, frame.Destination, frame.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[frame.Wall.WallType] + frame.DepthAddition);
+                }
+
+                e.SpriteBatch.End();
+            }
+        }
+
+
+        foreach (var frames in framesRectanglesThingsToDraw)
+        {
+
+            var texture = Main.instance.WallsRenderer.GetTileDrawTexture(frames.Wall, frames.WallPosition.X, frames.WallPosition.Y);
+
+            e.SpriteBatch.Draw(texture, frames.Destination, frames.Source, Color.White, 0f, Vector2.Zero, 0, s_depth[frames.Wall.WallType] + frames.DepthAddition);
+
+        }
+        framesRectanglesThingsToDraw.Clear();
 
         // this is genuinely bullshit ngl
         bool CanExpandRectangleLeft(int startIndex, Rectangle rectangle, ref Tile[] wallTypes)

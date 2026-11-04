@@ -351,6 +351,11 @@ Items: {
 		Tooltip: ""
 	}
 
+	AsterdustWall3Item: {
+		DisplayName: Asterdust Wall3 Item
+		Tooltip: ""
+	}
+
 	Cellgel: {
 		DisplayName: Cellgel
 		Tooltip: ""
