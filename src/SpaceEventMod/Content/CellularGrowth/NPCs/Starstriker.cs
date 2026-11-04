@@ -9,11 +9,13 @@ using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.Bestiary;
+using Terraria.GameContent.ItemDropRules;
 using Terraria.GameContent.UI;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.ModLoader.Utilities;
+using SpaceEventMod.Content.Space.Items;
 
 namespace SpaceEventMod.Content.CellularGrowth.NPCs;
 
@@ -57,5 +59,9 @@ internal class Starstriker : ModNPC
 
         NPC.frame.Width = 64;
         NPC.frame.Height = 50;
+    }
+    public override void ModifyNPCLoot(NPCLoot npcLoot)
+    {
+        npcLoot.Add(ItemDropRule.Common(ModContent.ItemType<Cellgel>(), 1, 1, 3));
     }
 }

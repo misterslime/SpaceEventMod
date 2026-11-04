@@ -17,6 +17,7 @@ using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static tModPorter.ProgressUpdate;
+using SpaceEventMod.Content.Space.Items;
 
 namespace SpaceEventMod.Content.Space.NPCs;
 
@@ -63,6 +64,7 @@ internal class Angelatin : ModNPC
             _segments[i] = Main.rand.Next(4, 14);
         }
     }
+
 
     public override void OnSpawn(IEntitySource source)
     {
@@ -157,7 +159,8 @@ internal class Angelatin : ModNPC
         }
 
 
-        return; // remove this line to make them hate you
+       return; // remove this line to make them hate you
+
 
         NPC.TargetClosest();
         NPC.damage = 67;
@@ -167,7 +170,7 @@ internal class Angelatin : ModNPC
 
         var toTarget = (Main.player[NPC.target].Center - (NPC.Center + NPC.velocity)).SafeNormalize(Vector2.Zero);
         NPC.velocity += toTarget;
-        NPC.velocity = NPC.velocity.Clamp(10f);
+        NPC.velocity = NPC.velocity.Clamp(3f);
     }
 
     public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
@@ -337,5 +340,10 @@ internal class Angelatin : ModNPC
 
             tentacle[i] = current;
         }
+    }
+
+    public override void ModifyNPCLoot(NPCLoot npcLoot)
+    {
+        npcLoot.Add(ItemDropRule.Common(ModContent.ItemType<Cellgel>(), 1, 1, 5));
     }
 }
