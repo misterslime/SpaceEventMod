@@ -1,4 +1,7 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using SpaceEventMod.Content.Miscellaneous.Gores;
+using System.IO;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
@@ -47,6 +50,15 @@ namespace SpaceEventMod.Content.CellularGrowth.Items;
 
 public class WatermelonBoulder : ModProjectile
 {
+    private const int MELON_GORES = 8;
+
+    public override void Load()
+    {
+        for (int i = 0; i < MELON_GORES; i++)
+        {
+            GoreLoader.AddGoreFromTexture<LiquidSplattererGore>(Mod, $"SpaceEventMod/Assets/Textures/CellularGrowth/Items/MelonGore/MelonGore0_{i}");
+        }
+    }
 
     public override void SetDefaults()
     {
@@ -83,22 +95,40 @@ public class WatermelonBoulder : ModProjectile
 
         Dust dust = Dust.NewDustDirect(spawnPos, 0, 0, DustID.RedStarfish, 0f, 0f, 100, default, 0f);
 
-        int[] gores = new int[8];
+        Vector2[] goreVelocities = 
+        [
+            new Vector2(1.0f, -1.0f),
+            new Vector2(1.0f, -1.0f),
+            new Vector2(1.0f, -1.0f),
+            new Vector2(-1.5f, -1.5f),
+            new Vector2(-1.5f, -1.5f),
+            new Vector2(-1.5f, -1.5f),
+            new Vector2(-1.5f, -1.5f),
+            new Vector2(-1.5f, -1.5f)
+        ];
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < MELON_GORES; i++)
         {
-            gores[i] = Mod.Find<ModGore>($"MelonGore{Projectile.frame}_{i}").Type;
+            int type = Mod.Find<ModGore>($"MelonGore0_{i}").Type;
+
+            int gore = Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, goreVelocities[0].RotatedBy(velocityRotation), type, 1f);
+
+            var data = Main.gore[gore].TryGetData(new Color(154, 7, 23) * 0.4f);
+
+            data.HasHitGround = false;
+            data.ShouldSpawnDust = false;
+            data.SplatColor = new Color(154, 7, 23) * 0.4f;
         }
         // did you know cut of pieces of fruit make great reference for blood and gore? That way if you're uncomfortable looking at things like that, you can just reference those and manage to create a similar body horror feeling. Alongside that, I'm learning that people also use sounds of fruit being broken up to emulate the sounds of bones breaking, and blood squelching, it really makes you think about the relationship between fruit and the human body, pretty neat stuff!
 
-        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.0f, -1.0f).RotatedBy(velocityRotation), gores[0], 1f);
+        /*Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.0f, -1.0f).RotatedBy(velocityRotation), gores[0], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.0f, -1.0f).RotatedBy(velocityRotation), gores[1], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.0f, -1.0f).RotatedBy(velocityRotation), gores[2], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[3], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[4], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[5], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[6], 1f);
-        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[7], 1f);
+        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[7], 1f);*/
     }
 }
 

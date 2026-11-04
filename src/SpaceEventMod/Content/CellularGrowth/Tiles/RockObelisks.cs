@@ -37,30 +37,21 @@ internal class RockObeliskLoader : ModSystem
 }
 
 [Autoload(false)]
-internal class RockObelisk : ModTile
+internal class RockObelisk(string internalName, int width, int height, bool hasGlow = true) : ModTile
 {
-    private string _internalName;
-    private string _tileTexture;
+    private string _internalName = internalName;
+    private string _tileTexture = "SpaceEventMod/Assets/Textures/CellularGrowth/Tiles/" + internalName;
 
-    private int _width;
-    private int _height;
+    private int _width = width;
+    private int _height = height;
 
-    private bool _hasGlow;
+    private bool _hasGlow = hasGlow;
 
-    private Asset<Texture2D> _glowTexture;
+    private Asset<Texture2D>? _glowTexture;
 
 
     public override string Name => _internalName;
     public override string Texture => _tileTexture;
-
-    public RockObelisk(string internalName, int width, int height, bool hasGlow = true)
-    {
-        this._internalName = internalName;
-        this._tileTexture = "SpaceEventMod/Assets/Textures/CellularGrowth/Tiles/" + internalName;
-        this._width = width;
-        this._height = height;
-        this._hasGlow = hasGlow;
-    }
 
     public override void SetStaticDefaults()
     {
