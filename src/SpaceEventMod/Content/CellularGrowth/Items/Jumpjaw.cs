@@ -43,8 +43,8 @@ internal class Jumpjaw : ModItem
 
 internal class JumpjawProjectile : ModProjectile
 {
-    private const float BOUNCE = -8.5f;
-    private const float SWING_RANGE = 1.66f * (float)Math.PI;
+    private const float BOUNCE = -12.5f;
+    private const float SWING_RANGE = -1.66f * (float)Math.PI;
     private const int TOTAL_DURATION = 16;
 
     private ref float Timer => ref Projectile.ai[0];
@@ -52,7 +52,7 @@ internal class JumpjawProjectile : ModProjectile
 
     private Player Owner => Main.player[Projectile.owner];
 
-    public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/Jumpjaw";
+   
 
     public override void SetStaticDefaults()
     {
@@ -62,8 +62,8 @@ internal class JumpjawProjectile : ModProjectile
 
     public override void SetDefaults()
     {
-        Projectile.width = 36;
-        Projectile.height = 44;
+        Projectile.width = 44;
+        Projectile.height = 36;
         Projectile.friendly = true;
         Projectile.timeLeft = 3600;
         Projectile.penetrate = -1;
@@ -127,7 +127,7 @@ internal class JumpjawProjectile : ModProjectile
 
         armPosition.Y += Owner.gfxOffY;
         Projectile.Center = armPosition;
-        Projectile.scale = scale * Owner.GetAdjustedItemScale(Owner.HeldItem);
+       // Projectile.scale = scale * Owner.GetAdjustedItemScale(Owner.HeldItem);
 
         Timer++;
     }
@@ -184,14 +184,19 @@ internal class JumpjawProjectile : ModProjectile
         SoundEngine.PlaySound(SoundID.NPCDeath9, target.Center);
 
         var direction = target.Center - Owner.MountedCenter;
+        Owner.velocity.Y = BOUNCE - 2f;
+        Owner.RefreshDoubleJumps();
 
-        var belowThreshold = MathF.Abs(direction.Y) > Owner.height * 0.5f - 6;
+        /* var belowThreshold = MathF.Abs(direction.Y) > Owner.height * 0.5f - 2;
 
         direction = direction.SafeNormalize(Vector2.Zero);
 
         if (Vector2.Dot(Vector2.UnitY, direction) > 0.5 && belowThreshold)
         {
             Owner.velocity.Y = BOUNCE;
-        }
+
+            Owner.RefreshDoubleJumps();
+            
+        } */
     }
 }

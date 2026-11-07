@@ -132,6 +132,8 @@ internal class Angelatin : ModNPC
 
             _spring.Y += -0.25f;
 
+            player.RefreshDoubleJumps();
+
             SoundEngine.PlaySound(SoundID.Item167, NPC.Center);
         }
 
