@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using SpaceEventMod.Content.Space;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
@@ -37,30 +38,21 @@ internal class RockObeliskLoader : ModSystem
 }
 
 [Autoload(false)]
-internal class RockObelisk : ModTile
+internal class RockObelisk(string internalName, int width, int height, bool hasGlow = true) : ModTile
 {
-    private string _internalName;
-    private string _tileTexture;
+    private string _internalName = internalName;
+    private string _tileTexture = "SpaceEventMod/Assets/Textures/CellularGrowth/Tiles/" + internalName;
 
-    private int _width;
-    private int _height;
+    private int _width = width;
+    private int _height = height;
 
-    private bool _hasGlow;
+    private bool _hasGlow = hasGlow;
 
-    private Asset<Texture2D> _glowTexture;
+    private Asset<Texture2D>? _glowTexture;
 
 
     public override string Name => _internalName;
     public override string Texture => _tileTexture;
-
-    public RockObelisk(string internalName, int width, int height, bool hasGlow = true)
-    {
-        this._internalName = internalName;
-        this._tileTexture = "SpaceEventMod/Assets/Textures/CellularGrowth/Tiles/" + internalName;
-        this._width = width;
-        this._height = height;
-        this._hasGlow = hasGlow;
-    }
 
     public override void SetStaticDefaults()
     {
@@ -112,6 +104,8 @@ internal class RockObelisk : ModTile
         if (!_hasGlow)
             return;
 
+        Debug.Assert(_glowTexture is not null);
+
         Tile tile = Framing.GetTileSafely(i, j);
         
         Texture2D glowmask = _glowTexture.Value;
@@ -136,7 +130,7 @@ internal class RockObelisk : ModTile
     public override void RandomUpdate(int i, int j)
     {
         Tile tile = Main.tile[i, j];
-        (int topX, int topY) = TileObjectData.TopLeft(i, j);
+        (short topX, short topY) = TileObjectData.TopLeft(i, j);
         TileObjectData data = TileObjectData.GetTileData(tile.type, 0);
 
         short styleXWidth = (short)data.CoordinateFullWidth;
@@ -192,7 +186,7 @@ internal class RockObelisk : ModTile
         if (data is null)
             return;
 
-        (int topX, int topY) = TileObjectData.TopLeft(i, j);
+        (short topX, short topY) = TileObjectData.TopLeft(i, j);
 
         short styleXWidth = (short)data.CoordinateFullWidth;
         bool grown = tile.TileFrameX >= styleXWidth;

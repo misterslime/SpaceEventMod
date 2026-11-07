@@ -2,6 +2,8 @@
 
     <!-- Modules and Libraries -->
     <ItemGroup>
+        <PackageReference Include="GoldMeridian.KeyGen" Version="1.0.2" PrivateAssets="All" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+
         <Libraries Include="..\..\lib\TileHelper\TileHelper.csproj" />
 
         <ProjectReference Include="@(Libraries)" />

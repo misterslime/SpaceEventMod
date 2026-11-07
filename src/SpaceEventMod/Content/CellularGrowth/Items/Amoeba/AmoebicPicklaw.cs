@@ -5,6 +5,7 @@ using SpaceEventMod.Common.Splines;
 using SpaceEventMod.Common.WorldGeneration;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
@@ -21,6 +22,8 @@ internal class AmoebicPicklaw : ModItem
 {
     public override void Load()
     {
+        On_Player.ItemCheck_UseMiningTools += On_Player_ItemCheck_UseMiningTools;
+
         if (Main.netMode == NetmodeID.Server)
             return;
 
@@ -41,7 +44,16 @@ internal class AmoebicPicklaw : ModItem
         Item.useTime = Item.useAnimation = 40;
         Item.noUseGraphic = true;
         Item.noMelee = true;
+        Item.pick = 64;
         Item.useStyle = ItemUseStyleID.Shoot;
+    }
+
+    private void On_Player_ItemCheck_UseMiningTools(On_Player.orig_ItemCheck_UseMiningTools orig, Player self, Item sItem)
+    {
+        if (Main.projectile.Where(p => p.active && p.type == ModContent.ProjectileType<AmoebicPicklawProjectile>() && p.owner == self.whoAmI).Any())
+            return;
+
+        orig(self, sItem);
     }
 }
 
@@ -95,7 +107,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
     public override bool PreAI()
     {
-        if (!Projectile.TryGetOwner(out Player player))
+        if (!Projectile.TryGetOwner(out var player))
         {
             Projectile.Kill();
             return false;
@@ -147,7 +159,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
         if (onGround)
             SoundEngine.PlaySound(SoundID.Item56, Projectile.position);
 
-        if (!Projectile.TryGetOwner(out Player player))
+        if (!Projectile.TryGetOwner(out var player))
         {
             Projectile.Kill();
             return false;
@@ -182,8 +194,10 @@ internal class AmoebicPicklawProjectile : ModProjectile
             var adjacentTiles = TileDirections.SearchFromTile(nearest.X, nearest.Y, searchRadius, TileDirections.WithCorners,
                 x => WorldGen.SolidOrSlopedTile(x) && x.TileType == Main.tile[nearest].TileType);
 
+            int pickPower = ModContent.GetInstance<AmoebicPicklaw>().Item.pick;
+
             foreach (var tile in adjacentTiles.tilePositions)
-                PickTile(player, tile.X, tile.Y, player.GetBestPickaxe().pick);
+                PickTile(player, tile.X, tile.Y, pickPower);
 
             WorldGen.KillTile(nearest.X, nearest.Y, true, true, true);
             SoundEngine.PlaySound(SoundID.Item153 with { Volume = 0.4f }, Projectile.position);
@@ -196,7 +210,7 @@ internal class AmoebicPicklawProjectile : ModProjectile
     public void PickTile(Player player, int x, int y, int pickPower)
     {
         Tile tile = Main.tile[x, y];
-        if (tile.type == 504)
+        if (tile.type == TileID.MysticSnakeRope)
             return;
 
         PickTile_DetermineDamage(player, x, y, pickPower, tile, out var bufferIndex, out var damage);
@@ -207,34 +221,34 @@ internal class AmoebicPicklawProjectile : ModProjectile
         {
             AchievementsHelper.CurrentlyMining = true;
             player.ClearMiningCacheAt(x, y, 1);
-            if (Main.netMode == 1 && Main.tileContainer[Main.tile[x, y].type])
+            if (Main.netMode == NetmodeID.MultiplayerClient && Main.tileContainer[Main.tile[x, y].type])
             {
                 if (Main.tile[x, y].type == 470 || Main.tile[x, y].type == 475)
                 {
-                    NetMessage.SendData(17, -1, -1, null, 20, x, y);
+                    NetMessage.SendData(MessageID.TileManipulation, -1, -1, null, 20, x, y);
                 }
                 else
                 {
                     WorldGen.KillTile(x, y, fail: true);
-                    NetMessage.SendData(17, -1, -1, null, 0, x, y, 1f);
+                    NetMessage.SendData(MessageID.TileManipulation, -1, -1, null, 0, x, y, 1f);
                 }
 
-                if (Main.tile[x, y].type == 21 || Main.tile[x, y].type < TileID.Count && TileID.Sets.BasicChest[Main.tile[x, y].type])
-                    NetMessage.SendData(34, -1, -1, null, 1, x, y);
+                if (Main.tile[x, y].type == TileID.Containers || Main.tile[x, y].type < TileID.Count && TileID.Sets.BasicChest[Main.tile[x, y].type])
+                    NetMessage.SendData(MessageID.ChestUpdates, -1, -1, null, 1, x, y);
 
-                if (Main.tile[x, y].type == 467)
-                    NetMessage.SendData(34, -1, -1, null, 5, x, y);
+                if (Main.tile[x, y].type == TileID.Containers2)
+                    NetMessage.SendData(MessageID.ChestUpdates, -1, -1, null, 5, x, y);
 
-                if (Main.tile[x, y].type == 88)
-                    NetMessage.SendData(34, -1, -1, null, 3, x, y);
+                if (Main.tile[x, y].type == TileID.Dressers)
+                    NetMessage.SendData(MessageID.ChestUpdates, -1, -1, null, 3, x, y);
 
                 if (Main.tile[x, y].type >= TileID.Count)
                 {
                     if (TileID.Sets.BasicChest[Main.tile[x, y].type])
-                        NetMessage.SendData(34, -1, -1, null, 101, x, y, 0f, 0, Main.tile[x, y].type, 0);
+                        NetMessage.SendData(MessageID.ChestUpdates, -1, -1, null, 101, x, y, 0f, 0, Main.tile[x, y].type, 0);
 
                     if (TileID.Sets.BasicDresser[Main.tile[x, y].type])
-                        NetMessage.SendData(34, -1, -1, null, 103, x, y, 0f, 0, Main.tile[x, y].type, 0);
+                        NetMessage.SendData(MessageID.ChestUpdates, -1, -1, null, 103, x, y, 0f, 0, Main.tile[x, y].type, 0);
                 }
             }
             else
@@ -244,8 +258,8 @@ internal class AmoebicPicklawProjectile : ModProjectile
                 if (!Main.dedServ && flag && !Main.tile[x, y].active())
                     AchievementsHelper.HandleMining();
 
-                if (Main.netMode == 1)
-                    NetMessage.SendData(17, -1, -1, null, 0, x, y);
+                if (Main.netMode == NetmodeID.MultiplayerClient)
+                    NetMessage.SendData(MessageID.TileManipulation, -1, -1, null, 0, x, y);
             }
 
             AchievementsHelper.CurrentlyMining = false;
@@ -253,10 +267,10 @@ internal class AmoebicPicklawProjectile : ModProjectile
         else
         {
             WorldGen.KillTile(x, y, fail: true);
-            if (Main.netMode == 1)
+            if (Main.netMode == NetmodeID.MultiplayerClient)
             {
-                NetMessage.SendData(17, -1, -1, null, 0, x, y, 1f);
-                NetMessage.SendData(125, -1, -1, null, Main.myPlayer, x, y, damage);
+                NetMessage.SendData(MessageID.TileManipulation, -1, -1, null, 0, x, y, 1f);
+                NetMessage.SendData(MessageID.SyncTilePicking, -1, -1, null, Main.myPlayer, x, y, damage);
             }
         }
 
@@ -301,12 +315,12 @@ internal class AmoebicPicklawProjectile : ModProjectile
 
     public override bool PreDraw(ref Color lightColor)
     {
-        if (!Projectile.TryGetOwner(out Player player))
+        if (!Projectile.TryGetOwner(out var player))
             return false;
 
         Texture2D texture = TextureAssets.Projectile[Type].Value;
 
-        var handPosition = player.HandPosition.Value;
+        var handPosition = player.HandPosition is not null ? player.HandPosition.Value : player.Center;
 
         var midControlPoint = Vector2.Lerp(handPosition, Projectile.Center, 0.7f);
 

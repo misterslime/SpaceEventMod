@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Content.Miscellaneous.Dusts;
+using SpaceEventMod.Content.Miscellaneous.Gores;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
@@ -100,13 +101,27 @@ internal class WindoplastProjectile : ModProjectile
 {
     public override string Texture => "SpaceEventMod/Assets/Textures/CellularGrowth/Items/Windoplasts";
 
+    private const int PROJECTILE_FRAMES = 5;
+    private const int GORE_VARIANTS = 4;
     private const int BURST_RADIUS = 250;
     private const float KNOCKBACK_STRENGTH = 15f;
+
+
+    public override void Load()
+    {
+        for ( var i = 0; i < PROJECTILE_FRAMES;  i++)
+        {
+            for ( var j = 0; j < GORE_VARIANTS; j++)
+            {
+                GoreLoader.AddGoreFromTexture<LiquidSplattererGore>(Mod, $"SpaceEventMod/Assets/Textures/CellularGrowth/Items/WindoplastGore/WindoplastGore{i}_{j}");
+            }
+        }
+    }
 
     public override void SetStaticDefaults()
     {
         ProjectileID.Sets.Explosive[Type] = true;
-        Main.projFrames[Type] = 5;
+        Main.projFrames[Type] = PROJECTILE_FRAMES;
     }
 
     public override void SetDefaults()
@@ -194,17 +209,31 @@ internal class WindoplastProjectile : ModProjectile
 
         float velocityRotation = Main.rand.NextFloat(MathHelper.TwoPi);
 
-        int[] gores = new int[4];
+        Vector2[] goreVelocities = 
+        [
+            new Vector2(2f, 2f),
+            new Vector2(-2f, 2f),
+            new Vector2(2f, -2f),
+            new Vector2(-2f, -2f)
+        ];
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < GORE_VARIANTS; i++)
         {
-            gores[i] = Mod.Find<ModGore>($"WindoplastGore{Projectile.frame}_{i}").Type;
+            int goreType = Mod.Find<ModGore>($"WindoplastGore{Projectile.frame}_{i}").Type;
+
+            int gore = Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, goreVelocities[0].RotatedBy(velocityRotation), goreType, 1f);
+
+            var data = Main.gore[gore].TryGetData(new Color(186, 151, 255));
+
+            data.HasHitGround = false;
+            data.ShouldSpawnDust = false;
+            data.SplatColor = new Color(102, 183, 183) * 0.5f;
         }
 
-        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.5f, 1.5f).RotatedBy(velocityRotation), gores[0], 1f);
+        /*Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.5f, 1.5f).RotatedBy(velocityRotation), gores[0], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, 1.5f).RotatedBy(velocityRotation), gores[1], 1f);
         Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(1.5f, -1.5f).RotatedBy(velocityRotation), gores[2], 1f);
-        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[3], 1f);
+        Gore.NewGore(Projectile.GetSource_FromThis(), spawnPos, new Vector2(-1.5f, -1.5f).RotatedBy(velocityRotation), gores[3], 1f);*/
 
         foreach (var npc in Main.ActiveNPCs)
         {
