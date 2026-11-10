@@ -360,6 +360,11 @@ Items: {
 		DisplayName: Cellgel
 		Tooltip: ""
 	}
+
+	ThunderWizardsSmokingPipe: {
+		DisplayName: Thunder Wizards Smoking Pipe
+		Tooltip: ""
+	}
 }
 
 NPCs: {
@@ -419,6 +424,8 @@ Projectiles: {
 	BioglowstickProjectile.DisplayName: Bioglowstick Projectile
 	DiatomiteProjectile.DisplayName: Diatomite Projectile
 	WatermelonBoulder.DisplayName: Watermelon Boulder
+	ThunderWizardsSmokingPipeHeld.DisplayName: Thunder Wizards Smoking Pipe Held
+	ThunderSmoke.DisplayName: Thunder Smoke
 }
 
 Buffs: {
