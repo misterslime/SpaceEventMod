@@ -164,7 +164,7 @@ internal class MechanicalBellow : ModTile, ILoadItem
         AddMapEntry(new Color(170, 91, 68));
     }
 
-    private BellowTileEntity Entity(int i, int j)
+    private BellowTileEntity? Entity(int i, int j)
     {
         if (TileEntity.TryGet(i, j, out BellowTileEntity tileEntity))
             return tileEntity;

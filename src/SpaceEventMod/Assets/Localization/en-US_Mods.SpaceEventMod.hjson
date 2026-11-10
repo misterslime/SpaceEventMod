@@ -360,6 +360,11 @@ Items: {
 		DisplayName: Cellgel
 		Tooltip: ""
 	}
+
+	HerbCellBetterItem: {
+		DisplayName: Herb Cell Better Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
