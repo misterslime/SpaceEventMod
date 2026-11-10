@@ -63,7 +63,7 @@ internal class LiquidSplattererGore : ModGore
             dust.color = gore.SplatterGoreData!.SplatColor;
             dust.customData = 600;
         }
-        else if (oldSpawnSplatValue != gore.SplatterGoreData!.ShouldSpawnDust)
+        else if (oldSpawnSplatValue != gore.SplatterGoreData!.ShouldSpawnDust && Main.rand.NextBool(5))
         {
             Dust dust = Dust.NewDustDirect(gore.position, 0, 0, ModContent.DustType<TileSplat>(), 0f, 0f, 100, default, 1f);
             dust.velocity = Vector2.Zero;

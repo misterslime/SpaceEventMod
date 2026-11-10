@@ -76,7 +76,7 @@ internal abstract class FancyTile : ModTile
             using (TileTarget.Scope(clearColor: Color.Transparent))
             {
                 Main.spriteBatch.Begin(
-                    SpriteSortMode.Deferred,
+                    SpriteSortMode.Texture,
                     BlendState.AlphaBlend,
                     Main.DefaultSamplerState,
                     DepthStencilState.None,
@@ -100,7 +100,7 @@ internal abstract class FancyTile : ModTile
                 var paintShader = tiles.PreparePaintShader(item.Key);
 
                 PaintBatch.instance.Begin(
-                        SpriteSortMode.Deferred,
+                        SpriteSortMode.Texture,
                         BlendState.AlphaBlend,
                         Main.DefaultSamplerState,
                         DepthStencilState.None,

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Tweening;
+using System;
 using System.Linq;
 using Terraria;
 using Terraria.ModLoader;
@@ -85,9 +86,16 @@ internal class TileSplat : ModDust
                 if (dust.customData is not int lifespan)
                     continue;
 
-                var texture = DustLoader.GetDust(dust.type).Texture2D.Value;
+                var texture = DustLoader.GetDust(dust.type).Texture2D;
                 var color = dust.color * (1f - EasingFunctions.InCirc(dust.fadeIn / lifespan));
-                e.SpriteBatch.Draw(texture, dust.position - Main.screenPosition, null, color, dust.rotation, texture.Size() * 0.5f, dust.scale, 0f, 0f);
+
+                int splatAnimLength = 15;
+
+                float ratio = MathHelper.Clamp(dust.fadeIn / splatAnimLength, 0f, 1f);
+
+                Rectangle source = texture.Frame(1, 5, 0, (int)MathHelper.Lerp(0, 4, ratio));
+
+                e.SpriteBatch.Draw(texture.Value, dust.position - Main.screenPosition, source, color, dust.rotation, source.Size() * 0.5f, dust.scale, 0f, 1f - (float)dust.dustIndex / 100f);
 
             }
 
