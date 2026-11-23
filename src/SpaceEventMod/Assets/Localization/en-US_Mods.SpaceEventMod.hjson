@@ -365,6 +365,11 @@ Items: {
 		DisplayName: Thunder Wizards Smoking Pipe
 		Tooltip: ""
 	}
+
+	HerbCellBetterItem: {
+		DisplayName: Herb Cell Better Item
+		Tooltip: ""
+	}
 }
 
 NPCs: {
