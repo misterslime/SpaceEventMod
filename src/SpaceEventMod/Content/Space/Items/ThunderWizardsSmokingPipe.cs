@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceEventMod.Common.Graphics;
 using SpaceEventMod.Common.Splines;
+using SpaceEventMod.Content.Miscellaneous.Dusts;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,7 +33,7 @@ namespace SpaceEventMod.Content.Space.Items
 
             Item.channel = true;
             Item.autoReuse = true;
-            Item.UseSound = SoundID.Item7;
+            Item.UseSound = SoundID.Item34;
             Item.useStyle = ItemUseStyleID.Shoot;
             Item.useTurn = true;
             Item.mana = 35;
@@ -48,7 +49,7 @@ namespace SpaceEventMod.Content.Space.Items
             Item.noMelee = true;
         }
 
-        
+
         public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
         {
             int useTime = (int)(Item.useTime / player.GetTotalAttackSpeed(DamageClass.Magic));
@@ -62,8 +63,13 @@ namespace SpaceEventMod.Content.Space.Items
 
     public class ThunderWizardsSmokingPipeHeld : ModProjectile
     {
+
+        private const float FANNING_DEVIATION = MathHelper.PiOver4 * 0.25f;
+        private const int LIFETIME_AFTER_CHANNELED = 45;
+        private const int SHOOT_INTERVAL = 3; // number of projectiles shot should be roughly LIFETIME_AFTER_CHANNELED / SHOOT_INTERVAL
+        private const int VELOCITY_HALF_RANGE = 15;
         private ref float Charge => ref Projectile.ai[0];
-        private float ChargeTime => Projectile.ai[1]*10;
+        private float ChargeTime => Projectile.ai[1] * 10;
         private bool _primed = false;
         private Vector2 _direction = Vector2.Zero;
 
@@ -88,9 +94,9 @@ namespace SpaceEventMod.Content.Space.Items
                 return false;
             }
 
-            // part of this is from spirit reforged btw; all of this is from siphoning bow btw
-            _direction = Vector2.Lerp(_direction, (Main.MouseWorld - player.Center).SafeNormalize(Vector2.Zero), 0.2f);
-            player.ChangeDir(Main.MouseWorld.X > player.position.X ? 1 : -1);
+
+            // part of this is from spirit reforged btw
+            player.ChangeDir(_direction.X > 0 ? 1 : -1);
             player.heldProj = Projectile.whoAmI;
             player.itemTime = player.itemAnimation = 2;
             Projectile.Center = player.RotatedRelativePoint(player.Center + _direction * 12);
@@ -98,49 +104,63 @@ namespace SpaceEventMod.Content.Space.Items
             Projectile.rotation = _direction.ToRotation();
             Projectile.netUpdate = true;
 
-          if (player.channel)
+            if (player.channel)
             {
+                _direction = Vector2.Lerp(_direction, (Main.MouseWorld - player.Center).SafeNormalize(Vector2.Zero), 0.2f);
                 Charge = MathF.Min(Charge + (1 / ChargeTime), 1f);
+                Projectile.frame = (int)MathHelper.Lerp(1, 12, Charge);
+                Projectile.timeLeft = LIFETIME_AFTER_CHANNELED;
                 Main.NewText(Charge);
 
-                if (!_primed && Charge >= 2)
+                if (!_primed && Charge >= 1)
                 {
                     SoundEngine.PlaySound(SoundID.MaxMana, Projectile.Center);
                     _primed = true;
                 }
             }
-                else
+            else if (Projectile.timeLeft % (SHOOT_INTERVAL / Charge) == 0)
             {
                 Item playerWeapon = player.HeldItem;
 
-                float speed = playerWeapon.shootSpeed * Charge;
+                float speed = playerWeapon.shootSpeed * Charge + Main.rand.NextFloat(-1, 1) * VELOCITY_HALF_RANGE;
                 int damage = (int)(Projectile.damage * Charge);
                 float knockBack = Projectile.knockBack * Charge;
 
-                Vector2 shootVector = Vector2.Lerp(player.velocity/2, _direction.SafeNormalize(Vector2.Zero) * speed, 0.8f);
-               
+                float angle = _direction.ToRotation();
+
+                float x1 = 1f - Main.rand.NextFloat();
+                float x2 = 1f - Main.rand.NextFloat();
+
+                float y1 = MathF.Sqrt(-2f * MathF.Log(x1)) * MathF.Cos(2f * MathF.PI * x2);
+
+                angle = MathHelper.WrapAngle(angle + FANNING_DEVIATION * y1);
+
+
+                Vector2 shootVector = Vector2.Lerp(player.velocity, angle.ToRotationVector2() * speed, Charge);
+
+
+
                 Projectile.NewProjectileDirect(
                     Projectile.GetSource_FromThis(),
-                    player.Center,
-                    shootVector,
+                    player.Center, shootVector,
                     ModContent.ProjectileType<ThunderSmoke>(),
                     (int)Projectile.ai[2],
                     knockBack,
                     Projectile.owner,
                     0f,
                     Main.rand.Next(0, 3));
-                SoundEngine.PlaySound(SoundID.Item5, Projectile.Center);
+                SoundEngine.PlaySound(SoundID.Item34, Projectile.Center);
 
-                
+                Projectile.frame = 0;
                 Projectile.netUpdate = true;
-                Projectile.Kill();
-          }
+                //Projectile.Kill();
+            }
 
             return false;
-
         }
-
     }
+
+
 
     public class ThunderSmoke : ModProjectile
     {
@@ -150,8 +170,8 @@ namespace SpaceEventMod.Content.Space.Items
         public override void SetDefaults()
         {
             Projectile.CloneDefaults(ProjectileID.Flames);
-            Projectile.width = 30;
-            Projectile.height = 30;
+            Projectile.width = 60;
+            Projectile.height = 0;
             Projectile.aiStyle = -1;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 2000;
@@ -162,13 +182,13 @@ namespace SpaceEventMod.Content.Space.Items
             Projectile.localNPCHitCooldown = 20;
         }
 
-        public ref float Time => ref Projectile.ai[0];
-        
         public override void AI()
         {
             Projectile.velocity *= 0.95f;
 
-            Dust d = Dust.NewDustPerfect(Projectile.Center + Main.rand.NextVector2Circular(5f, 5f), DustID.Smoke, Projectile.velocity * Main.rand.NextFloat(1f, 3f) + Main.rand.NextVector2Circular(4f, 4f), Scale: Main.rand.NextFloat(1f, 2f));
+            var spawnPos = new Vector2(Projectile.position.X + Projectile.width / 2 - 24f, Projectile.position.Y + Projectile.height / 2 - 24f);
+
+            Dust d = Dust.NewDustDirect(spawnPos, 0, 0, ModContent.DustType<Azasplosion>(), 0f, 0f, 100, default, 2f);
             d.noGravity = true;
         }
         public override bool OnTileCollide(Vector2 oldVelocity)
